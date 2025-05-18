@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const Sentry = require('./instrument');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const notFoundHandler = require('./middleware/notFoundHandler');
@@ -15,6 +16,9 @@ const userRoutes = require('./routes/users');
 
 // Create Express app
 const app = express();
+
+// Init Sentry request handler (must come before all other middleware)
+app.use(Sentry.Handlers.requestHandler());
 
 // Security middleware
 app.use(helmet());
@@ -72,7 +76,10 @@ app.get('/health', (req, res) => {
 // 404 handler
 app.use(notFoundHandler);
 
-// Error handler
+// Sentry error handler - must come before any other error middleware
+app.use(Sentry.Handlers.errorHandler());
+
+// Regular error handler
 app.use(errorHandler);
 
 module.exports = app;
