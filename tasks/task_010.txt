@@ -86,3 +86,35 @@ io.to(`user:${invitation.sender_id}`).emit('invitation-response', {
 
 # Test Strategy:
 Test user search functionality with various query patterns. Verify invitation creation, listing, and response handling. Test invitation expiration logic. Verify real-time notifications are sent correctly. Test edge cases like accepting expired invitations or sending multiple invitations to the same user. Test concurrent invitation operations.
+
+# Subtasks:
+## 1. Implement User Search Functionality [pending]
+### Dependencies: None
+### Description: Create a search mechanism that allows users to find and select other users to invite
+### Details:
+Develop an API endpoint for searching users by username, email, or other identifiers. Include pagination and filtering options. Ensure search results display relevant user information like profile pictures and activity status. Implement proper security measures to prevent unauthorized access to user data.
+
+## 2. Design Invitation Creation and Storage System [pending]
+### Dependencies: 10.1
+### Description: Build functionality to create, validate, and store invitations in the database
+### Details:
+Create data models for invitations with fields for sender, recipient, timestamp, expiration date, status, and custom message. Implement an API endpoint for creating invitations with proper validation. Design a database schema that efficiently stores invitation data and supports querying by various parameters. Include logic for invitation expiration handling.
+
+## 3. Develop Invitation Listing and Management Interface [pending]
+### Dependencies: 10.2
+### Description: Create interfaces for users to view, filter, and manage their sent and received invitations
+### Details:
+Build API endpoints to retrieve sent and received invitations with filtering options. Implement pagination for invitation lists. Create functionality to cancel sent invitations or delete expired ones. Design a user interface that clearly displays invitation status, expiration, and available actions.
+
+## 4. Implement Invitation Response Handling [pending]
+### Dependencies: 10.2
+### Description: Create system to process user responses to invitations (accept/decline) and update invitation status
+### Details:
+Develop API endpoints for accepting and declining invitations. Implement validation to ensure only valid responses are processed (e.g., checking expiration). Create logic to update invitation status in the database. Design follow-up actions that occur after invitation acceptance or rejection.
+
+## 5. Integrate Real-time Notification System [pending]
+### Dependencies: 10.2, 10.4
+### Description: Connect the invitation system with WebSockets to provide real-time updates to users
+### Details:
+Implement WebSocket connections for real-time notification delivery. Create event handlers for invitation-related events (creation, response, expiration). Design notification payload structure following the notification patterns (Notification + Data). Ensure proper error handling and reconnection logic for WebSocket connections.
+

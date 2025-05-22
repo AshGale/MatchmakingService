@@ -392,7 +392,57 @@
         7
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement User Search Functionality",
+          "description": "Create a search mechanism that allows users to find and select other users to invite",
+          "dependencies": [],
+          "details": "Develop an API endpoint for searching users by username, email, or other identifiers. Include pagination and filtering options. Ensure search results display relevant user information like profile pictures and activity status. Implement proper security measures to prevent unauthorized access to user data.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Design Invitation Creation and Storage System",
+          "description": "Build functionality to create, validate, and store invitations in the database",
+          "dependencies": [
+            1
+          ],
+          "details": "Create data models for invitations with fields for sender, recipient, timestamp, expiration date, status, and custom message. Implement an API endpoint for creating invitations with proper validation. Design a database schema that efficiently stores invitation data and supports querying by various parameters. Include logic for invitation expiration handling.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Invitation Listing and Management Interface",
+          "description": "Create interfaces for users to view, filter, and manage their sent and received invitations",
+          "dependencies": [
+            2
+          ],
+          "details": "Build API endpoints to retrieve sent and received invitations with filtering options. Implement pagination for invitation lists. Create functionality to cancel sent invitations or delete expired ones. Design a user interface that clearly displays invitation status, expiration, and available actions.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Invitation Response Handling",
+          "description": "Create system to process user responses to invitations (accept/decline) and update invitation status",
+          "dependencies": [
+            2
+          ],
+          "details": "Develop API endpoints for accepting and declining invitations. Implement validation to ensure only valid responses are processed (e.g., checking expiration). Create logic to update invitation status in the database. Design follow-up actions that occur after invitation acceptance or rejection.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Integrate Real-time Notification System",
+          "description": "Connect the invitation system with WebSockets to provide real-time updates to users",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Implement WebSocket connections for real-time notification delivery. Create event handlers for invitation-related events (creation, response, expiration). Design notification payload structure following the notification patterns (Notification + Data). Ensure proper error handling and reconnection logic for WebSocket connections.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 11,
