@@ -38,19 +38,8 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Apply stricter rate limits to auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10, // limit each IP to 10 login/register attempts per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res) => {
-    logger.warn(`Auth rate limit exceeded for IP: ${req.ip}`);
-    res.status(429).json({
-      message: 'Too many authentication attempts, please try again later.'
-    });
-  }
-});
+// Import specialized rate limiters
+const rateLimiter = require('./middleware/rateLimiter');
 
 // Logging middleware
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
@@ -63,7 +52,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', rateLimiter.authLimiter, authRoutes);
 app.use('/api/lobbies', lobbyRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/users', userRoutes);

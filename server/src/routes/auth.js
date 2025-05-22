@@ -6,6 +6,7 @@ const router = express.Router();
 const UserService = require('../services/userService');
 const auth = require('../middleware/auth');
 const logger = require('../utils/logger');
+const { registrationLimiter, loginLimiter } = require('../middleware/rateLimiter');
 
 const userService = new UserService();
 
@@ -14,7 +15,7 @@ const userService = new UserService();
  * @desc Register a new user
  * @access Public
  */
-router.post('/register', [
+router.post('/register', registrationLimiter, [
   // Validation
   body('username')
     .isLength({ min: 3, max: 30 })
@@ -81,7 +82,7 @@ router.post('/register', [
  * @desc Login user
  * @access Public
  */
-router.post('/login', [
+router.post('/login', loginLimiter, [
   // Validation
   body('username').trim().not().isEmpty(),
   body('password').not().isEmpty()
