@@ -1,0 +1,300 @@
+# Task ID: 9
+# Title: Game State Management
+# Status: pending
+# Dependencies: 5, 7
+# Priority: high
+# Description: Implement game state tracking, turn management, and game progression logic
+# Details:
+Create a system for managing game state, tracking turns, enforcing turn time limits, and handling game progression. Implement logic for game creation, state updates, turn transitions, and game completion.
+
+Game service:
+```javascript
+const db = require('../db');
+const Game = require('../models/Game');
+const User = require('../models/User');
+const io = require('../socket');
+
+class GameService {
+  constructor() {
+    this.activeGames = new Map(); // Map of gameId -> game state
+    this.turnTimers = new Map(); // Map of gameId -> timer
+  }
+  
+  // Load active games from database on startup
+  async initialize() {
+    const activeGames = await Game.findAllActive();
+    for (const game of activeGames) {
+      this.loadGame(game.id);
+    }
+  }
+  
+  // Load a game into memory
+  async loadGame(gameId) {
+    const game = await Game.findById(gameId);
+    if (!game || game.status === 'completed') return null;
+    
+    const players = await Game.getPlayers(gameId);
+    const gameState = {
+      id: game.id,
+      status: game.status,
+      players,
+      currentTurn: game.turn_player_id,
+      turnStartedAt: game.turn_started_at,
+      // Additional game state properties
+    };
+    
+    this.activeGames.set(gameId, gameState);
+    this.startTurnTimer(gameId);
+    
+    return gameState;
+  }
+  
+  // Create a new game
+  async createGame(playerIds) {
+    // Validate players
+    if (playerIds.length < 2) {
+      throw new Error('At least 2 players required');
+    }
+    
+    // Start a database transaction
+    const client = await db.getClient();
+    try {
+      await client.query('BEGIN');
+      
+      // Create game record
+      const gameResult = await client.query(
+        'INSERT INTO games (status, turn_player_id, turn_started_at) VALUES ($1, $2, $3) RETURNING id',
+        ['active', playerIds[0], new Date()]
+      );
+      
+      const gameId = gameResult.rows[0].id;
+      
+      // Add players to game
+      for (const playerId of playerIds) {
+        const playerResult = await client.query('SELECT elo_rating FROM users WHERE id = $1', [playerId]);
+        const initialElo = playerResult.rows[0].elo_rating;
+        
+        await client.query(
+          'INSERT INTO game_players (game_id, user_id, initial_elo) VALUES ($1, $2, $3)',
+          [gameId, playerId, initialElo]
+        );
+      }
+      
+      await client.query('COMMIT');
+      
+      // Load the game into memory
+      const gameState = await this.loadGame(gameId);
+      
+      // Notify players
+      for (const playerId of playerIds) {
+        io.to(`user:${playerId}`).emit('game-started', { gameId });
+      }
+      
+      return gameState;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+  
+  // Start turn timer
+  startTurnTimer(gameId) {
+    // Clear existing timer if any
+    if (this.turnTimers.has(gameId)) {
+      clearTimeout(this.turnTimers.get(gameId));
+    }
+    
+    const game = this.activeGames.get(gameId);
+    if (!game || game.status !== 'active') return;
+    
+    // Calculate remaining time
+    const turnStartedAt = new Date(game.turnStartedAt).getTime();
+    const now = Date.now();
+    const turnDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const remainingTime = Math.max(0, turnDuration - (now - turnStartedAt));
+    
+    // Set timer to auto-advance turn if time expires
+    const timer = setTimeout(async () => {
+      await this.handleTurnTimeout(gameId);
+    }, remainingTime);
+    
+    this.turnTimers.set(gameId, timer);
+  }
+  
+  // Handle turn timeout
+  async handleTurnTimeout(gameId) {
+    const game = this.activeGames.get(gameId);
+    if (!game || game.status !== 'active') return;
+    
+    // Auto-advance turn
+    await this.advanceTurn(gameId, { timeout: true });
+    
+    // Notify players
+    io.to(`game:${gameId}`).emit('turn-timeout', {
+      gameId,
+      playerId: game.currentTurn
+    });
+  }
+  
+  // Process a player's move
+  async processMove(gameId, playerId, moveData) {
+    const game = this.activeGames.get(gameId);
+    if (!game || game.status !== 'active') {
+      throw new Error('Game not active');
+    }
+    
+    if (game.currentTurn !== playerId) {
+      throw new Error('Not your turn');
+    }
+    
+    // Process move logic here
+    // ...
+    
+    // Record move in history
+    await Game.recordMove(gameId, playerId, moveData);
+    
+    // Check for game completion
+    const isGameOver = false; // Determine based on game rules
+    if (isGameOver) {
+      await this.completeGame(gameId, { winner: playerId });
+    } else {
+      // Advance to next player's turn
+      await this.advanceTurn(gameId, { moveData });
+    }
+    
+    return this.activeGames.get(gameId);
+  }
+  
+  // Advance to next player's turn
+  async advanceTurn(gameId, options = {}) {
+    const game = this.activeGames.get(gameId);
+    if (!game || game.status !== 'active') return;
+    
+    // Determine next player
+    const currentPlayerIndex = game.players.findIndex(p => p.id === game.currentTurn);
+    const nextPlayerIndex = (currentPlayerIndex + 1) % game.players.length;
+    const nextPlayerId = game.players[nextPlayerIndex].id;
+    
+    // Update game state
+    game.currentTurn = nextPlayerId;
+    game.turnStartedAt = new Date();
+    
+    // Update database
+    await Game.updateTurn(gameId, nextPlayerId);
+    
+    // Restart turn timer
+    this.startTurnTimer(gameId);
+    
+    // Notify players
+    io.to(`game:${gameId}`).emit('turn-changed', {
+      gameId,
+      playerId: nextPlayerId,
+      previousPlayerId: game.players[currentPlayerIndex].id,
+      timeout: options.timeout || false
+    });
+  }
+  
+  // Complete a game
+  async completeGame(gameId, result) {
+    const game = this.activeGames.get(gameId);
+    if (!game) return;
+    
+    // Update game status
+    game.status = 'completed';
+    
+    // Clear turn timer
+    if (this.turnTimers.has(gameId)) {
+      clearTimeout(this.turnTimers.get(gameId));
+      this.turnTimers.delete(gameId);
+    }
+    
+    // Update database
+    await Game.complete(gameId, result);
+    
+    // Update Elo ratings
+    await this.updateEloRatings(gameId, result);
+    
+    // Notify players
+    io.to(`game:${gameId}`).emit('game-completed', {
+      gameId,
+      result
+    });
+    
+    // Remove from active games
+    this.activeGames.delete(gameId);
+  }
+  
+  // Update Elo ratings based on game result
+  async updateEloRatings(gameId, result) {
+    const players = await Game.getPlayers(gameId);
+    
+    // Simple Elo calculation example
+    if (result.winner && players.length === 2) {
+      const winner = players.find(p => p.user_id === result.winner);
+      const loser = players.find(p => p.user_id !== result.winner);
+      
+      if (winner && loser) {
+        const kFactor = 32;
+        const expectedScoreWinner = 1 / (1 + Math.pow(10, (loser.initial_elo - winner.initial_elo) / 400));
+        const expectedScoreLoser = 1 - expectedScoreWinner;
+        
+        const newEloWinner = Math.round(winner.initial_elo + kFactor * (1 - expectedScoreWinner));
+        const newEloLoser = Math.round(loser.initial_elo + kFactor * (0 - expectedScoreLoser));
+        
+        // Update player Elo ratings
+        await User.updateElo(winner.user_id, newEloWinner);
+        await User.updateElo(loser.user_id, newEloLoser);
+        
+        // Update final Elo in game_players
+        await Game.updatePlayerElo(gameId, winner.user_id, newEloWinner);
+        await Game.updatePlayerElo(gameId, loser.user_id, newEloLoser);
+      }
+    }
+  }
+}
+
+module.exports = new GameService();
+```
+
+# Test Strategy:
+Test game creation with valid and invalid player combinations. Verify turn management works correctly, including turn transitions and time limits. Test move processing with valid and invalid moves. Verify game completion logic and Elo rating updates. Test concurrent game operations. Verify game state persistence and recovery after server restart.
+
+# Subtasks:
+## 1. Game Creation and Initialization [pending]
+### Dependencies: None
+### Description: Design and implement logic to create a new game instance, initialize game state, assign players, and set up any required resources or data structures.
+### Details:
+This includes setting up the initial board or environment, assigning player roles, and storing the initial state in the database.
+
+## 2. Turn Management and Validation [pending]
+### Dependencies: 9.1
+### Description: Implement mechanisms to track whose turn it is, validate turn order, and ensure only the correct player can act at any given time.
+### Details:
+This involves updating the active player, checking for valid actions, and preventing out-of-turn moves.
+
+## 3. Move Processing and State Updates [pending]
+### Dependencies: 9.2
+### Description: Process player moves, validate their legality, and update the game state accordingly, including persisting changes to the database.
+### Details:
+This includes applying game rules, updating the board or state, and triggering any side effects or notifications.
+
+## 4. Turn Timeout Handling [pending]
+### Dependencies: 9.2
+### Description: Detect and handle cases where a player exceeds their allowed turn time, enforcing penalties or auto-forfeits as needed.
+### Details:
+This requires timers, timeout checks, and logic to update the game state or notify players when a timeout occurs.
+
+## 5. Game Completion Logic [pending]
+### Dependencies: 9.3, 9.4
+### Description: Determine when the game has ended, identify the winner or draw, and finalize the game state.
+### Details:
+This includes checking win/draw conditions after each move or timeout, updating the game status, and triggering end-of-game events.
+
+## 6. Integration with Elo Rating Updates [pending]
+### Dependencies: 9.5
+### Description: Update player Elo ratings based on the game outcome, ensuring accurate and atomic updates in coordination with game completion.
+### Details:
+This involves calculating new ratings, updating player profiles, and ensuring consistency with the finalized game result.
+

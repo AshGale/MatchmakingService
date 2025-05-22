@@ -1,0 +1,256 @@
+# Task ID: 15
+# Title: System Testing and Documentation
+# Status: pending
+# Dependencies: 3, 6, 7, 8, 9, 10, 11, 12, 13, 14
+# Priority: medium
+# Description: Create comprehensive test suite and documentation for the match-making server
+# Details:
+Develop a comprehensive test suite for the match-making server, including unit tests, integration tests, and end-to-end tests. Create documentation for API endpoints, WebSocket events, and deployment procedures.
+
+Test suite structure:
+```
+/tests
+  /unit
+    /models
+    /services
+    /utils
+  /integration
+    /api
+    /websocket
+    /database
+  /e2e
+    /auth
+    /lobbies
+    /matchmaking
+    /games
+```
+
+Example unit test for Elo service:
+```javascript
+const { expect } = require('chai');
+const EloService = require('../../src/services/elo');
+
+describe('EloService', () => {
+  describe('calculateExpectedScore', () => {
+    it('should return 0.5 for equal ratings', () => {
+      const result = EloService.calculateExpectedScore(1200, 1200);
+      expect(result).to.equal(0.5);
+    });
+    
+    it('should return higher probability for higher rated player', () => {
+      const result = EloService.calculateExpectedScore(1400, 1200);
+      expect(result).to.be.greaterThan(0.5);
+    });
+    
+    it('should return lower probability for lower rated player', () => {
+      const result = EloService.calculateExpectedScore(1000, 1200);
+      expect(result).to.be.lessThan(0.5);
+    });
+  });
+  
+  describe('calculateNewRating', () => {
+    it('should increase rating for win against equal opponent', () => {
+      const newRating = EloService.calculateNewRating(1200, 1200, 1, 50);
+      expect(newRating).to.be.greaterThan(1200);
+    });
+    
+    it('should decrease rating for loss against equal opponent', () => {
+      const newRating = EloService.calculateNewRating(1200, 1200, 0, 50);
+      expect(newRating).to.be.lessThan(1200);
+    });
+    
+    it('should use higher K-factor for new players', () => {
+      const newPlayerWin = EloService.calculateNewRating(1200, 1200, 1, 10);
+      const experiencedPlayerWin = EloService.calculateNewRating(1200, 1200, 1, 200);
+      expect(newPlayerWin - 1200).to.be.greaterThan(experiencedPlayerWin - 1200);
+    });
+  });
+});
+```
+
+API documentation structure:
+```markdown
+# Match-Making Server API Documentation
+
+## Authentication
+
+### POST /api/auth/register
+Register a new user account.
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "number",
+  "username": "string",
+  "token": "string",
+  "refreshToken": "string"
+}
+```
+
+### POST /api/auth/login
+Authenticate a user and receive access tokens.
+
+**Request Body:**
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "number",
+  "username": "string",
+  "token": "string",
+  "refreshToken": "string"
+}
+```
+
+## Lobbies
+
+### GET /api/lobbies
+Get a list of all available lobbies.
+
+**Response:**
+```json
+[
+  {
+    "id": "number",
+    "name": "string",
+    "creatorId": "number",
+    "creatorUsername": "string",
+    "playerCount": "number",
+    "maxPlayers": "number",
+    "status": "string",
+    "createdAt": "string"
+  }
+]
+```
+
+// Additional endpoints documented similarly
+```
+
+WebSocket events documentation:
+```markdown
+# WebSocket Events
+
+## Connection
+Connect to the WebSocket server with authentication token:
+```javascript
+const socket = io('http://localhost', {
+  auth: {
+    token: 'your-jwt-token'
+  }
+});
+```
+
+## Events from Server
+
+### 'user-joined'
+Emitted when a user joins a lobby.
+
+**Payload:**
+```json
+{
+  "userId": "number",
+  "lobbyId": "number"
+}
+```
+
+### 'user-left'
+Emitted when a user leaves a lobby.
+
+**Payload:**
+```json
+{
+  "userId": "number",
+  "lobbyId": "number"
+}
+```
+
+// Additional events documented similarly
+```
+
+Deployment documentation:
+```markdown
+# Deployment Guide
+
+## Prerequisites
+- Windows 10
+- Docker Desktop
+- Git (optional)
+
+## Installation Steps
+1. Clone the repository or download the source code
+2. Navigate to the project directory
+3. Create a `.env` file with required environment variables (see below)
+4. Run `docker-compose up -d` to start the containers
+5. Access the application at http://localhost
+
+## Environment Variables
+```
+DB_USER=appuser
+DB_PASSWORD=your-secure-password
+DB_NAME=matchmaking
+JWT_SECRET=your-jwt-secret
+JWT_REFRESH_SECRET=your-refresh-secret
+```
+
+## Backup and Restore
+Database data is persisted in a Docker volume. To backup the database:
+
+```bash
+docker exec -t matchmaking-db pg_dump -U appuser matchmaking > backup.sql
+```
+
+To restore from backup:
+
+```bash
+cat backup.sql | docker exec -i matchmaking-db psql -U appuser matchmaking
+```
+```
+
+# Test Strategy:
+Verify all tests pass and provide adequate coverage of the codebase. Test documentation for accuracy and completeness. Verify deployment instructions work on a clean Windows 10 system. Test backup and restore procedures to ensure data persistence. Verify API documentation matches actual implementation.
+
+# Subtasks:
+## 1. Unit Test Suite Implementation [pending]
+### Dependencies: None
+### Description: Develop comprehensive unit tests for individual components of the system
+### Details:
+Create test cases that verify the functionality of each component in isolation. Include test case documentation with descriptions, procedures, and expected results. Maintain test logs for execution tracking and create test reports summarizing results.
+
+## 2. Integration Test Suite Implementation [pending]
+### Dependencies: 15.1
+### Description: Develop tests to verify interactions between connected components
+### Details:
+Design test scenarios that validate the correct interaction between system components. Document integration points, data flows, and expected behaviors. Create comprehensive test logs and reports to track integration test execution and results.
+
+## 3. End-to-End Test Implementation [pending]
+### Dependencies: 15.1, 15.2
+### Description: Create tests that validate complete system workflows from start to finish
+### Details:
+Develop test scenarios that simulate real user journeys through the entire system. Document test cases with detailed steps, test data requirements, and expected outcomes. Generate test summary reports to evaluate overall system quality and readiness.
+
+## 4. API Documentation Creation [pending]
+### Dependencies: 15.1, 15.2
+### Description: Create comprehensive documentation for all system APIs
+### Details:
+Document all API endpoints, request/response formats, authentication requirements, and error handling. Include usage examples and integration guidelines. Ensure documentation is clear, consistent, and follows company standards for technical documentation.
+
+## 5. Deployment Documentation [pending]
+### Dependencies: 15.3, 15.4
+### Description: Create detailed documentation for the deployment process
+### Details:
+Document the complete deployment workflow including environment setup, configuration requirements, and step-by-step deployment instructions. Include version control information, rollback procedures, and post-deployment verification steps. Create a test summary report confirming deployment readiness.
+

@@ -1,0 +1,99 @@
+# Task ID: 11
+# Title: Elo Rating System Implementation
+# Status: pending
+# Dependencies: 5, 9
+# Priority: medium
+# Description: Implement Elo rating calculation and update system for tracking player skill levels
+# Details:
+Create a service for calculating and updating Elo ratings based on game outcomes. Implement the standard Elo formula with appropriate K-factors based on player experience levels.
+
+Elo service:
+```javascript
+class EloService {
+  constructor() {
+    this.defaultRating = 1200;
+    this.kFactors = {
+      new: 40,      // For players with < 30 games
+      standard: 32, // For players with 30-100 games
+      established: 24 // For players with > 100 games
+    };
+  }
+  
+  // Calculate expected score (probability of winning)
+  calculateExpectedScore(playerRating, opponentRating) {
+    return 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+  }
+  
+  // Determine K-factor based on player's game count
+  getKFactor(gameCount) {
+    if (gameCount < 30) return this.kFactors.new;
+    if (gameCount < 100) return this.kFactors.standard;
+    return this.kFactors.established;
+  }
+  
+  // Calculate new rating after a game
+  calculateNewRating(playerRating, opponentRating, actualScore, playerGameCount) {
+    const expectedScore = this.calculateExpectedScore(playerRating, opponentRating);
+    const kFactor = this.getKFactor(playerGameCount);
+    return Math.round(playerRating + kFactor * (actualScore - expectedScore));
+  }
+  
+  // Calculate ratings for both players after a game
+  calculateRatings(player1, player2, result) {
+    // result: 1 = player1 wins, 0 = player2 wins, 0.5 = draw
+    const player1ExpectedScore = this.calculateExpectedScore(player1.rating, player2.rating);
+    const player2ExpectedScore = 1 - player1ExpectedScore;
+    
+    const player1KFactor = this.getKFactor(player1.gameCount);
+    const player2KFactor = this.getKFactor(player2.gameCount);
+    
+    const player1NewRating = Math.round(player1.rating + player1KFactor * (result - player1ExpectedScore));
+    const player2NewRating = Math.round(player2.rating + player2KFactor * ((1 - result) - player2ExpectedScore));
+    
+    return {
+      player1NewRating,
+      player2NewRating,
+      player1Change: player1NewRating - player1.rating,
+      player2Change: player2NewRating - player2.rating
+    };
+  }
+  
+  // Handle special cases like forfeits, disconnections
+  handleSpecialCase(type, player1, player2) {
+    switch (type) {
+      case 'forfeit':
+        // Player who forfeits loses, but with reduced rating impact
+        return this.calculateRatings(player1, player2, 0);
+      
+      case 'disconnect':
+        // Disconnecting player loses, unless game just started
+        if (player1.turnCount + player2.turnCount < 3) {
+          // Game just started, no rating change
+          return {
+            player1NewRating: player1.rating,
+            player2NewRating: player2.rating,
+            player1Change: 0,
+            player2Change: 0
+          };
+        } else {
+          // Normal loss for disconnecting player
+          return this.calculateRatings(player1, player2, 0);
+        }
+      
+      case 'draw':
+        // Draw is a 0.5 result
+        return this.calculateRatings(player1, player2, 0.5);
+      
+      default:
+        return this.calculateRatings(player1, player2, 0);
+    }
+  }
+}
+
+module.exports = new EloService();
+```
+
+Integrate this service with the game completion logic to update player ratings after each game.
+
+# Test Strategy:
+Test Elo calculation with various rating differences and outcomes. Verify K-factor selection based on game count. Test special case handling for forfeits, disconnections, and draws. Verify rating changes are reasonable and follow expected patterns. Test edge cases like new players vs. established players.

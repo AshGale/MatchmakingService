@@ -1,0 +1,80 @@
+# Task ID: 4
+# Title: Express.js Server Setup
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Set up Node.js server with Express.js framework, middleware configuration, and API route structure
+# Details:
+Initialize Node.js project with Express.js framework. Configure middleware for request parsing, CORS, logging, error handling, and security. Set up API route structure following RESTful principles.
+
+Project structure:
+```
+/app
+  /src
+    /controllers
+    /middleware
+    /models
+    /routes
+    /services
+    /utils
+    app.js
+    server.js
+  package.json
+  Dockerfile
+```
+
+Key middleware to include:
+- express.json() for request body parsing
+- helmet for security headers
+- cors for Cross-Origin Resource Sharing
+- morgan for request logging
+- express-rate-limit for rate limiting
+- custom error handling middleware
+
+Example app.js:
+```javascript
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+
+const authRoutes = require('./routes/auth');
+const lobbyRoutes = require('./routes/lobbies');
+const gameRoutes = require('./routes/games');
+
+const app = express();
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(morgan('dev'));
+
+// Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', apiLimiter);
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/lobbies', lobbyRoutes);
+app.use('/api/games', gameRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message || 'Internal Server Error'
+    }
+  });
+});
+
+module.exports = app;
+```
+
+# Test Strategy:
+Test server startup and shutdown. Verify middleware functions correctly by sending various request types. Test rate limiting by exceeding the configured limits. Verify error handling by triggering various error conditions. Test API route structure with endpoint availability checks.

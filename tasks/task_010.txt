@@ -1,0 +1,88 @@
+# Task ID: 10
+# Title: Direct Invitation System
+# Status: pending
+# Dependencies: 5, 7
+# Priority: medium
+# Description: Implement functionality for players to send and respond to direct game invitations
+# Details:
+Create a system for players to search for other users, send game invitations, and respond to received invitations. Implement invitation expiration and notification mechanisms.
+
+API Endpoints:
+- GET /api/users/search?username=query - Search for users by username
+- POST /api/invitations - Send a game invitation
+- GET /api/invitations - List received invitations
+- POST /api/invitations/:id/accept - Accept an invitation
+- POST /api/invitations/:id/decline - Decline an invitation
+
+Invitation model:
+```javascript
+const db = require('../db');
+
+class Invitation {
+  static async create(senderId, recipientId) {
+    // Check if there's already an active invitation
+    const existing = await db.query(
+      'SELECT * FROM invitations WHERE sender_id = $1 AND recipient_id = $2 AND status = $3 AND expires_at > NOW()',
+      [senderId, recipientId, 'pending']
+    );
+    
+    if (existing.rows.length > 0) {
+      return existing.rows[0];
+    }
+    
+    // Create new invitation with 5-minute expiration
+    const result = await db.query(
+      `INSERT INTO invitations 
+       (sender_id, recipient_id, status, created_at, expires_at) 
+       VALUES ($1, $2, $3, NOW(), NOW() + INTERVAL '5 minutes') 
+       RETURNING *`,
+      [senderId, recipientId, 'pending']
+    );
+    
+    return result.rows[0];
+  }
+  
+  static async findPendingForUser(userId) {
+    const result = await db.query(
+      `SELECT i.*, u.username as sender_username 
+       FROM invitations i 
+       JOIN users u ON i.sender_id = u.id 
+       WHERE i.recipient_id = $1 AND i.status = $2 AND i.expires_at > NOW()`,
+      [userId, 'pending']
+    );
+    
+    return result.rows;
+  }
+  
+  static async findById(id) {
+    const result = await db.query('SELECT * FROM invitations WHERE id = $1', [id]);
+    return result.rows[0];
+  }
+  
+  static async updateStatus(id, status) {
+    const result = await db.query(
+      'UPDATE invitations SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+    
+    return result.rows[0];
+  }
+}
+
+module.exports = Invitation;
+```
+
+Implement WebSocket events for real-time invitation notifications:
+```javascript
+// When sending an invitation
+io.to(`user:${recipientId}`).emit('invitation-received', invitation);
+
+// When accepting/declining an invitation
+io.to(`user:${invitation.sender_id}`).emit('invitation-response', {
+  invitationId: invitation.id,
+  status: 'accepted' // or 'declined'
+});
+```
+
+# Test Strategy:
+Test user search functionality with various query patterns. Verify invitation creation, listing, and response handling. Test invitation expiration logic. Verify real-time notifications are sent correctly. Test edge cases like accepting expired invitations or sending multiple invitations to the same user. Test concurrent invitation operations.

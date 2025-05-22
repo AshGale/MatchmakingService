@@ -1,0 +1,129 @@
+# Task ID: 8
+# Title: Match-Making Algorithm
+# Status: pending
+# Dependencies: 5, 7
+# Priority: medium
+# Description: Implement match-making algorithm based on Elo ratings for quick match functionality
+# Details:
+Develop a match-making algorithm that pairs players with similar Elo ratings. Implement a queue system for players waiting for matches and logic to expand the acceptable rating range over time if no match is found quickly.
+
+Match-making service:
+```javascript
+class MatchMakingService {
+  constructor() {
+    this.waitingPlayers = []; // Array of {userId, eloRating, joinedAt, rangeMultiplier}
+  }
+  
+  // Add a player to the waiting queue
+  addToQueue(userId, eloRating) {
+    // Check if player is already in queue
+    const existingIndex = this.waitingPlayers.findIndex(p => p.userId === userId);
+    if (existingIndex >= 0) {
+      return false; // Already in queue
+    }
+    
+    this.waitingPlayers.push({
+      userId,
+      eloRating,
+      joinedAt: Date.now(),
+      rangeMultiplier: 1.0 // Will increase over time
+    });
+    
+    // Try to find a match immediately
+    return this.findMatch(userId);
+  }
+  
+  // Remove a player from the waiting queue
+  removeFromQueue(userId) {
+    const index = this.waitingPlayers.findIndex(p => p.userId === userId);
+    if (index >= 0) {
+      this.waitingPlayers.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+  
+  // Find a match for a player
+  findMatch(userId) {
+    const playerIndex = this.waitingPlayers.findIndex(p => p.userId === userId);
+    if (playerIndex < 0) return null;
+    
+    const player = this.waitingPlayers[playerIndex];
+    const baseRange = 200; // Base Elo range to look for opponents
+    const adjustedRange = baseRange * player.rangeMultiplier;
+    
+    // Find closest Elo match within range
+    let bestMatch = null;
+    let smallestEloDiff = Infinity;
+    
+    for (let i = 0; i < this.waitingPlayers.length; i++) {
+      if (i === playerIndex) continue; // Skip self
+      
+      const potentialMatch = this.waitingPlayers[i];
+      const eloDiff = Math.abs(player.eloRating - potentialMatch.eloRating);
+      
+      if (eloDiff <= adjustedRange && eloDiff < smallestEloDiff) {
+        bestMatch = potentialMatch;
+        smallestEloDiff = eloDiff;
+      }
+    }
+    
+    if (bestMatch) {
+      // Remove both players from queue
+      this.removeFromQueue(player.userId);
+      this.removeFromQueue(bestMatch.userId);
+      
+      // Return the match
+      return {
+        players: [player.userId, bestMatch.userId],
+        eloDifference: smallestEloDiff
+      };
+    }
+    
+    return null;
+  }
+  
+  // Periodically update waiting players (increase range multiplier over time)
+  updateWaitingPlayers() {
+    const now = Date.now();
+    for (const player of this.waitingPlayers) {
+      const waitTime = (now - player.joinedAt) / 1000; // in seconds
+      // Increase range multiplier by 0.5 every 30 seconds, up to a maximum of 5
+      player.rangeMultiplier = Math.min(5.0, 1.0 + Math.floor(waitTime / 30) * 0.5);
+    }
+  }
+}
+
+module.exports = new MatchMakingService();
+```
+
+Implement a scheduled task to periodically call `updateWaitingPlayers()` and attempt to find matches for all waiting players.
+
+# Test Strategy:
+Test match-making with players of similar and different Elo ratings. Verify range expansion works correctly over time. Test edge cases like empty queue, single player in queue, and many players with varied ratings. Measure match-making efficiency (time to match) under different scenarios. Test concurrent queue operations.
+
+# Subtasks:
+## 1. Player Queue Management [pending]
+### Dependencies: None
+### Description: Design and implement a system to manage the queue of players waiting for a match. This includes adding new players to the queue, updating their status, and efficiently removing them once matched.
+### Details:
+Ensure the queue can handle high concurrency and scale for millions of users. Store player information such as status and skill rating. Consider using a database or in-memory data structure for fast access.
+
+## 2. Elo-Based Matching Logic [pending]
+### Dependencies: 8.1
+### Description: Develop the core logic to pair players based on their Elo or skill rating, ensuring fair and balanced matches.
+### Details:
+Implement algorithms to compare player ratings and select optimal pairs or groups. Ensure the logic can efficiently process the queue and handle edge cases such as rating outliers.
+
+## 3. Time-Based Range Expansion [pending]
+### Dependencies: 8.2
+### Description: Add functionality to expand the acceptable skill rating range for matching as players wait longer in the queue.
+### Details:
+Track each player's wait time and dynamically adjust their matching criteria to increase the likelihood of finding a match over time, balancing fairness and queue times.
+
+## 4. Match Creation and Player Notification [pending]
+### Dependencies: 8.3
+### Description: Implement the process for creating matches from selected players and notifying them to join the game.
+### Details:
+Once a match is found, remove players from the queue, create a match instance, and send notifications (e.g., via websocket or push) to all matched players with connection details.
+

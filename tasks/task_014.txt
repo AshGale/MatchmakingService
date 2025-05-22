@@ -1,0 +1,73 @@
+# Task ID: 14
+# Title: Caddy Reverse Proxy Configuration
+# Status: pending
+# Dependencies: 1
+# Priority: medium
+# Description: Configure Caddy as a reverse proxy for the Node.js application with HTTPS support
+# Details:
+Configure Caddy as a reverse proxy for the Node.js application. Set up HTTPS with automatic certificate management, request routing, and WebSocket support.
+
+Caddyfile configuration:
+```
+# Basic site configuration
+{
+  # Global options
+  admin off # Disable admin API for security
+  persist_config off # Don't persist config changes to disk
+  auto_https off # Disable automatic HTTPS for local development
+}
+
+# Main site configuration
+localhost {
+  # Log requests to stdout
+  log {
+    output stdout
+    format console
+  }
+  
+  # Handle WebSocket connections
+  @websockets {
+    header Connection *Upgrade*
+    header Upgrade websocket
+  }
+  
+  # Reverse proxy for WebSocket connections
+  reverse_proxy @websockets {
+    to app:3000
+    header_up Host {host}
+    header_up X-Real-IP {remote}
+    header_up X-Forwarded-For {remote}
+    header_up X-Forwarded-Proto {scheme}
+  }
+  
+  # Reverse proxy for HTTP requests
+  reverse_proxy {
+    to app:3000
+    header_up Host {host}
+    header_up X-Real-IP {remote}
+    header_up X-Forwarded-For {remote}
+    header_up X-Forwarded-Proto {scheme}
+  }
+  
+  # Basic security headers
+  header {
+    # Enable HSTS
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    # Disable content-type sniffing
+    X-Content-Type-Options "nosniff"
+    # Enable XSS protection
+    X-XSS-Protection "1; mode=block"
+    # Prevent clickjacking
+    X-Frame-Options "DENY"
+    # Control referrer information
+    Referrer-Policy "strict-origin-when-cross-origin"
+    # Remove Server header
+    -Server
+  }
+}
+```
+
+For production deployment, modify the Caddyfile to enable automatic HTTPS and configure domain-specific settings.
+
+# Test Strategy:
+Test reverse proxy functionality by accessing the application through Caddy. Verify WebSocket connections work correctly through the proxy. Test HTTP header modifications and security headers. Verify logging configuration works as expected. For production deployment, test HTTPS certificate acquisition and renewal.

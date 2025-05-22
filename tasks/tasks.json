@@ -1,0 +1,526 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Docker Environment",
+      "description": "Configure Docker and Docker Compose for the match-making server deployment on Windows 10",
+      "details": "Create Docker Compose configuration with services for Node.js application server, PostgreSQL database, and Caddy reverse proxy. Configure appropriate network settings, volume mappings for data persistence, and environment variables. Ensure the setup works with standard user privileges on Windows 10.\n\nDocker Compose file structure:\n```yaml\nversion: '3.8'\nservices:\n  app:\n    build: ./app\n    depends_on:\n      - db\n    environment:\n      - NODE_ENV=production\n      - DB_HOST=db\n      - DB_PORT=5432\n      - DB_NAME=matchmaking\n      - DB_USER=appuser\n      - DB_PASSWORD=<password>\n      - JWT_SECRET=<secret>\n    volumes:\n      - ./app:/usr/src/app\n    restart: unless-stopped\n\n  db:\n    image: postgres:latest\n    environment:\n      - POSTGRES_USER=appuser\n      - POSTGRES_PASSWORD=<password>\n      - POSTGRES_DB=matchmaking\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n    restart: unless-stopped\n\n  caddy:\n    image: caddy:latest\n    ports:\n      - \"80:80\"\n      - \"443:443\"\n    volumes:\n      - ./Caddyfile:/etc/caddy/Caddyfile\n      - caddy_data:/data\n      - caddy_config:/config\n    depends_on:\n      - app\n    restart: unless-stopped\n\nvolumes:\n  postgres_data:\n  caddy_data:\n  caddy_config:\n```",
+      "testStrategy": "Verify Docker Compose setup by running 'docker-compose up' and confirming all containers start successfully. Test network connectivity between containers. Verify volume persistence by restarting containers and checking data retention. Ensure the setup works with standard user privileges on Windows 10.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Install and Configure Docker on Windows 10",
+          "description": "Download Docker Desktop for Windows 10, run the installer, enable required features (such as Hyper-V or WSL 2), and complete the initial configuration. Ensure the user is added to the 'docker-users' group and verify Docker is running.",
+          "dependencies": [],
+          "details": "Follow official Docker Desktop installation steps, including system prerequisites (64-bit processor, 4GB RAM), and post-installation user group configuration. Restart the system if necessary.[1][5]",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Create Dockerfile for Node.js Application",
+          "description": "Write a Dockerfile that defines the build steps for the Node.js application, including setting the base image, copying source code, installing dependencies, and specifying the start command.",
+          "dependencies": [
+            1
+          ],
+          "details": "Ensure the Dockerfile exposes the correct ports and uses best practices for Node.js containerization (e.g., multi-stage builds, .dockerignore).",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Configure PostgreSQL Database Service",
+          "description": "Set up a PostgreSQL service for Docker, including environment variables for user, password, and database name, and configure persistent storage using Docker volumes.",
+          "dependencies": [
+            1
+          ],
+          "details": "Prepare a section for PostgreSQL in the Docker Compose file, ensuring secure credentials and data persistence.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Set Up Caddy Reverse Proxy Service",
+          "description": "Configure a Caddy service in Docker to act as a reverse proxy for the Node.js application, including necessary Caddyfile configuration and port mappings.",
+          "dependencies": [
+            2
+          ],
+          "details": "Write a Caddyfile to route HTTP/HTTPS traffic to the Node.js container, and ensure the Caddy service is included in Docker Compose.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Configure Docker Compose Networks and Volumes",
+          "description": "Define Docker Compose networks for inter-service communication and volumes for persistent data storage, ensuring all services are correctly connected and data is retained across container restarts.",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Edit the docker-compose.yml file to specify named networks and volumes, and verify that all services (Node.js, PostgreSQL, Caddy) are properly networked and have access to required volumes.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Database Schema Design",
+      "description": "Design and implement PostgreSQL database schema for users, lobbies, games, and Elo ratings",
+      "details": "Create SQL scripts for database schema initialization with tables for users, lobbies, active games, game history, and Elo ratings. Implement appropriate relationships, constraints, and indexes.\n\nKey tables:\n1. users (id, username, password_hash, elo_rating, created_at, updated_at)\n2. lobbies (id, name, creator_id, max_players, created_at, status)\n3. lobby_members (lobby_id, user_id, joined_at)\n4. games (id, status, started_at, completed_at, turn_player_id, turn_started_at)\n5. game_players (game_id, user_id, initial_elo, final_elo, result)\n6. game_history (id, game_id, turn_number, player_id, move_data, timestamp)\n\nExample SQL:\n```sql\nCREATE TABLE users (\n  id SERIAL PRIMARY KEY,\n  username VARCHAR(50) UNIQUE NOT NULL,\n  password_hash VARCHAR(255) NOT NULL,\n  elo_rating INTEGER NOT NULL DEFAULT 1200,\n  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,\n  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE TABLE lobbies (\n  id SERIAL PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  creator_id INTEGER REFERENCES users(id) ON DELETE CASCADE,\n  max_players INTEGER NOT NULL DEFAULT 2,\n  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,\n  status VARCHAR(20) NOT NULL DEFAULT 'open'\n);\n\n-- Additional tables follow similar pattern\n```\n\nImplement appropriate indexes for common query patterns and constraints to maintain data integrity.",
+      "testStrategy": "Validate schema with test data insertion and retrieval. Test foreign key constraints by attempting to violate them. Verify indexes improve query performance using EXPLAIN ANALYZE. Test concurrent operations to ensure data integrity is maintained. Verify backup and restore procedures work correctly.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "User Authentication System",
+      "description": "Implement secure user registration and authentication with Argon2 password hashing and JWT token management",
+      "details": "Create authentication routes and middleware for user registration, login, and token management. Use Argon2 for password hashing and JWT for session management. Implement refresh token mechanism for persistent authentication.\n\nRequired npm packages:\n- argon2\n- jsonwebtoken\n- express\n- express-validator\n\nImplementation steps:\n1. Create registration endpoint with username/password validation\n2. Implement Argon2 password hashing before storage\n3. Create login endpoint that verifies credentials and issues JWT\n4. Implement JWT middleware for protected routes\n5. Create refresh token mechanism\n6. Implement rate limiting for login attempts\n\nExample code for password hashing:\n```javascript\nconst argon2 = require('argon2');\n\nasync function hashPassword(password) {\n  return await argon2.hash(password, {\n    type: argon2.argon2id,\n    memoryCost: 2**16,\n    timeCost: 3,\n    parallelism: 1\n  });\n}\n\nasync function verifyPassword(hash, password) {\n  return await argon2.verify(hash, password);\n}\n```\n\nExample JWT implementation:\n```javascript\nconst jwt = require('jsonwebtoken');\n\nfunction generateTokens(userId) {\n  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '1h' });\n  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });\n  return { accessToken, refreshToken };\n}\n\nfunction verifyToken(token) {\n  try {\n    return jwt.verify(token, process.env.JWT_SECRET);\n  } catch (error) {\n    return null;\n  }\n}\n```",
+      "testStrategy": "Test registration with valid and invalid inputs. Verify password hashing is secure by attempting to reverse-engineer hashes. Test login with correct and incorrect credentials. Verify JWT token validation and expiration. Test refresh token functionality. Verify rate limiting blocks excessive login attempts. Test concurrent authentication requests for race conditions.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement User Registration Endpoint with Validation",
+          "description": "Create a secure sign-up process with proper input validation and data encryption",
+          "dependencies": [],
+          "details": "Develop a registration endpoint that collects necessary user information, validates inputs (email format, password strength), implements HTTPS encryption, and returns appropriate responses. Include email verification process to confirm user identity before account activation.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement Argon2 Password Hashing",
+          "description": "Set up secure password storage using Argon2 hashing algorithm",
+          "dependencies": [
+            1
+          ],
+          "details": "Create a password hashing service using Argon2id algorithm with appropriate memory, time cost, and parallelism parameters. Implement password verification functionality and ensure proper storage of hashed passwords without including hash options in the database.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Login Endpoint with JWT Generation",
+          "description": "Create authentication endpoint that validates credentials and issues JWT tokens",
+          "dependencies": [
+            2
+          ],
+          "details": "Build a login endpoint that verifies user credentials against stored hashed passwords, generates JWT tokens with appropriate payload and expiration time, and returns tokens to authenticated users. Implement proper error handling for invalid credentials.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement JWT Middleware for Protected Routes",
+          "description": "Create middleware to validate JWT tokens for protected API routes",
+          "dependencies": [
+            3
+          ],
+          "details": "Develop middleware that extracts JWT from request headers, validates token signature and expiration, and provides access to protected routes only for authenticated users. Include proper error responses for invalid or expired tokens.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Create Refresh Token Mechanism",
+          "description": "Implement secure token refresh functionality to maintain user sessions",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Design and implement a refresh token system that issues long-lived refresh tokens alongside short-lived access tokens. Create an endpoint to exchange valid refresh tokens for new access tokens, implement token rotation for security, and build token revocation capabilities.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Implement Rate Limiting for Security",
+          "description": "Add rate limiting to authentication endpoints to prevent brute force attacks",
+          "dependencies": [
+            3,
+            5
+          ],
+          "details": "Implement IP-based and account-based rate limiting for login and token refresh endpoints. Configure appropriate time windows and request limits, add response headers to indicate rate limit status, and implement proper logging of rate limit violations for security monitoring.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Express.js Server Setup",
+      "description": "Set up Node.js server with Express.js framework, middleware configuration, and API route structure",
+      "details": "Initialize Node.js project with Express.js framework. Configure middleware for request parsing, CORS, logging, error handling, and security. Set up API route structure following RESTful principles.\n\nProject structure:\n```\n/app\n  /src\n    /controllers\n    /middleware\n    /models\n    /routes\n    /services\n    /utils\n    app.js\n    server.js\n  package.json\n  Dockerfile\n```\n\nKey middleware to include:\n- express.json() for request body parsing\n- helmet for security headers\n- cors for Cross-Origin Resource Sharing\n- morgan for request logging\n- express-rate-limit for rate limiting\n- custom error handling middleware\n\nExample app.js:\n```javascript\nconst express = require('express');\nconst helmet = require('helmet');\nconst cors = require('cors');\nconst morgan = require('morgan');\nconst rateLimit = require('express-rate-limit');\n\nconst authRoutes = require('./routes/auth');\nconst lobbyRoutes = require('./routes/lobbies');\nconst gameRoutes = require('./routes/games');\n\nconst app = express();\n\n// Middleware\napp.use(helmet());\napp.use(cors());\napp.use(express.json());\napp.use(morgan('dev'));\n\n// Rate limiting\nconst apiLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100 // limit each IP to 100 requests per windowMs\n});\napp.use('/api/', apiLimiter);\n\n// Routes\napp.use('/api/auth', authRoutes);\napp.use('/api/lobbies', lobbyRoutes);\napp.use('/api/games', gameRoutes);\n\n// Error handling middleware\napp.use((err, req, res, next) => {\n  console.error(err.stack);\n  res.status(err.status || 500).json({\n    error: {\n      message: err.message || 'Internal Server Error'\n    }\n  });\n});\n\nmodule.exports = app;\n```",
+      "testStrategy": "Test server startup and shutdown. Verify middleware functions correctly by sending various request types. Test rate limiting by exceeding the configured limits. Verify error handling by triggering various error conditions. Test API route structure with endpoint availability checks.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Database Connection and Models",
+      "description": "Implement database connection with connection pooling and create data models for interacting with the PostgreSQL database",
+      "details": "Set up PostgreSQL connection with connection pooling for efficient database access. Create data models that represent database tables and implement methods for CRUD operations.\n\nUse node-postgres (pg) with connection pooling:\n```javascript\nconst { Pool } = require('pg');\n\nconst pool = new Pool({\n  host: process.env.DB_HOST,\n  port: process.env.DB_PORT,\n  database: process.env.DB_NAME,\n  user: process.env.DB_USER,\n  password: process.env.DB_PASSWORD,\n  max: 20, // Maximum number of clients in the pool\n  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds\n  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection not established\n});\n\npool.on('error', (err) => {\n  console.error('Unexpected error on idle client', err);\n  process.exit(-1);\n});\n\nmodule.exports = {\n  query: (text, params) => pool.query(text, params),\n  getClient: async () => {\n    const client = await pool.connect();\n    const query = client.query;\n    const release = client.release;\n    \n    // Set a timeout of 5 seconds, after which we will log this client's last query\n    const timeout = setTimeout(() => {\n      console.error('A client has been checked out for more than 5 seconds!');\n      console.error(`The last executed query on this client was: ${client.lastQuery}`);\n    }, 5000);\n    \n    // Monkey patch the query method to keep track of the last query executed\n    client.query = (...args) => {\n      client.lastQuery = args;\n      return query.apply(client, args);\n    };\n    \n    client.release = () => {\n      clearTimeout(timeout);\n      client.query = query;\n      client.release = release;\n      return release.apply(client);\n    };\n    \n    return client;\n  }\n};\n```\n\nCreate model classes for each entity (User, Lobby, Game, etc.) with methods for database operations. Use parameterized queries to prevent SQL injection.\n\nExample User model:\n```javascript\nconst db = require('../db');\nconst argon2 = require('argon2');\n\nclass User {\n  static async create(username, password) {\n    const passwordHash = await argon2.hash(password);\n    const result = await db.query(\n      'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, elo_rating, created_at',\n      [username, passwordHash]\n    );\n    return result.rows[0];\n  }\n  \n  static async findByUsername(username) {\n    const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);\n    return result.rows[0];\n  }\n  \n  static async updateElo(userId, newElo) {\n    const result = await db.query(\n      'UPDATE users SET elo_rating = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, username, elo_rating',\n      [newElo, userId]\n    );\n    return result.rows[0];\n  }\n  \n  // Additional methods for user operations\n}\n\nmodule.exports = User;\n```",
+      "testStrategy": "Test database connection establishment and error handling. Verify connection pooling works under load by simulating multiple concurrent requests. Test each model method with valid and invalid inputs. Verify parameterized queries prevent SQL injection by attempting malicious inputs. Test transaction handling for operations that require multiple queries.",
+      "priority": "high",
+      "dependencies": [
+        2,
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Lobby Management System",
+      "description": "Implement API endpoints and business logic for creating, browsing, joining, and managing game lobbies",
+      "details": "Create RESTful API endpoints and business logic for lobby management. Implement functionality for creating lobbies, listing available lobbies, joining lobbies, and starting games from lobbies.\n\nAPI Endpoints:\n- POST /api/lobbies - Create a new lobby\n- GET /api/lobbies - List all available lobbies\n- GET /api/lobbies/:id - Get details of a specific lobby\n- POST /api/lobbies/:id/join - Join a lobby\n- DELETE /api/lobbies/:id/leave - Leave a lobby\n- POST /api/lobbies/:id/start - Start a game from a lobby\n\nExample lobby controller:\n```javascript\nconst Lobby = require('../models/Lobby');\nconst { authenticateUser } = require('../middleware/auth');\n\nconst router = express.Router();\n\n// Create a new lobby\nrouter.post('/', authenticateUser, async (req, res, next) => {\n  try {\n    const { name, maxPlayers } = req.body;\n    const userId = req.user.id;\n    \n    const lobby = await Lobby.create(name, userId, maxPlayers || 2);\n    \n    return res.status(201).json(lobby);\n  } catch (error) {\n    next(error);\n  }\n});\n\n// List all available lobbies\nrouter.get('/', async (req, res, next) => {\n  try {\n    const lobbies = await Lobby.findAll();\n    return res.json(lobbies);\n  } catch (error) {\n    next(error);\n  }\n});\n\n// Join a lobby\nrouter.post('/:id/join', authenticateUser, async (req, res, next) => {\n  try {\n    const lobbyId = req.params.id;\n    const userId = req.user.id;\n    \n    const result = await Lobby.addMember(lobbyId, userId);\n    \n    return res.json(result);\n  } catch (error) {\n    next(error);\n  }\n});\n\n// Additional routes for lobby management\n```\n\nImplement validation for all inputs and proper error handling for edge cases like joining full lobbies or starting games with insufficient players.",
+      "testStrategy": "Test lobby creation with valid and invalid parameters. Verify lobby listing returns correct data. Test joining and leaving lobbies with various scenarios (empty lobby, full lobby, etc.). Test starting games from lobbies with sufficient and insufficient players. Verify proper error handling for all edge cases. Test concurrent operations like multiple users joining the same lobby simultaneously.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        5
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "WebSocket Integration",
+      "description": "Implement WebSocket server for real-time communication between clients and server",
+      "details": "Set up WebSocket server using Socket.IO or native WebSockets for real-time communication. Implement event handling for lobby updates, game state changes, turn notifications, and chat messages.\n\nUsing Socket.IO:\n```javascript\nconst http = require('http');\nconst socketIo = require('socket.io');\nconst jwt = require('jsonwebtoken');\nconst app = require('./app');\n\nconst server = http.createServer(app);\nconst io = socketIo(server, {\n  cors: {\n    origin: '*', // Configure according to your security requirements\n    methods: ['GET', 'POST']\n  }\n});\n\n// Middleware to authenticate socket connections\nio.use((socket, next) => {\n  const token = socket.handshake.auth.token;\n  if (!token) {\n    return next(new Error('Authentication error: Token missing'));\n  }\n  \n  try {\n    const decoded = jwt.verify(token, process.env.JWT_SECRET);\n    socket.user = decoded;\n    next();\n  } catch (error) {\n    return next(new Error('Authentication error: Invalid token'));\n  }\n});\n\n// Connection handler\nio.on('connection', (socket) => {\n  console.log(`User connected: ${socket.user.userId}`);\n  \n  // Join user to a room with their ID for direct messages\n  socket.join(`user:${socket.user.userId}`);\n  \n  // Handle lobby events\n  socket.on('join-lobby', (lobbyId) => {\n    socket.join(`lobby:${lobbyId}`);\n    io.to(`lobby:${lobbyId}`).emit('user-joined', { userId: socket.user.userId, lobbyId });\n  });\n  \n  socket.on('leave-lobby', (lobbyId) => {\n    socket.leave(`lobby:${lobbyId}`);\n    io.to(`lobby:${lobbyId}`).emit('user-left', { userId: socket.user.userId, lobbyId });\n  });\n  \n  // Handle game events\n  socket.on('join-game', (gameId) => {\n    socket.join(`game:${gameId}`);\n  });\n  \n  socket.on('game-move', (data) => {\n    // Process move and broadcast to other players\n    io.to(`game:${data.gameId}`).emit('move-made', data);\n  });\n  \n  // Handle disconnection\n  socket.on('disconnect', () => {\n    console.log(`User disconnected: ${socket.user.userId}`);\n    // Handle cleanup if needed\n  });\n});\n\nserver.listen(process.env.PORT || 3000, () => {\n  console.log(`Server running on port ${process.env.PORT || 3000}`);\n});\n```\n\nImplement event handlers for all real-time features required by the application. Ensure proper error handling and reconnection logic.",
+      "testStrategy": "Test WebSocket connection establishment and authentication. Verify event emission and reception for all implemented events. Test room joining and leaving functionality. Verify broadcast messages reach all intended recipients. Test reconnection handling after client disconnection. Measure message delivery latency to ensure it meets performance requirements (<100ms).",
+      "priority": "high",
+      "dependencies": [
+        4
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "WebSocket Server Setup with Authentication",
+          "description": "Implement a secure WebSocket server with token-based authentication",
+          "dependencies": [],
+          "details": "Create a WebSocket server using a library like 'ws' for Node.js. Implement token-based authentication by validating credentials during the connection handshake. Use either query parameters, HTTP headers, or a message-based authentication system. Ensure connections are terminated if authentication fails.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Room Management System",
+          "description": "Develop a system to manage users, lobbies, and game rooms",
+          "dependencies": [
+            1
+          ],
+          "details": "Create data structures to track users, lobbies, and active games. Implement functions for creating/joining/leaving rooms, with appropriate access controls. Design a system to associate WebSocket connections with specific rooms and handle room state persistence.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Lobby Event Handling",
+          "description": "Implement event handlers for lobby-related activities",
+          "dependencies": [
+            2
+          ],
+          "details": "Create handlers for lobby events such as user joining/leaving, lobby creation/deletion, and chat messages. Implement broadcasting mechanisms to notify all relevant users of lobby state changes. Ensure proper validation of incoming lobby event messages.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Game State Event Handling",
+          "description": "Develop handlers for game state changes and player actions",
+          "dependencies": [
+            2
+          ],
+          "details": "Implement handlers for game-specific events like moves, actions, and state changes. Create a system to validate game actions against game rules. Design efficient state synchronization to broadcast game updates to all players in a room.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Connection Management and Error Handling",
+          "description": "Implement robust connection management with error recovery",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Create systems to handle disconnections, reconnections, and connection timeouts. Implement error handling for various failure scenarios. Design logging for debugging and monitoring. Develop strategies for graceful degradation during server issues.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Match-Making Algorithm",
+      "description": "Implement match-making algorithm based on Elo ratings for quick match functionality",
+      "details": "Develop a match-making algorithm that pairs players with similar Elo ratings. Implement a queue system for players waiting for matches and logic to expand the acceptable rating range over time if no match is found quickly.\n\nMatch-making service:\n```javascript\nclass MatchMakingService {\n  constructor() {\n    this.waitingPlayers = []; // Array of {userId, eloRating, joinedAt, rangeMultiplier}\n  }\n  \n  // Add a player to the waiting queue\n  addToQueue(userId, eloRating) {\n    // Check if player is already in queue\n    const existingIndex = this.waitingPlayers.findIndex(p => p.userId === userId);\n    if (existingIndex >= 0) {\n      return false; // Already in queue\n    }\n    \n    this.waitingPlayers.push({\n      userId,\n      eloRating,\n      joinedAt: Date.now(),\n      rangeMultiplier: 1.0 // Will increase over time\n    });\n    \n    // Try to find a match immediately\n    return this.findMatch(userId);\n  }\n  \n  // Remove a player from the waiting queue\n  removeFromQueue(userId) {\n    const index = this.waitingPlayers.findIndex(p => p.userId === userId);\n    if (index >= 0) {\n      this.waitingPlayers.splice(index, 1);\n      return true;\n    }\n    return false;\n  }\n  \n  // Find a match for a player\n  findMatch(userId) {\n    const playerIndex = this.waitingPlayers.findIndex(p => p.userId === userId);\n    if (playerIndex < 0) return null;\n    \n    const player = this.waitingPlayers[playerIndex];\n    const baseRange = 200; // Base Elo range to look for opponents\n    const adjustedRange = baseRange * player.rangeMultiplier;\n    \n    // Find closest Elo match within range\n    let bestMatch = null;\n    let smallestEloDiff = Infinity;\n    \n    for (let i = 0; i < this.waitingPlayers.length; i++) {\n      if (i === playerIndex) continue; // Skip self\n      \n      const potentialMatch = this.waitingPlayers[i];\n      const eloDiff = Math.abs(player.eloRating - potentialMatch.eloRating);\n      \n      if (eloDiff <= adjustedRange && eloDiff < smallestEloDiff) {\n        bestMatch = potentialMatch;\n        smallestEloDiff = eloDiff;\n      }\n    }\n    \n    if (bestMatch) {\n      // Remove both players from queue\n      this.removeFromQueue(player.userId);\n      this.removeFromQueue(bestMatch.userId);\n      \n      // Return the match\n      return {\n        players: [player.userId, bestMatch.userId],\n        eloDifference: smallestEloDiff\n      };\n    }\n    \n    return null;\n  }\n  \n  // Periodically update waiting players (increase range multiplier over time)\n  updateWaitingPlayers() {\n    const now = Date.now();\n    for (const player of this.waitingPlayers) {\n      const waitTime = (now - player.joinedAt) / 1000; // in seconds\n      // Increase range multiplier by 0.5 every 30 seconds, up to a maximum of 5\n      player.rangeMultiplier = Math.min(5.0, 1.0 + Math.floor(waitTime / 30) * 0.5);\n    }\n  }\n}\n\nmodule.exports = new MatchMakingService();\n```\n\nImplement a scheduled task to periodically call `updateWaitingPlayers()` and attempt to find matches for all waiting players.",
+      "testStrategy": "Test match-making with players of similar and different Elo ratings. Verify range expansion works correctly over time. Test edge cases like empty queue, single player in queue, and many players with varied ratings. Measure match-making efficiency (time to match) under different scenarios. Test concurrent queue operations.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        7
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Player Queue Management",
+          "description": "Design and implement a system to manage the queue of players waiting for a match. This includes adding new players to the queue, updating their status, and efficiently removing them once matched.",
+          "dependencies": [],
+          "details": "Ensure the queue can handle high concurrency and scale for millions of users. Store player information such as status and skill rating. Consider using a database or in-memory data structure for fast access.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Elo-Based Matching Logic",
+          "description": "Develop the core logic to pair players based on their Elo or skill rating, ensuring fair and balanced matches.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement algorithms to compare player ratings and select optimal pairs or groups. Ensure the logic can efficiently process the queue and handle edge cases such as rating outliers.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Time-Based Range Expansion",
+          "description": "Add functionality to expand the acceptable skill rating range for matching as players wait longer in the queue.",
+          "dependencies": [
+            2
+          ],
+          "details": "Track each player's wait time and dynamically adjust their matching criteria to increase the likelihood of finding a match over time, balancing fairness and queue times.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Match Creation and Player Notification",
+          "description": "Implement the process for creating matches from selected players and notifying them to join the game.",
+          "dependencies": [
+            3
+          ],
+          "details": "Once a match is found, remove players from the queue, create a match instance, and send notifications (e.g., via websocket or push) to all matched players with connection details.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Game State Management",
+      "description": "Implement game state tracking, turn management, and game progression logic",
+      "details": "Create a system for managing game state, tracking turns, enforcing turn time limits, and handling game progression. Implement logic for game creation, state updates, turn transitions, and game completion.\n\nGame service:\n```javascript\nconst db = require('../db');\nconst Game = require('../models/Game');\nconst User = require('../models/User');\nconst io = require('../socket');\n\nclass GameService {\n  constructor() {\n    this.activeGames = new Map(); // Map of gameId -> game state\n    this.turnTimers = new Map(); // Map of gameId -> timer\n  }\n  \n  // Load active games from database on startup\n  async initialize() {\n    const activeGames = await Game.findAllActive();\n    for (const game of activeGames) {\n      this.loadGame(game.id);\n    }\n  }\n  \n  // Load a game into memory\n  async loadGame(gameId) {\n    const game = await Game.findById(gameId);\n    if (!game || game.status === 'completed') return null;\n    \n    const players = await Game.getPlayers(gameId);\n    const gameState = {\n      id: game.id,\n      status: game.status,\n      players,\n      currentTurn: game.turn_player_id,\n      turnStartedAt: game.turn_started_at,\n      // Additional game state properties\n    };\n    \n    this.activeGames.set(gameId, gameState);\n    this.startTurnTimer(gameId);\n    \n    return gameState;\n  }\n  \n  // Create a new game\n  async createGame(playerIds) {\n    // Validate players\n    if (playerIds.length < 2) {\n      throw new Error('At least 2 players required');\n    }\n    \n    // Start a database transaction\n    const client = await db.getClient();\n    try {\n      await client.query('BEGIN');\n      \n      // Create game record\n      const gameResult = await client.query(\n        'INSERT INTO games (status, turn_player_id, turn_started_at) VALUES ($1, $2, $3) RETURNING id',\n        ['active', playerIds[0], new Date()]\n      );\n      \n      const gameId = gameResult.rows[0].id;\n      \n      // Add players to game\n      for (const playerId of playerIds) {\n        const playerResult = await client.query('SELECT elo_rating FROM users WHERE id = $1', [playerId]);\n        const initialElo = playerResult.rows[0].elo_rating;\n        \n        await client.query(\n          'INSERT INTO game_players (game_id, user_id, initial_elo) VALUES ($1, $2, $3)',\n          [gameId, playerId, initialElo]\n        );\n      }\n      \n      await client.query('COMMIT');\n      \n      // Load the game into memory\n      const gameState = await this.loadGame(gameId);\n      \n      // Notify players\n      for (const playerId of playerIds) {\n        io.to(`user:${playerId}`).emit('game-started', { gameId });\n      }\n      \n      return gameState;\n    } catch (error) {\n      await client.query('ROLLBACK');\n      throw error;\n    } finally {\n      client.release();\n    }\n  }\n  \n  // Start turn timer\n  startTurnTimer(gameId) {\n    // Clear existing timer if any\n    if (this.turnTimers.has(gameId)) {\n      clearTimeout(this.turnTimers.get(gameId));\n    }\n    \n    const game = this.activeGames.get(gameId);\n    if (!game || game.status !== 'active') return;\n    \n    // Calculate remaining time\n    const turnStartedAt = new Date(game.turnStartedAt).getTime();\n    const now = Date.now();\n    const turnDuration = 5 * 60 * 1000; // 5 minutes in milliseconds\n    const remainingTime = Math.max(0, turnDuration - (now - turnStartedAt));\n    \n    // Set timer to auto-advance turn if time expires\n    const timer = setTimeout(async () => {\n      await this.handleTurnTimeout(gameId);\n    }, remainingTime);\n    \n    this.turnTimers.set(gameId, timer);\n  }\n  \n  // Handle turn timeout\n  async handleTurnTimeout(gameId) {\n    const game = this.activeGames.get(gameId);\n    if (!game || game.status !== 'active') return;\n    \n    // Auto-advance turn\n    await this.advanceTurn(gameId, { timeout: true });\n    \n    // Notify players\n    io.to(`game:${gameId}`).emit('turn-timeout', {\n      gameId,\n      playerId: game.currentTurn\n    });\n  }\n  \n  // Process a player's move\n  async processMove(gameId, playerId, moveData) {\n    const game = this.activeGames.get(gameId);\n    if (!game || game.status !== 'active') {\n      throw new Error('Game not active');\n    }\n    \n    if (game.currentTurn !== playerId) {\n      throw new Error('Not your turn');\n    }\n    \n    // Process move logic here\n    // ...\n    \n    // Record move in history\n    await Game.recordMove(gameId, playerId, moveData);\n    \n    // Check for game completion\n    const isGameOver = false; // Determine based on game rules\n    if (isGameOver) {\n      await this.completeGame(gameId, { winner: playerId });\n    } else {\n      // Advance to next player's turn\n      await this.advanceTurn(gameId, { moveData });\n    }\n    \n    return this.activeGames.get(gameId);\n  }\n  \n  // Advance to next player's turn\n  async advanceTurn(gameId, options = {}) {\n    const game = this.activeGames.get(gameId);\n    if (!game || game.status !== 'active') return;\n    \n    // Determine next player\n    const currentPlayerIndex = game.players.findIndex(p => p.id === game.currentTurn);\n    const nextPlayerIndex = (currentPlayerIndex + 1) % game.players.length;\n    const nextPlayerId = game.players[nextPlayerIndex].id;\n    \n    // Update game state\n    game.currentTurn = nextPlayerId;\n    game.turnStartedAt = new Date();\n    \n    // Update database\n    await Game.updateTurn(gameId, nextPlayerId);\n    \n    // Restart turn timer\n    this.startTurnTimer(gameId);\n    \n    // Notify players\n    io.to(`game:${gameId}`).emit('turn-changed', {\n      gameId,\n      playerId: nextPlayerId,\n      previousPlayerId: game.players[currentPlayerIndex].id,\n      timeout: options.timeout || false\n    });\n  }\n  \n  // Complete a game\n  async completeGame(gameId, result) {\n    const game = this.activeGames.get(gameId);\n    if (!game) return;\n    \n    // Update game status\n    game.status = 'completed';\n    \n    // Clear turn timer\n    if (this.turnTimers.has(gameId)) {\n      clearTimeout(this.turnTimers.get(gameId));\n      this.turnTimers.delete(gameId);\n    }\n    \n    // Update database\n    await Game.complete(gameId, result);\n    \n    // Update Elo ratings\n    await this.updateEloRatings(gameId, result);\n    \n    // Notify players\n    io.to(`game:${gameId}`).emit('game-completed', {\n      gameId,\n      result\n    });\n    \n    // Remove from active games\n    this.activeGames.delete(gameId);\n  }\n  \n  // Update Elo ratings based on game result\n  async updateEloRatings(gameId, result) {\n    const players = await Game.getPlayers(gameId);\n    \n    // Simple Elo calculation example\n    if (result.winner && players.length === 2) {\n      const winner = players.find(p => p.user_id === result.winner);\n      const loser = players.find(p => p.user_id !== result.winner);\n      \n      if (winner && loser) {\n        const kFactor = 32;\n        const expectedScoreWinner = 1 / (1 + Math.pow(10, (loser.initial_elo - winner.initial_elo) / 400));\n        const expectedScoreLoser = 1 - expectedScoreWinner;\n        \n        const newEloWinner = Math.round(winner.initial_elo + kFactor * (1 - expectedScoreWinner));\n        const newEloLoser = Math.round(loser.initial_elo + kFactor * (0 - expectedScoreLoser));\n        \n        // Update player Elo ratings\n        await User.updateElo(winner.user_id, newEloWinner);\n        await User.updateElo(loser.user_id, newEloLoser);\n        \n        // Update final Elo in game_players\n        await Game.updatePlayerElo(gameId, winner.user_id, newEloWinner);\n        await Game.updatePlayerElo(gameId, loser.user_id, newEloLoser);\n      }\n    }\n  }\n}\n\nmodule.exports = new GameService();\n```",
+      "testStrategy": "Test game creation with valid and invalid player combinations. Verify turn management works correctly, including turn transitions and time limits. Test move processing with valid and invalid moves. Verify game completion logic and Elo rating updates. Test concurrent game operations. Verify game state persistence and recovery after server restart.",
+      "priority": "high",
+      "dependencies": [
+        5,
+        7
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Game Creation and Initialization",
+          "description": "Design and implement logic to create a new game instance, initialize game state, assign players, and set up any required resources or data structures.",
+          "dependencies": [],
+          "details": "This includes setting up the initial board or environment, assigning player roles, and storing the initial state in the database.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Turn Management and Validation",
+          "description": "Implement mechanisms to track whose turn it is, validate turn order, and ensure only the correct player can act at any given time.",
+          "dependencies": [
+            1
+          ],
+          "details": "This involves updating the active player, checking for valid actions, and preventing out-of-turn moves.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Move Processing and State Updates",
+          "description": "Process player moves, validate their legality, and update the game state accordingly, including persisting changes to the database.",
+          "dependencies": [
+            2
+          ],
+          "details": "This includes applying game rules, updating the board or state, and triggering any side effects or notifications.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Turn Timeout Handling",
+          "description": "Detect and handle cases where a player exceeds their allowed turn time, enforcing penalties or auto-forfeits as needed.",
+          "dependencies": [
+            2
+          ],
+          "details": "This requires timers, timeout checks, and logic to update the game state or notify players when a timeout occurs.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Game Completion Logic",
+          "description": "Determine when the game has ended, identify the winner or draw, and finalize the game state.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "This includes checking win/draw conditions after each move or timeout, updating the game status, and triggering end-of-game events.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Integration with Elo Rating Updates",
+          "description": "Update player Elo ratings based on the game outcome, ensuring accurate and atomic updates in coordination with game completion.",
+          "dependencies": [
+            5
+          ],
+          "details": "This involves calculating new ratings, updating player profiles, and ensuring consistency with the finalized game result.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Direct Invitation System",
+      "description": "Implement functionality for players to send and respond to direct game invitations",
+      "details": "Create a system for players to search for other users, send game invitations, and respond to received invitations. Implement invitation expiration and notification mechanisms.\n\nAPI Endpoints:\n- GET /api/users/search?username=query - Search for users by username\n- POST /api/invitations - Send a game invitation\n- GET /api/invitations - List received invitations\n- POST /api/invitations/:id/accept - Accept an invitation\n- POST /api/invitations/:id/decline - Decline an invitation\n\nInvitation model:\n```javascript\nconst db = require('../db');\n\nclass Invitation {\n  static async create(senderId, recipientId) {\n    // Check if there's already an active invitation\n    const existing = await db.query(\n      'SELECT * FROM invitations WHERE sender_id = $1 AND recipient_id = $2 AND status = $3 AND expires_at > NOW()',\n      [senderId, recipientId, 'pending']\n    );\n    \n    if (existing.rows.length > 0) {\n      return existing.rows[0];\n    }\n    \n    // Create new invitation with 5-minute expiration\n    const result = await db.query(\n      `INSERT INTO invitations \n       (sender_id, recipient_id, status, created_at, expires_at) \n       VALUES ($1, $2, $3, NOW(), NOW() + INTERVAL '5 minutes') \n       RETURNING *`,\n      [senderId, recipientId, 'pending']\n    );\n    \n    return result.rows[0];\n  }\n  \n  static async findPendingForUser(userId) {\n    const result = await db.query(\n      `SELECT i.*, u.username as sender_username \n       FROM invitations i \n       JOIN users u ON i.sender_id = u.id \n       WHERE i.recipient_id = $1 AND i.status = $2 AND i.expires_at > NOW()`,\n      [userId, 'pending']\n    );\n    \n    return result.rows;\n  }\n  \n  static async findById(id) {\n    const result = await db.query('SELECT * FROM invitations WHERE id = $1', [id]);\n    return result.rows[0];\n  }\n  \n  static async updateStatus(id, status) {\n    const result = await db.query(\n      'UPDATE invitations SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',\n      [status, id]\n    );\n    \n    return result.rows[0];\n  }\n}\n\nmodule.exports = Invitation;\n```\n\nImplement WebSocket events for real-time invitation notifications:\n```javascript\n// When sending an invitation\nio.to(`user:${recipientId}`).emit('invitation-received', invitation);\n\n// When accepting/declining an invitation\nio.to(`user:${invitation.sender_id}`).emit('invitation-response', {\n  invitationId: invitation.id,\n  status: 'accepted' // or 'declined'\n});\n```",
+      "testStrategy": "Test user search functionality with various query patterns. Verify invitation creation, listing, and response handling. Test invitation expiration logic. Verify real-time notifications are sent correctly. Test edge cases like accepting expired invitations or sending multiple invitations to the same user. Test concurrent invitation operations.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        7
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Elo Rating System Implementation",
+      "description": "Implement Elo rating calculation and update system for tracking player skill levels",
+      "details": "Create a service for calculating and updating Elo ratings based on game outcomes. Implement the standard Elo formula with appropriate K-factors based on player experience levels.\n\nElo service:\n```javascript\nclass EloService {\n  constructor() {\n    this.defaultRating = 1200;\n    this.kFactors = {\n      new: 40,      // For players with < 30 games\n      standard: 32, // For players with 30-100 games\n      established: 24 // For players with > 100 games\n    };\n  }\n  \n  // Calculate expected score (probability of winning)\n  calculateExpectedScore(playerRating, opponentRating) {\n    return 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));\n  }\n  \n  // Determine K-factor based on player's game count\n  getKFactor(gameCount) {\n    if (gameCount < 30) return this.kFactors.new;\n    if (gameCount < 100) return this.kFactors.standard;\n    return this.kFactors.established;\n  }\n  \n  // Calculate new rating after a game\n  calculateNewRating(playerRating, opponentRating, actualScore, playerGameCount) {\n    const expectedScore = this.calculateExpectedScore(playerRating, opponentRating);\n    const kFactor = this.getKFactor(playerGameCount);\n    return Math.round(playerRating + kFactor * (actualScore - expectedScore));\n  }\n  \n  // Calculate ratings for both players after a game\n  calculateRatings(player1, player2, result) {\n    // result: 1 = player1 wins, 0 = player2 wins, 0.5 = draw\n    const player1ExpectedScore = this.calculateExpectedScore(player1.rating, player2.rating);\n    const player2ExpectedScore = 1 - player1ExpectedScore;\n    \n    const player1KFactor = this.getKFactor(player1.gameCount);\n    const player2KFactor = this.getKFactor(player2.gameCount);\n    \n    const player1NewRating = Math.round(player1.rating + player1KFactor * (result - player1ExpectedScore));\n    const player2NewRating = Math.round(player2.rating + player2KFactor * ((1 - result) - player2ExpectedScore));\n    \n    return {\n      player1NewRating,\n      player2NewRating,\n      player1Change: player1NewRating - player1.rating,\n      player2Change: player2NewRating - player2.rating\n    };\n  }\n  \n  // Handle special cases like forfeits, disconnections\n  handleSpecialCase(type, player1, player2) {\n    switch (type) {\n      case 'forfeit':\n        // Player who forfeits loses, but with reduced rating impact\n        return this.calculateRatings(player1, player2, 0);\n      \n      case 'disconnect':\n        // Disconnecting player loses, unless game just started\n        if (player1.turnCount + player2.turnCount < 3) {\n          // Game just started, no rating change\n          return {\n            player1NewRating: player1.rating,\n            player2NewRating: player2.rating,\n            player1Change: 0,\n            player2Change: 0\n          };\n        } else {\n          // Normal loss for disconnecting player\n          return this.calculateRatings(player1, player2, 0);\n        }\n      \n      case 'draw':\n        // Draw is a 0.5 result\n        return this.calculateRatings(player1, player2, 0.5);\n      \n      default:\n        return this.calculateRatings(player1, player2, 0);\n    }\n  }\n}\n\nmodule.exports = new EloService();\n```\n\nIntegrate this service with the game completion logic to update player ratings after each game.",
+      "testStrategy": "Test Elo calculation with various rating differences and outcomes. Verify K-factor selection based on game count. Test special case handling for forfeits, disconnections, and draws. Verify rating changes are reasonable and follow expected patterns. Test edge cases like new players vs. established players.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Security Implementation",
+      "description": "Implement security measures including rate limiting, input validation, and protection against common web vulnerabilities",
+      "details": "Implement comprehensive security measures to protect the application from common vulnerabilities. Include rate limiting, input validation, SQL injection prevention, and protection against other common web attacks.\n\nSecurity middleware:\n```javascript\nconst rateLimit = require('express-rate-limit');\nconst helmet = require('helmet');\nconst { body, validationResult } = require('express-validator');\n\n// Rate limiting middleware\nconst createRateLimiter = (windowMs, max, message) => {\n  return rateLimit({\n    windowMs,\n    max,\n    message: { error: message },\n    standardHeaders: true,\n    legacyHeaders: false,\n  });\n};\n\n// General API rate limiter\nconst apiLimiter = createRateLimiter(\n  15 * 60 * 1000, // 15 minutes\n  100, // 100 requests per window\n  'Too many requests, please try again later.'\n);\n\n// More strict rate limiter for authentication endpoints\nconst authLimiter = createRateLimiter(\n  15 * 60 * 1000, // 15 minutes\n  5, // 5 failed attempts per window\n  'Too many login attempts, please try again later.'\n);\n\n// Input validation middleware\nconst validateRegistration = [\n  body('username')\n    .isLength({ min: 3, max: 30 })\n    .withMessage('Username must be between 3 and 30 characters')\n    .matches(/^[a-zA-Z0-9_-]+$/)\n    .withMessage('Username can only contain letters, numbers, underscores and hyphens')\n    .trim(),\n  body('password')\n    .isLength({ min: 8 })\n    .withMessage('Password must be at least 8 characters long')\n    .matches(/[a-z]/)\n    .withMessage('Password must contain at least one lowercase letter')\n    .matches(/[A-Z]/)\n    .withMessage('Password must contain at least one uppercase letter')\n    .matches(/[0-9]/)\n    .withMessage('Password must contain at least one number')\n];\n\nconst validateLogin = [\n  body('username').trim().notEmpty().withMessage('Username is required'),\n  body('password').notEmpty().withMessage('Password is required')\n];\n\n// Validation error handler\nconst handleValidationErrors = (req, res, next) => {\n  const errors = validationResult(req);\n  if (!errors.isEmpty()) {\n    return res.status(400).json({ errors: errors.array() });\n  }\n  next();\n};\n\n// SQL injection prevention is handled by using parameterized queries in the database layer\n\nmodule.exports = {\n  apiLimiter,\n  authLimiter,\n  validateRegistration,\n  validateLogin,\n  handleValidationErrors,\n  securityMiddleware: [\n    helmet(), // Sets various HTTP headers for security\n    express.json({ limit: '10kb' }), // Limit request body size\n  ]\n};\n```\n\nImplement these security measures throughout the application, especially for authentication routes and API endpoints that accept user input.",
+      "testStrategy": "Test rate limiting by exceeding the configured limits. Verify input validation rejects malformed inputs. Test SQL injection prevention by attempting to inject malicious SQL. Verify security headers are properly set. Test authentication flow security, including password complexity requirements and token handling. Perform security scanning with tools like OWASP ZAP to identify potential vulnerabilities.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "Logging and Monitoring",
+      "description": "Implement logging system for application events, errors, and security incidents",
+      "details": "Set up a comprehensive logging system to track application events, errors, and security incidents. Implement structured logging with appropriate log levels and context information.\n\nLogging service:\n```javascript\nconst winston = require('winston');\nconst path = require('path');\n\n// Define log format\nconst logFormat = winston.format.combine(\n  winston.format.timestamp(),\n  winston.format.errors({ stack: true }),\n  winston.format.json()\n);\n\n// Create logger instance\nconst logger = winston.createLogger({\n  level: process.env.LOG_LEVEL || 'info',\n  format: logFormat,\n  defaultMeta: { service: 'matchmaking-service' },\n  transports: [\n    // Console transport for development\n    new winston.transports.Console({\n      format: winston.format.combine(\n        winston.format.colorize(),\n        winston.format.simple()\n      )\n    }),\n    // File transport for production\n    new winston.transports.File({\n      filename: path.join(__dirname, '../logs/error.log'),\n      level: 'error',\n      maxsize: 5242880, // 5MB\n      maxFiles: 5,\n    }),\n    new winston.transports.File({\n      filename: path.join(__dirname, '../logs/combined.log'),\n      maxsize: 5242880, // 5MB\n      maxFiles: 5,\n    })\n  ]\n});\n\n// Create request logger middleware\nconst requestLogger = (req, res, next) => {\n  // Log request start\n  const start = Date.now();\n  const requestId = req.headers['x-request-id'] || Math.random().toString(36).substring(2, 15);\n  \n  // Add request ID to response headers\n  res.setHeader('X-Request-ID', requestId);\n  \n  // Log request details\n  logger.info({\n    message: `${req.method} ${req.originalUrl} started`,\n    requestId,\n    method: req.method,\n    url: req.originalUrl,\n    ip: req.ip,\n    userId: req.user?.id || 'anonymous'\n  });\n  \n  // Log response on completion\n  res.on('finish', () => {\n    const duration = Date.now() - start;\n    const level = res.statusCode >= 400 ? 'warn' : 'info';\n    \n    logger[level]({\n      message: `${req.method} ${req.originalUrl} completed`,\n      requestId,\n      method: req.method,\n      url: req.originalUrl,\n      statusCode: res.statusCode,\n      duration,\n      userId: req.user?.id || 'anonymous'\n    });\n  });\n  \n  next();\n};\n\n// Error logger middleware\nconst errorLogger = (err, req, res, next) => {\n  const requestId = res.getHeader('X-Request-ID') || 'unknown';\n  \n  logger.error({\n    message: err.message,\n    requestId,\n    method: req.method,\n    url: req.originalUrl,\n    stack: err.stack,\n    userId: req.user?.id || 'anonymous'\n  });\n  \n  next(err);\n};\n\n// Security event logger\nconst logSecurityEvent = (event, details) => {\n  logger.warn({\n    message: `Security event: ${event}`,\n    event,\n    ...details,\n    timestamp: new Date().toISOString()\n  });\n};\n\nmodule.exports = {\n  logger,\n  requestLogger,\n  errorLogger,\n  logSecurityEvent\n};\n```\n\nIntegrate the logging system throughout the application, especially for authentication events, game state changes, and error handling.",
+      "testStrategy": "Verify logs are generated for different types of events (requests, errors, security incidents). Test log rotation and size limits. Verify sensitive information is not logged. Test error logging captures stack traces and relevant context. Verify logs are properly formatted and contain necessary information for debugging and monitoring.",
+      "priority": "medium",
+      "dependencies": [
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Caddy Reverse Proxy Configuration",
+      "description": "Configure Caddy as a reverse proxy for the Node.js application with HTTPS support",
+      "details": "Configure Caddy as a reverse proxy for the Node.js application. Set up HTTPS with automatic certificate management, request routing, and WebSocket support.\n\nCaddyfile configuration:\n```\n# Basic site configuration\n{\n  # Global options\n  admin off # Disable admin API for security\n  persist_config off # Don't persist config changes to disk\n  auto_https off # Disable automatic HTTPS for local development\n}\n\n# Main site configuration\nlocalhost {\n  # Log requests to stdout\n  log {\n    output stdout\n    format console\n  }\n  \n  # Handle WebSocket connections\n  @websockets {\n    header Connection *Upgrade*\n    header Upgrade websocket\n  }\n  \n  # Reverse proxy for WebSocket connections\n  reverse_proxy @websockets {\n    to app:3000\n    header_up Host {host}\n    header_up X-Real-IP {remote}\n    header_up X-Forwarded-For {remote}\n    header_up X-Forwarded-Proto {scheme}\n  }\n  \n  # Reverse proxy for HTTP requests\n  reverse_proxy {\n    to app:3000\n    header_up Host {host}\n    header_up X-Real-IP {remote}\n    header_up X-Forwarded-For {remote}\n    header_up X-Forwarded-Proto {scheme}\n  }\n  \n  # Basic security headers\n  header {\n    # Enable HSTS\n    Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n    # Disable content-type sniffing\n    X-Content-Type-Options \"nosniff\"\n    # Enable XSS protection\n    X-XSS-Protection \"1; mode=block\"\n    # Prevent clickjacking\n    X-Frame-Options \"DENY\"\n    # Control referrer information\n    Referrer-Policy \"strict-origin-when-cross-origin\"\n    # Remove Server header\n    -Server\n  }\n}\n```\n\nFor production deployment, modify the Caddyfile to enable automatic HTTPS and configure domain-specific settings.",
+      "testStrategy": "Test reverse proxy functionality by accessing the application through Caddy. Verify WebSocket connections work correctly through the proxy. Test HTTP header modifications and security headers. Verify logging configuration works as expected. For production deployment, test HTTPS certificate acquisition and renewal.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "System Testing and Documentation",
+      "description": "Create comprehensive test suite and documentation for the match-making server",
+      "details": "Develop a comprehensive test suite for the match-making server, including unit tests, integration tests, and end-to-end tests. Create documentation for API endpoints, WebSocket events, and deployment procedures.\n\nTest suite structure:\n```\n/tests\n  /unit\n    /models\n    /services\n    /utils\n  /integration\n    /api\n    /websocket\n    /database\n  /e2e\n    /auth\n    /lobbies\n    /matchmaking\n    /games\n```\n\nExample unit test for Elo service:\n```javascript\nconst { expect } = require('chai');\nconst EloService = require('../../src/services/elo');\n\ndescribe('EloService', () => {\n  describe('calculateExpectedScore', () => {\n    it('should return 0.5 for equal ratings', () => {\n      const result = EloService.calculateExpectedScore(1200, 1200);\n      expect(result).to.equal(0.5);\n    });\n    \n    it('should return higher probability for higher rated player', () => {\n      const result = EloService.calculateExpectedScore(1400, 1200);\n      expect(result).to.be.greaterThan(0.5);\n    });\n    \n    it('should return lower probability for lower rated player', () => {\n      const result = EloService.calculateExpectedScore(1000, 1200);\n      expect(result).to.be.lessThan(0.5);\n    });\n  });\n  \n  describe('calculateNewRating', () => {\n    it('should increase rating for win against equal opponent', () => {\n      const newRating = EloService.calculateNewRating(1200, 1200, 1, 50);\n      expect(newRating).to.be.greaterThan(1200);\n    });\n    \n    it('should decrease rating for loss against equal opponent', () => {\n      const newRating = EloService.calculateNewRating(1200, 1200, 0, 50);\n      expect(newRating).to.be.lessThan(1200);\n    });\n    \n    it('should use higher K-factor for new players', () => {\n      const newPlayerWin = EloService.calculateNewRating(1200, 1200, 1, 10);\n      const experiencedPlayerWin = EloService.calculateNewRating(1200, 1200, 1, 200);\n      expect(newPlayerWin - 1200).to.be.greaterThan(experiencedPlayerWin - 1200);\n    });\n  });\n});\n```\n\nAPI documentation structure:\n```markdown\n# Match-Making Server API Documentation\n\n## Authentication\n\n### POST /api/auth/register\nRegister a new user account.\n\n**Request Body:**\n```json\n{\n  \"username\": \"string\",\n  \"password\": \"string\"\n}\n```\n\n**Response:**\n```json\n{\n  \"id\": \"number\",\n  \"username\": \"string\",\n  \"token\": \"string\",\n  \"refreshToken\": \"string\"\n}\n```\n\n### POST /api/auth/login\nAuthenticate a user and receive access tokens.\n\n**Request Body:**\n```json\n{\n  \"username\": \"string\",\n  \"password\": \"string\"\n}\n```\n\n**Response:**\n```json\n{\n  \"id\": \"number\",\n  \"username\": \"string\",\n  \"token\": \"string\",\n  \"refreshToken\": \"string\"\n}\n```\n\n## Lobbies\n\n### GET /api/lobbies\nGet a list of all available lobbies.\n\n**Response:**\n```json\n[\n  {\n    \"id\": \"number\",\n    \"name\": \"string\",\n    \"creatorId\": \"number\",\n    \"creatorUsername\": \"string\",\n    \"playerCount\": \"number\",\n    \"maxPlayers\": \"number\",\n    \"status\": \"string\",\n    \"createdAt\": \"string\"\n  }\n]\n```\n\n// Additional endpoints documented similarly\n```\n\nWebSocket events documentation:\n```markdown\n# WebSocket Events\n\n## Connection\nConnect to the WebSocket server with authentication token:\n```javascript\nconst socket = io('http://localhost', {\n  auth: {\n    token: 'your-jwt-token'\n  }\n});\n```\n\n## Events from Server\n\n### 'user-joined'\nEmitted when a user joins a lobby.\n\n**Payload:**\n```json\n{\n  \"userId\": \"number\",\n  \"lobbyId\": \"number\"\n}\n```\n\n### 'user-left'\nEmitted when a user leaves a lobby.\n\n**Payload:**\n```json\n{\n  \"userId\": \"number\",\n  \"lobbyId\": \"number\"\n}\n```\n\n// Additional events documented similarly\n```\n\nDeployment documentation:\n```markdown\n# Deployment Guide\n\n## Prerequisites\n- Windows 10\n- Docker Desktop\n- Git (optional)\n\n## Installation Steps\n1. Clone the repository or download the source code\n2. Navigate to the project directory\n3. Create a `.env` file with required environment variables (see below)\n4. Run `docker-compose up -d` to start the containers\n5. Access the application at http://localhost\n\n## Environment Variables\n```\nDB_USER=appuser\nDB_PASSWORD=your-secure-password\nDB_NAME=matchmaking\nJWT_SECRET=your-jwt-secret\nJWT_REFRESH_SECRET=your-refresh-secret\n```\n\n## Backup and Restore\nDatabase data is persisted in a Docker volume. To backup the database:\n\n```bash\ndocker exec -t matchmaking-db pg_dump -U appuser matchmaking > backup.sql\n```\n\nTo restore from backup:\n\n```bash\ncat backup.sql | docker exec -i matchmaking-db psql -U appuser matchmaking\n```\n```",
+      "testStrategy": "Verify all tests pass and provide adequate coverage of the codebase. Test documentation for accuracy and completeness. Verify deployment instructions work on a clean Windows 10 system. Test backup and restore procedures to ensure data persistence. Verify API documentation matches actual implementation.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Unit Test Suite Implementation",
+          "description": "Develop comprehensive unit tests for individual components of the system",
+          "dependencies": [],
+          "details": "Create test cases that verify the functionality of each component in isolation. Include test case documentation with descriptions, procedures, and expected results. Maintain test logs for execution tracking and create test reports summarizing results.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Integration Test Suite Implementation",
+          "description": "Develop tests to verify interactions between connected components",
+          "dependencies": [
+            1
+          ],
+          "details": "Design test scenarios that validate the correct interaction between system components. Document integration points, data flows, and expected behaviors. Create comprehensive test logs and reports to track integration test execution and results.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "End-to-End Test Implementation",
+          "description": "Create tests that validate complete system workflows from start to finish",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop test scenarios that simulate real user journeys through the entire system. Document test cases with detailed steps, test data requirements, and expected outcomes. Generate test summary reports to evaluate overall system quality and readiness.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "API Documentation Creation",
+          "description": "Create comprehensive documentation for all system APIs",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Document all API endpoints, request/response formats, authentication requirements, and error handling. Include usage examples and integration guidelines. Ensure documentation is clear, consistent, and follows company standards for technical documentation.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Deployment Documentation",
+          "description": "Create detailed documentation for the deployment process",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Document the complete deployment workflow including environment setup, configuration requirements, and step-by-step deployment instructions. Include version control information, rollback procedures, and post-deployment verification steps. Create a test summary report confirming deployment readiness.",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+# Task ID: 6
+# Title: Lobby Management System
+# Status: pending
+# Dependencies: 3, 5
+# Priority: medium
+# Description: Implement API endpoints and business logic for creating, browsing, joining, and managing game lobbies
+# Details:
+Create RESTful API endpoints and business logic for lobby management. Implement functionality for creating lobbies, listing available lobbies, joining lobbies, and starting games from lobbies.
+
+API Endpoints:
+- POST /api/lobbies - Create a new lobby
+- GET /api/lobbies - List all available lobbies
+- GET /api/lobbies/:id - Get details of a specific lobby
+- POST /api/lobbies/:id/join - Join a lobby
+- DELETE /api/lobbies/:id/leave - Leave a lobby
+- POST /api/lobbies/:id/start - Start a game from a lobby
+
+Example lobby controller:
+```javascript
+const Lobby = require('../models/Lobby');
+const { authenticateUser } = require('../middleware/auth');
+
+const router = express.Router();
+
+// Create a new lobby
+router.post('/', authenticateUser, async (req, res, next) => {
+  try {
+    const { name, maxPlayers } = req.body;
+    const userId = req.user.id;
+    
+    const lobby = await Lobby.create(name, userId, maxPlayers || 2);
+    
+    return res.status(201).json(lobby);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// List all available lobbies
+router.get('/', async (req, res, next) => {
+  try {
+    const lobbies = await Lobby.findAll();
+    return res.json(lobbies);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Join a lobby
+router.post('/:id/join', authenticateUser, async (req, res, next) => {
+  try {
+    const lobbyId = req.params.id;
+    const userId = req.user.id;
+    
+    const result = await Lobby.addMember(lobbyId, userId);
+    
+    return res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Additional routes for lobby management
+```
+
+Implement validation for all inputs and proper error handling for edge cases like joining full lobbies or starting games with insufficient players.
+
+# Test Strategy:
+Test lobby creation with valid and invalid parameters. Verify lobby listing returns correct data. Test joining and leaving lobbies with various scenarios (empty lobby, full lobby, etc.). Test starting games from lobbies with sufficient and insufficient players. Verify proper error handling for all edge cases. Test concurrent operations like multiple users joining the same lobby simultaneously.

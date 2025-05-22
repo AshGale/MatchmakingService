@@ -1,0 +1,98 @@
+# Task ID: 5
+# Title: Database Connection and Models
+# Status: pending
+# Dependencies: 2, 4
+# Priority: high
+# Description: Implement database connection with connection pooling and create data models for interacting with the PostgreSQL database
+# Details:
+Set up PostgreSQL connection with connection pooling for efficient database access. Create data models that represent database tables and implement methods for CRUD operations.
+
+Use node-postgres (pg) with connection pooling:
+```javascript
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection not established
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+  getClient: async () => {
+    const client = await pool.connect();
+    const query = client.query;
+    const release = client.release;
+    
+    // Set a timeout of 5 seconds, after which we will log this client's last query
+    const timeout = setTimeout(() => {
+      console.error('A client has been checked out for more than 5 seconds!');
+      console.error(`The last executed query on this client was: ${client.lastQuery}`);
+    }, 5000);
+    
+    // Monkey patch the query method to keep track of the last query executed
+    client.query = (...args) => {
+      client.lastQuery = args;
+      return query.apply(client, args);
+    };
+    
+    client.release = () => {
+      clearTimeout(timeout);
+      client.query = query;
+      client.release = release;
+      return release.apply(client);
+    };
+    
+    return client;
+  }
+};
+```
+
+Create model classes for each entity (User, Lobby, Game, etc.) with methods for database operations. Use parameterized queries to prevent SQL injection.
+
+Example User model:
+```javascript
+const db = require('../db');
+const argon2 = require('argon2');
+
+class User {
+  static async create(username, password) {
+    const passwordHash = await argon2.hash(password);
+    const result = await db.query(
+      'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username, elo_rating, created_at',
+      [username, passwordHash]
+    );
+    return result.rows[0];
+  }
+  
+  static async findByUsername(username) {
+    const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+    return result.rows[0];
+  }
+  
+  static async updateElo(userId, newElo) {
+    const result = await db.query(
+      'UPDATE users SET elo_rating = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, username, elo_rating',
+      [newElo, userId]
+    );
+    return result.rows[0];
+  }
+  
+  // Additional methods for user operations
+}
+
+module.exports = User;
+```
+
+# Test Strategy:
+Test database connection establishment and error handling. Verify connection pooling works under load by simulating multiple concurrent requests. Test each model method with valid and invalid inputs. Verify parameterized queries prevent SQL injection by attempting malicious inputs. Test transaction handling for operations that require multiple queries.

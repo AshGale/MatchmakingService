@@ -1,0 +1,44 @@
+# Task ID: 2
+# Title: Database Schema Design
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Design and implement PostgreSQL database schema for users, lobbies, games, and Elo ratings
+# Details:
+Create SQL scripts for database schema initialization with tables for users, lobbies, active games, game history, and Elo ratings. Implement appropriate relationships, constraints, and indexes.
+
+Key tables:
+1. users (id, username, password_hash, elo_rating, created_at, updated_at)
+2. lobbies (id, name, creator_id, max_players, created_at, status)
+3. lobby_members (lobby_id, user_id, joined_at)
+4. games (id, status, started_at, completed_at, turn_player_id, turn_started_at)
+5. game_players (game_id, user_id, initial_elo, final_elo, result)
+6. game_history (id, game_id, turn_number, player_id, move_data, timestamp)
+
+Example SQL:
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  elo_rating INTEGER NOT NULL DEFAULT 1200,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE lobbies (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  creator_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  max_players INTEGER NOT NULL DEFAULT 2,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(20) NOT NULL DEFAULT 'open'
+);
+
+-- Additional tables follow similar pattern
+```
+
+Implement appropriate indexes for common query patterns and constraints to maintain data integrity.
+
+# Test Strategy:
+Validate schema with test data insertion and retrieval. Test foreign key constraints by attempting to violate them. Verify indexes improve query performance using EXPLAIN ANALYZE. Test concurrent operations to ensure data integrity is maintained. Verify backup and restore procedures work correctly.
