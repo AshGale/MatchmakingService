@@ -1,0 +1,340 @@
+# Match-Making Server Product Requirements Document
+## 1. Introduction
+This Product Requirements Document (PRD) outlines the specifications for a match-making server designed to facilitate turn-based gameplay for a React game application. The server will be deployed on a Windows 10 laptop and will provide essential functionality for user management, game lobbies, match-making, and turn-based gameplay enforcement. This document serves as a comprehensive guide for the development team, defining the scope, features, technical requirements, and user experiences that must be delivered.
+The match-making server will operate as a containerized application using Docker and Docker Compose, with a PostgreSQL database for data persistence and a Node.js backend for business logic. The server will implement secure authentication practices and provide real-time updates through WebSocket connections.
+## 2. Product overview
+The match-making server is a backend service that connects players of a turn-based React game, allowing them to find opponents, create and join game lobbies, and participate in monitored turn-based gameplay. The server handles user authentication, lobby management, match-making based on player skill ratings, and enforcement of turn time limits. It serves as the central hub for all multiplayer functionality within the game ecosystem.
+The system employs a microservices architecture with containerized components, including a Node.js application server, PostgreSQL database, and Caddy reverse proxy. The primary focus is on providing a seamless, secure, and responsive multiplayer experience for users while maintaining data privacy and enforcing gameplay rules.
+## 3. Goals and objectives
+### 3.1 Primary goals
+- Create a reliable match-making service that connects players of similar skill levels
+- Provide a secure authentication system that protects user credentials
+- Facilitate various methods of finding opponents (lobbies, quick match, invitations)
+- Enable real-time tracking and enforcement of turn-based gameplay
+- Deliver a system that can be deployed on a personal Windows 10 laptop with minimal setup
+### 3.2 Business objectives
+- Enhance player engagement through multiplayer functionality
+- Establish a foundation for potential future game expansions
+- Create a reusable match-making framework for other turn-based games
+- Build a system that prioritizes security and player privacy
+### 3.3 Success metrics
+- User retention: Players continue to use the match-making service over time
+- Match completion rate: Percentage of started games that reach completion
+- System stability: Uptime and error rates
+- Match-making efficiency: Time required to match players of similar skill levels
+- User satisfaction: Feedback on the match-making and gameplay experience
+## 4. Target audience
+### 4.1 Primary users
+The match-making server targets players of the associated turn-based React game. These players:
+- Seek multiplayer experiences with turn-based gameplay
+- Have varying skill levels and experience with the game
+- Play on devices that can access the React frontend application
+- Value finding appropriate opponents that match their skill level
+- Prefer different styles of finding matches (browsing lobbies vs. quick match)
+### 4.2 User personas
+#### 4.2.1 Casual player: Alex
+- Plays sporadically when time permits
+- Prefers quick matches with minimal setup
+- Doesn't track stats closely but wants fair matches
+- May abandon games if they take too long
+#### 4.2.2 Competitive player: Jordan
+- Plays regularly and cares about Elo rating
+- Seeks matches with players of equal or higher skill
+- Often creates lobbies with specific game parameters
+- Completes all games and rarely forfeits
+#### 4.2.3 Social player: Taylor
+- Primarily plays with friends via invitations
+- Uses the lobby system to find familiar opponents
+- Values the social aspects of gaming over competitiveness
+- May play multiple games simultaneously
+## 5. Features and requirements
+### 5.1 Core features
+#### 5.1.1 User authentication and management
+The system will provide secure user registration and authentication using industry-standard security practices. It will not collect or store personally identifiable information, focusing only on gameplay-related data.
+#### 5.1.2 Lobby management
+Users will be able to create, browse, and join game lobbies. The system will display all available lobbies, waiting players, and ongoing games to facilitate match-making.
+#### 5.1.3 Match-making
+The system will implement multiple methods for finding opponents, including a quick join feature that matches players based on Elo ratings, direct invitations to specific players, and manual lobby selection.
+#### 5.1.4 Turn-based gameplay enforcement
+The server will track active games, enforce turn order, monitor turn time limits, and provide real-time updates on game state changes. It will automatically advance games when turn time limits are exceeded.
+#### 5.1.5 Elo rating system
+Player skill levels will be tracked using an Elo rating system, which will be updated after each completed game. This rating will be used for the quick join match-making feature.
+### 5.2 Technical requirements
+#### 5.2.1 System architecture
+The system will be deployed on a Windows 10 laptop with standard user access privileges, using Docker containers orchestrated by Docker Compose. A Caddy reverse proxy will manage traffic routing.
+#### 5.2.2 Technology stack
+- Backend: Node.js
+- Database: PostgreSQL (containerized)
+- Authentication: Argon2 for password hashing, JWT for session management
+- Real-time communication: WebSockets
+- Deployment: Docker, Docker Compose
+- Proxy: Caddy
+#### 5.2.3 Data management
+The system will implement secure database practices, including connection pooling, parameterized queries, appropriate user permissions, and encryption of sensitive data at rest. It will also provide mechanisms for database backups.
+#### 5.2.4 API and communication
+The server will expose RESTful API endpoints for authentication, lobby management, and game actions. WebSocket connections will be used for real-time updates, turn notifications, and timers.
+## 6. User stories and acceptance criteria
+### 6.1 Authentication user stories
+#### US-101: User registration
+**As a** new player,  
+**I want to** create an account with a username and password,  
+**So that** I can access the match-making service.
+**Acceptance criteria:**
+- User can enter a username and password to register
+- System validates username uniqueness
+- System enforces password complexity requirements
+- Password is hashed using Argon2 before storage
+- User receives confirmation upon successful registration
+- System rejects registration attempts with duplicate usernames
+#### US-102: User login
+**As a** registered player,  
+**I want to** log in with my credentials,  
+**So that** I can access the match-making features.
+**Acceptance criteria:**
+- User can enter username and password to log in
+- System validates credentials against stored data
+- System issues a JWT token upon successful authentication
+- Token contains necessary user information but no sensitive data
+- User receives appropriate error messages for failed login attempts
+- System applies rate limiting for repeated failed login attempts
+#### US-103: Authentication persistence
+**As a** returning player,  
+**I want to** maintain my authenticated session,  
+**So that** I don't need to log in repeatedly.
+**Acceptance criteria:**
+- System issues a refresh token alongside the access token
+- User can refresh their JWT without re-entering credentials
+- System validates token integrity and expiration
+- System revokes tokens when user logs out
+- All protected endpoints verify token validity
+### 6.2 Lobby management user stories
+#### US-201: Lobby creation
+**As a** player,  
+**I want to** create a new game lobby,  
+**So that** others can join my game.
+**Acceptance criteria:**
+- Authenticated user can create a new lobby
+- User can specify lobby name and optional parameters
+- System adds the new lobby to the lobby list
+- Creator is automatically added to the lobby
+- System notifies all users of the new lobby via WebSocket
+- Lobby remains active until the creator leaves or a game starts
+#### US-202: Lobby browsing
+**As a** player,  
+**I want to** view all available game lobbies,  
+**So that** I can choose one to join.
+**Acceptance criteria:**
+- System displays a list of all active lobbies
+- List includes lobby name, creator, and number of players
+- List updates in real-time as lobbies are created or closed
+- User can sort or filter lobbies by different criteria
+- System indicates if a lobby is full or in the process of starting a game
+#### US-203: Lobby joining
+**As a** player,  
+**I want to** join an existing lobby,  
+**So that** I can play with others.
+**Acceptance criteria:**
+- User can select and join any non-full lobby
+- System adds the user to the selected lobby
+- All users in the lobby are notified of the new player
+- Lobby creator can start the game when enough players have joined
+- User can leave a lobby at any time before the game starts
+- System handles edge cases like joining a lobby that fills simultaneously
+### 6.3 Match-making user stories
+#### US-301: Quick match
+**As a** player,  
+**I want to** quickly find an opponent of similar skill,  
+**So that** I can start playing without browsing lobbies.
+**Acceptance criteria:**
+- User can select a "quick match" option
+- System matches user with another player of similar Elo rating
+- System prioritizes closest Elo ratings but expands range if no match is found quickly
+- Both players receive notification when a match is found
+- System creates a new game if both players accept the match
+- User can cancel the quick match search at any time
+#### US-302: Game invitation
+**As a** player,  
+**I want to** invite a specific player to a game,  
+**So that** I can play with friends or specific opponents.
+**Acceptance criteria:**
+- User can search for other players by username
+- User can send a game invitation to any online player
+- Recipient receives a notification of the invitation
+- Recipient can accept or decline the invitation
+- System creates a new game if the invitation is accepted
+- Invitations expire after a configured time period if not responded to
+#### US-303: Elo rating update
+**As a** player,  
+**I want my** Elo rating to be updated after games,  
+**So that** it accurately reflects my skill level.
+**Acceptance criteria:**
+- System calculates Elo rating changes based on game outcome and opponent rating
+- Ratings are updated immediately after game completion
+- Player can view their current rating and rating history
+- System applies appropriate algorithms for handling draws, forfeits, and disconnections
+- New players start with a default rating
+- Rating changes are larger for new players and stabilize with more games
+### 6.4 Game management user stories
+#### US-401: Turn management
+**As a** player in an active game,  
+**I want to** be notified when it's my turn,  
+**So that** I know when to make my move.
+**Acceptance criteria:**
+- System tracks whose turn is active in each game
+- Current player receives notification when their turn begins
+- Both players can see whose turn it is and elapsed time
+- System enforces maximum turn time of 5 minutes
+- System sends warnings as turn time limit approaches
+- Turn automatically advances if time limit is exceeded
+#### US-402: Game state updates
+**As a** player in an active game,  
+**I want to** receive real-time game state updates,  
+**So that** I can see my opponent's moves.
+**Acceptance criteria:**
+- System broadcasts game state changes to both players via WebSocket
+- Updates include all relevant game information but no implementation details
+- System ensures data consistency between players
+- Updates are delivered with minimal latency
+- System handles reconnection and state synchronization after disconnection
+- Game state is persisted to allow resuming after disconnections
+#### US-403: Game completion
+**As a** player,  
+**I want to** have the outcome of my game recorded,  
+**So that** my Elo rating is updated accurately.
+**Acceptance criteria:**
+- System detects and validates game completion conditions
+- Both players are notified of the game outcome
+- System records the result in the database
+- Elo ratings are updated based on the outcome
+- Players can view a summary of the completed game
+- Game resources are properly released after completion
+### 6.5 Database modeling user stories
+#### US-501: User data model
+**As a** system administrator,  
+**I want** user data to be properly structured and secured,  
+**So that** user information is protected and efficiently accessible.
+**Acceptance criteria:**
+- Database schema includes tables for user accounts with appropriate fields
+- Passwords are stored as Argon2 hashes, not in plaintext
+- No personally identifiable information is stored per requirements
+- Database constraints enforce data integrity
+- Indexes optimize common query patterns
+- Database user has minimal required permissions
+#### US-502: Game data model
+**As a** system administrator,  
+**I want** game data to be properly structured,  
+**So that** game state and history can be efficiently managed.
+**Acceptance criteria:**
+- Database schema includes tables for lobbies, active games, and game history
+- Relationships between users and games are properly established
+- Schema supports efficient queries for common operations
+- Game state is stored in a format that balances space efficiency and query performance
+- Historical data is organized to support statistical analysis and Elo calculations
+- Database backup procedures maintain data integrity
+## 7. Technical requirements / stack
+### 7.1 Development environment
+- Operating system: Windows 10
+- User privileges: Standard user access (reduced privileges)
+- Containerization: Docker with Docker Compose
+- Version control: Git (recommended)
+- IDE: Any compatible with Node.js development
+### 7.2 Server components
+- Application server: Node.js (LTS version)
+- Web framework: Express.js
+- Authentication: Argon2 for password hashing, JWT for token-based authentication
+- Real-time communication: Socket.IO or native WebSockets
+- API format: RESTful JSON
+- Proxy/Router: Caddy
+### 7.3 Database
+- DBMS: PostgreSQL (latest stable version in Docker)
+- Connection management: Connection pooling
+- Query security: Parameterized queries
+- Security features:
+  - Appropriate user permissions
+  - Encryption of sensitive data at rest
+  - Regular backups via Docker volume mounting
+### 7.4 Security requirements
+- Authentication flow: Argon2 for initial registration, JWT for session management
+- Password requirements: Minimum strength enforcement
+- Rate limiting: For login attempts and API endpoints
+- Input validation: Server-side validation for all user inputs
+- SQL injection prevention: Parameterized queries
+- Token security: Proper JWT signing, expiration, and validation
+### 7.5 Performance requirements
+- Responsiveness: API responses under 200ms for non-computational operations
+- Scalability: Support for at least 100 concurrent users on modest hardware
+- Reliability: 99% uptime during active use
+- WebSocket performance: Message delivery under 100ms
+- Database performance: Query execution under 50ms for common operations
+## 8. Design and user interface
+While this PRD focuses on the server-side implementation, the following considerations should be made for the accompanying client-side application:
+### 8.1 API design principles
+- RESTful endpoints with consistent naming conventions
+- Appropriate HTTP methods for different operations (GET, POST, PUT, DELETE)
+- Meaningful status codes and error messages
+- Pagination for list endpoints
+- Consistent response formats
+### 8.2 WebSocket event design
+- Standardized event naming conventions
+- Clear separation of concerns between different event types
+- Efficient payload structures to minimize bandwidth
+- Reliable delivery confirmation for critical events
+- Reconnection handling with state synchronization
+### 8.3 Client integration recommendations
+- Authentication flow integration with token storage and refresh
+- Lobby and match-making interface guidelines
+- Turn notification and timer display recommendations
+- Game state synchronization patterns
+- Error handling and user feedback guidelines
+## 9. Implementation considerations
+### 9.1 Development phases
+1. **Foundation Phase**
+   - Basic server setup with Docker and Node.js
+   - Database schema implementation
+   - Authentication system implementation
+2. **Core Functionality Phase**
+   - Lobby management features
+   - Match-making logic
+   - Game state management
+3. **Real-time Features Phase**
+   - WebSocket implementation
+   - Turn management and timing
+   - State synchronization
+4. **Refinement Phase**
+   - Performance optimization
+   - Security hardening
+   - Edge case handling
+### 9.2 Testing strategy
+- Unit testing for core business logic
+- Integration testing for API endpoints
+- Load testing for concurrent user simulation
+- Security testing for authentication and authorization
+- End-to-end testing with client application
+### 9.3 Deployment considerations
+- Docker container configuration optimization
+- Volume mapping for database persistence
+- Logging configuration
+- Backup procedures
+- Resource allocation for Windows environment
+## 10. Risks and mitigations
+| Risk | Impact | Probability | Mitigation |
+|------|--------|------------|------------|
+| Database connection issues in containerized environment | High | Medium | Implement robust connection retry logic and proper connection pooling |
+| Performance bottlenecks on personal hardware | Medium | High | Optimize queries, implement caching, and limit concurrent connections |
+| Security vulnerabilities in authentication system | High | Low | Regular security audits, follow established authentication best practices |
+| Data loss due to container issues | High | Low | Implement regular backups via volume mapping, transaction logging |
+| WebSocket scalability limitations | Medium | Medium | Implement connection throttling, optimize message frequency and size |
+## 11. Appendices
+### 11.1 Glossary
+- **Elo Rating**: A method for calculating the relative skill levels of players in zero-sum games
+- **JWT (JSON Web Token)**: A compact, URL-safe means of representing claims to be transferred between two parties
+- **Lobby**: A virtual waiting room where players gather before a game begins
+- **Match-making**: The process of connecting players for a game based on certain criteria
+- **Docker**: A platform that uses OS-level virtualization to deliver software in packages called containers
+- **WebSocket**: A communication protocol that provides full-duplex communication channels over a single TCP connection
+### 11.2 References
+- Elo Rating System: [Wikipedia](https://en.wikipedia.org/wiki/Elo_rating_system)
+- JWT Authentication: [jwt.io](https://jwt.io/introduction)
+- Docker Documentation: [docs.docker.com](https://docs.docker.com/)
+- PostgreSQL Documentation: [postgresql.org/docs](https://www.postgresql.org/docs/)
+- Node.js Best Practices: [github.com/goldbergyoni/nodebestpractices](https://github.com/goldbergyoni/nodebestpractices)
