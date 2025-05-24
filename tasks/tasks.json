@@ -85,7 +85,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -93,7 +93,7 @@
           "description": "Create a secure sign-up process with proper input validation and data encryption",
           "dependencies": [],
           "details": "Develop a registration endpoint that collects necessary user information, validates inputs (email format, password strength), implements HTTPS encryption, and returns appropriate responses. Include email verification process to confirm user identity before account activation.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -103,7 +103,7 @@
             1
           ],
           "details": "Create a password hashing service using Argon2id algorithm with appropriate memory, time cost, and parallelism parameters. Implement password verification functionality and ensure proper storage of hashed passwords without including hash options in the database.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -113,7 +113,7 @@
             2
           ],
           "details": "Build a login endpoint that verifies user credentials against stored hashed passwords, generates JWT tokens with appropriate payload and expiration time, and returns tokens to authenticated users. Implement proper error handling for invalid credentials.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -123,7 +123,7 @@
             3
           ],
           "details": "Develop middleware that extracts JWT from request headers, validates token signature and expiration, and provides access to protected routes only for authenticated users. Include proper error responses for invalid or expired tokens.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -134,7 +134,7 @@
             4
           ],
           "details": "Design and implement a refresh token system that issues long-lived refresh tokens alongside short-lived access tokens. Create an endpoint to exchange valid refresh tokens for new access tokens, implement token rotation for security, and build token revocation capabilities.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -145,7 +145,7 @@
             5
           ],
           "details": "Implement IP-based and account-based rate limiting for login and token refresh endpoints. Configure appropriate time windows and request limits, add response headers to indicate rate limit status, and implement proper logging of rate limit violations for security monitoring.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: User Authentication System
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Implement secure user registration and authentication with Argon2 password hashing and JWT token management
@@ -62,37 +62,37 @@ function verifyToken(token) {
 Test registration with valid and invalid inputs. Verify password hashing is secure by attempting to reverse-engineer hashes. Test login with correct and incorrect credentials. Verify JWT token validation and expiration. Test refresh token functionality. Verify rate limiting blocks excessive login attempts. Test concurrent authentication requests for race conditions.
 
 # Subtasks:
-## 1. Implement User Registration Endpoint with Validation [pending]
+## 1. Implement User Registration Endpoint with Validation [done]
 ### Dependencies: None
 ### Description: Create a secure sign-up process with proper input validation and data encryption
 ### Details:
 Develop a registration endpoint that collects necessary user information, validates inputs (email format, password strength), implements HTTPS encryption, and returns appropriate responses. Include email verification process to confirm user identity before account activation.
 
-## 2. Implement Argon2 Password Hashing [pending]
+## 2. Implement Argon2 Password Hashing [done]
 ### Dependencies: 3.1
 ### Description: Set up secure password storage using Argon2 hashing algorithm
 ### Details:
 Create a password hashing service using Argon2id algorithm with appropriate memory, time cost, and parallelism parameters. Implement password verification functionality and ensure proper storage of hashed passwords without including hash options in the database.
 
-## 3. Develop Login Endpoint with JWT Generation [pending]
+## 3. Develop Login Endpoint with JWT Generation [done]
 ### Dependencies: 3.2
 ### Description: Create authentication endpoint that validates credentials and issues JWT tokens
 ### Details:
 Build a login endpoint that verifies user credentials against stored hashed passwords, generates JWT tokens with appropriate payload and expiration time, and returns tokens to authenticated users. Implement proper error handling for invalid credentials.
 
-## 4. Implement JWT Middleware for Protected Routes [pending]
+## 4. Implement JWT Middleware for Protected Routes [done]
 ### Dependencies: 3.3
 ### Description: Create middleware to validate JWT tokens for protected API routes
 ### Details:
 Develop middleware that extracts JWT from request headers, validates token signature and expiration, and provides access to protected routes only for authenticated users. Include proper error responses for invalid or expired tokens.
 
-## 5. Create Refresh Token Mechanism [pending]
+## 5. Create Refresh Token Mechanism [done]
 ### Dependencies: 3.3, 3.4
 ### Description: Implement secure token refresh functionality to maintain user sessions
 ### Details:
 Design and implement a refresh token system that issues long-lived refresh tokens alongside short-lived access tokens. Create an endpoint to exchange valid refresh tokens for new access tokens, implement token rotation for security, and build token revocation capabilities.
 
-## 6. Implement Rate Limiting for Security [pending]
+## 6. Implement Rate Limiting for Security [done]
 ### Dependencies: 3.3, 3.5
 ### Description: Add rate limiting to authentication endpoints to prevent brute force attacks
 ### Details:
