@@ -224,8 +224,59 @@
         2,
         4
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up PostgreSQL connection pool",
+          "description": "Implement a connection pool for PostgreSQL to efficiently manage database connections",
+          "dependencies": [],
+          "details": "Create a module that initializes and manages a connection pool using a library like 'pg-pool'. Configure the pool with appropriate settings for max connections, idle timeout, and connection timeout. Implement proper error handling for connection failures and pool exhaustion. Include methods to acquire and release connections safely.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement base model abstraction",
+          "description": "Create a base model class that provides common database operations for all models",
+          "dependencies": [
+            1
+          ],
+          "details": "Design a base model class that handles common CRUD operations (create, read, update, delete). Implement query parameterization to prevent SQL injection. Add methods for transaction management. Include error handling and logging for database operations. The base model should utilize the connection pool created earlier.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Implement user model",
+          "description": "Create a user model extending the base model with user-specific operations",
+          "dependencies": [
+            2
+          ],
+          "details": "Extend the base model to create a User model with methods for user registration, authentication, profile management, and session handling. Implement proper password hashing and validation. Add methods for retrieving user statistics and preferences. Include validation for user data before database operations.",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Implement lobby and game models",
+          "description": "Create models for game lobbies and active games with their specific operations",
+          "dependencies": [
+            2
+          ],
+          "details": "Extend the base model to create Lobby and Game models. Implement methods for creating lobbies, joining/leaving lobbies, starting games, updating game state, and retrieving game history. Design efficient queries for game state retrieval and updates. Include methods for handling player actions and game progression.",
+          "status": "done"
+        },
+        {
+          "id": 5,
+          "title": "Implement transaction management for complex operations",
+          "description": "Create utilities for managing database transactions across multiple operations",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Develop transaction management utilities that can be used across models for operations that require multiple database changes to be atomic. Implement methods for beginning, committing, and rolling back transactions. Create higher-level functions for common complex operations like game initialization, game completion, and user statistics updates. Ensure proper error handling and recovery for failed transactions.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 6,
