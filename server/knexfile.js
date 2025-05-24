@@ -1,10 +1,18 @@
 // Update with your config settings.
-require('dotenv').config();
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '..');
 
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
-module.exports = {
+const knexConfig = {
   development: {
     client: 'postgresql',
     connection: {
@@ -19,11 +27,11 @@ module.exports = {
       max: 10
     },
     migrations: {
-      directory: './database/migrations',
+      directory: join(rootDir, 'database/migrations'),
       tableName: 'knex_migrations'
     },
     seeds: {
-      directory: './database/seeds'
+      directory: join(rootDir, 'database/seeds')
     }
   },
 
@@ -41,11 +49,13 @@ module.exports = {
       max: 10
     },
     migrations: {
-      directory: './database/migrations',
+      directory: join(rootDir, 'database/migrations'),
       tableName: 'knex_migrations'
     },
     seeds: {
-      directory: './database/seeds'
+      directory: join(rootDir, 'database/seeds')
     }
   }
 };
+
+export default knexConfig;

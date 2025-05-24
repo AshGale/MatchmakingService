@@ -3,7 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const Sentry = require('./instrument');
+// const Sentry = require('./instrument');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const notFoundHandler = require('./middleware/notFoundHandler');
@@ -17,11 +17,11 @@ const userRoutes = require('./routes/users');
 // Create Express app
 const app = express();
 
-// Init Sentry request handler (must come before all other middleware)
-app.use(Sentry.Handlers.requestHandler());
+// // Init Sentry request handler (must come before all other middleware)
+// app.use(Sentry.Handlers.requestHandler());
 
-// Security middleware
-app.use(helmet());
+// // Security middleware
+// app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({

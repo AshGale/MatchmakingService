@@ -15,7 +15,6 @@
         "seed:make": "knex seed:make"
     },
     "dependencies": {
-        "@sentry/node": "^9.19.0",
         "argon2": "^0.30.3",
         "cors": "^2.8.5",
         "dotenv": "^16.3.1",

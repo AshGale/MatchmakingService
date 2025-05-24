@@ -1,5 +1,5 @@
-// Initialize Sentry before everything else
-require('./instrument');
+// // Initialize Sentry before everything else
+// require('./instrument');
 
 require('dotenv').config();
 const http = require('http');

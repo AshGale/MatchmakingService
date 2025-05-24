@@ -1,5 +1,7 @@
-require('dotenv').config();
-const knex = require('knex');
+import dotenv from 'dotenv';
+import knex from 'knex';
+
+dotenv.config();
 
 const db = knex({
   client: 'pg',
@@ -36,4 +38,4 @@ const db = knex({
   }
 });
 
-module.exports = db;
+export default db;
