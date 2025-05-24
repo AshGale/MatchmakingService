@@ -8,7 +8,7 @@
       "testStrategy": "Verify Docker Compose setup by running 'docker-compose up' and confirming all containers start successfully. Test network connectivity between containers. Verify volume persistence by restarting containers and checking data retention. Ensure the setup works with standard user privileges on Windows 10.",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -16,7 +16,7 @@
           "description": "Download Docker Desktop for Windows 10, run the installer, enable required features (such as Hyper-V or WSL 2), and complete the initial configuration. Ensure the user is added to the 'docker-users' group and verify Docker is running.",
           "dependencies": [],
           "details": "Follow official Docker Desktop installation steps, including system prerequisites (64-bit processor, 4GB RAM), and post-installation user group configuration. Restart the system if necessary.[1][5]",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -26,7 +26,7 @@
             1
           ],
           "details": "Ensure the Dockerfile exposes the correct ports and uses best practices for Node.js containerization (e.g., multi-stage builds, .dockerignore).",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -36,7 +36,7 @@
             1
           ],
           "details": "Prepare a section for PostgreSQL in the Docker Compose file, ensuring secure credentials and data persistence.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -46,7 +46,7 @@
             2
           ],
           "details": "Write a Caddyfile to route HTTP/HTTPS traffic to the Node.js container, and ensure the Caddy service is included in Docker Compose.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -58,7 +58,7 @@
             4
           ],
           "details": "Edit the docker-compose.yml file to specify named networks and volumes, and verify that all services (Node.js, PostgreSQL, Caddy) are properly networked and have access to required volumes.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

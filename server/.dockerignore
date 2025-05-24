@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+
+# Coverage directories
+coverage/
+
+# Development tools
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp files
+tmp/
+temp/
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+
+# Test files
+__tests__/
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Documentation
+docs/
+*.md
+
+# Build artifacts
+dist/
+build/
+*.tsbuildinfo
