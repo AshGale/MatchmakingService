@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { param, body, validationResult } from 'express-validator';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+import GameService from '../services/gameService.js';
+
 const router = express.Router();
-const { param, body, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
-const GameService = require('../services/gameService');
 
 const gameService = new GameService();
 
@@ -256,4 +257,4 @@ router.post('/invite/:id/respond', [
   }
 });
 
-module.exports = router;
+export default router;

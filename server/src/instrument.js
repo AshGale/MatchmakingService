@@ -1,4 +1,4 @@
-const Sentry = require("@sentry/node");
+import * as Sentry from '@sentry/node';
 
 // Initialize Sentry
 Sentry.init({
@@ -12,4 +12,4 @@ Sentry.init({
   profilesSampleRate: 1.0, // Capture 100% of transactions for profiling
 });
 
-module.exports = Sentry;
+export * from '@sentry/node';

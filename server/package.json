@@ -2,6 +2,7 @@
     "name": "matchmaker-server",
     "version": "1.0.0",
     "description": "Match-making server for turn-based React games",
+    "type": "module",
     "main": "src/index.js",
     "scripts": {
         "start": "node src/index.js",

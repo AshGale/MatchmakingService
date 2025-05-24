@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
-const logger = require('../utils/logger');
+import jwt from 'jsonwebtoken';
+import logger from '../utils/logger.js';
 
 /**
  * Authentication middleware
  * Verifies JWT and adds user data to request
  */
-module.exports = (req, res, next) => {
+export default (req, res, next) => {
   // Get token from header
   const authHeader = req.header('Authorization');
   

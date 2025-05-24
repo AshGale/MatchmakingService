@@ -88,4 +88,4 @@ class EloService {
     }
   }
   
-  module.exports = EloService;
+export default EloService;

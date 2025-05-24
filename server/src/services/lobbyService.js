@@ -1,6 +1,7 @@
-const db = require('../db');
-const logger = require('../utils/logger');
-const { v4: uuidv4 } = require('uuid');
+import db from '../db.js';
+import logger from '../utils/logger.js';
+import { v4 as uuidv4 } from 'uuid';
+import GameService from './gameService.js';
 
 class LobbyService {
   /**
@@ -345,7 +346,6 @@ class LobbyService {
         });
       
       // Create game using GameService
-      const GameService = require('./gameService');
       const gameService = new GameService();
       
       const game = await gameService.createGameFromLobby(lobby);
@@ -433,4 +433,4 @@ class LobbyService {
   }
 }
 
-module.exports = LobbyService;
+export default LobbyService;

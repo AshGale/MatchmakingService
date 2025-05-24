@@ -1,27 +1,27 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-// const Sentry = require('./instrument');
-const logger = require('./utils/logger');
-const errorHandler = require('./middleware/errorHandler');
-const notFoundHandler = require('./middleware/notFoundHandler');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+// import * as Sentry from './instrument.js';
+import logger from './utils/logger.js';
+import errorHandler from './middleware/errorHandler.js';
+import notFoundHandler from './middleware/notFoundHandler.js';
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const lobbyRoutes = require('./routes/lobbies');
-const gameRoutes = require('./routes/games');
-const userRoutes = require('./routes/users');
+import authRoutes from './routes/auth.js';
+import lobbyRoutes from './routes/lobbies.js';
+import gameRoutes from './routes/games.js';
+import userRoutes from './routes/users.js';
 
 // Create Express app
 const app = express();
 
-// // Init Sentry request handler (must come before all other middleware)
+// Init Sentry request handler (must come before all other middleware)
 // app.use(Sentry.Handlers.requestHandler());
 
-// // Security middleware
-// app.use(helmet());
+// Security middleware
+app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -39,7 +39,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Import specialized rate limiters
-const rateLimiter = require('./middleware/rateLimiter');
+import * as rateLimiter from './middleware/rateLimiter.js';
 
 // Logging middleware
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
@@ -66,9 +66,9 @@ app.get('/health', (req, res) => {
 app.use(notFoundHandler);
 
 // Sentry error handler - must come before any other error middleware
-app.use(Sentry.Handlers.errorHandler());
+// app.use(Sentry.Handlers.errorHandler());
 
 // Regular error handler
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

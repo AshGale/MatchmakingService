@@ -1,7 +1,7 @@
 /**
  * 404 Not Found handler
  */
-module.exports = (req, res, next) => {
+export default (req, res, next) => {
     res.status(404).json({ 
       message: `Route not found: ${req.method} ${req.originalUrl}` 
     });

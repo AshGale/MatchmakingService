@@ -1,8 +1,8 @@
-const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
-const logger = require('./utils/logger');
-const { GameManager } = require('./services/gameManager');
-const { LobbyManager } = require('./services/lobbyManager');
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import logger from './utils/logger.js';
+import { GameManager } from './services/gameManager.js';
+import { LobbyManager } from './services/lobbyManager.js';
 
 // Create singleton managers
 const gameManager = new GameManager();
@@ -452,4 +452,4 @@ const configureWebSockets = (server) => {
   return io;
 };
 
-module.exports = { configureWebSockets };
+export { configureWebSockets };

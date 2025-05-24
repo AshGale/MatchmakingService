@@ -43,9 +43,15 @@ services:
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-localdevelopmentrefreshsecret}
       REFRESH_TOKEN_EXPIRES_IN: 604800
       MAX_TURN_TIME: 300
+    # Modified volume mounting strategy to fix argon2 architecture issue
     volumes:
-      - ./server:/app
-      - /app/node_modules
+      # Mount source code but not node_modules
+      - ./server/src:/app/src
+      - ./server/migrations:/app/migrations
+      - ./server/seeds:/app/seeds
+      - ./server/package.json:/app/package.json
+      - ./server/package-lock.json:/app/package-lock.json
+      - ./server/knexfile.js:/app/knexfile.js
     ports:
       - "3000:3000"
     restart: unless-stopped

@@ -1,12 +1,14 @@
 // // Initialize Sentry before everything else
-// require('./instrument');
+// import './instrument.js';
 
-require('dotenv').config();
-const http = require('http');
-const app = require('./app');
-const { configureWebSockets } = require('./websockets');
-const logger = require('./utils/logger');
-const db = require('./db');
+import dotenv from 'dotenv';
+import http from 'http';
+import app from './app.js';
+import { configureWebSockets } from './websockets.js';
+import logger from './utils/logger.js';
+import db from './db.js';
+
+dotenv.config();
 
 // Validate critical environment variables
 const requiredEnvVars = [
@@ -75,4 +77,4 @@ const shutdown = async () => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-module.exports = server;
+export default server;

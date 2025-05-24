@@ -1,9 +1,11 @@
-const express = require('express');
+import express from 'express';
+import { param, body, validationResult } from 'express-validator';
+import auth from '../middleware/auth.js';
+import UserService from '../services/userService.js';
+import logger from '../utils/logger.js';
+import argon2 from 'argon2';
+
 const router = express.Router();
-const { param, body, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
-const UserService = require('../services/userService');
-const logger = require('../utils/logger');
 
 const userService = new UserService();
 
@@ -160,7 +162,6 @@ router.patch('/me', [
     }
     
     if (req.body.password) {
-      const argon2 = require('argon2');
       updates.password = await argon2.hash(req.body.password);
     }
     
@@ -184,4 +185,4 @@ router.patch('/me', [
   }
 });
 
-module.exports = router;
+export default router;

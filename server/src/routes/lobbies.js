@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { param, body, validationResult } from 'express-validator';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+import LobbyService from '../services/lobbyService.js';
+
 const router = express.Router();
-const { param, body, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
-const LobbyService = require('../services/lobbyService');
 
 const lobbyService = new LobbyService();
 
@@ -264,4 +265,4 @@ router.post('/:id/invite', [
   }
 });
 
-module.exports = router;
+export default router;

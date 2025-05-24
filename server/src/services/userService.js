@@ -1,5 +1,5 @@
-const db = require('../db');
-const logger = require('../utils/logger');
+import db from '../db.js';
+import logger from '../utils/logger.js';
 
 class UserService {
   /**
@@ -427,4 +427,4 @@ class UserService {
   }
 }
 
-module.exports = UserService;
+export default UserService;

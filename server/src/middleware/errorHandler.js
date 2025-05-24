@@ -1,9 +1,9 @@
-const logger = require('../utils/logger');
+import logger from '../utils/logger.js';
 
 /**
  * Error handling middleware
  */
-module.exports = (err, req, res, next) => {
+export default (err, req, res, next) => {
   // Log the error
   logger.error('Unhandled error', {
     error: err.message,

@@ -1,6 +1,6 @@
 // src/middleware/rateLimiter.js
-const rateLimit = require('express-rate-limit');
-const logger = require('../utils/logger');
+import rateLimit from 'express-rate-limit';
+import logger from '../utils/logger.js';
 
 // Create a store with sliding window using in-memory cache
 // For production, consider using Redis or another persistent store
@@ -66,7 +66,7 @@ const loginLimiter = createRateLimiter({
 // API routes general limiter
 const apiLimiter = createRateLimiter();
 
-module.exports = {
+export {
   authLimiter,
   registrationLimiter,
   loginLimiter,

@@ -1,12 +1,13 @@
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const argon2 = require('argon2');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+import UserService from '../services/userService.js';
+import auth from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+import { registrationLimiter, loginLimiter } from '../middleware/rateLimiter.js';
+
 const router = express.Router();
-const UserService = require('../services/userService');
-const auth = require('../middleware/auth');
-const logger = require('../utils/logger');
-const { registrationLimiter, loginLimiter } = require('../middleware/rateLimiter');
 
 const userService = new UserService();
 
@@ -247,4 +248,4 @@ function generateRefreshToken(userId) {
   );
 }
 
-module.exports = router;
+export default router;

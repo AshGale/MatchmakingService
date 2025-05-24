@@ -1,8 +1,9 @@
-const db = require('../db');
-const logger = require('../utils/logger');
-const { v4: uuidv4 } = require('uuid');
-const { GameManager } = require('./gameManager');
-const { LobbyManager } = require('./lobbyManager');
+import db from '../db.js';
+import logger from '../utils/logger.js';
+import { v4 as uuidv4 } from 'uuid';
+import { GameManager } from './gameManager.js';
+import { LobbyManager } from './lobbyManager.js';
+import EloService from './eloService.js';
 
 // Access the singleton managers
 const gameManager = new GameManager();
@@ -617,8 +618,7 @@ class GameService {
       const player1 = players.find(p => p.id === game.player1_id);
       const player2 = players.find(p => p.id === game.player2_id);
       
-      const eloService = require('./eloService');
-      const elo = new eloService();
+      const elo = new EloService();
       
       const winnerId = winner.id;
       const loserId = forfeitingUserId;
@@ -747,4 +747,4 @@ class GameService {
   }
 }
 
-module.exports = GameService;
+export default GameService;
