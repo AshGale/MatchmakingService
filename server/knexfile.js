@@ -16,8 +16,8 @@ const knexConfig = {
   development: {
     client: 'postgresql',
     connection: {
-      host: process.env.DB_HOST || 'postgres',
-      port: process.env.DB_PORT || 5432,
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5433,
       database: process.env.DB_NAME || 'matchmaker',
       user: process.env.DB_USER || 'matchmaker',
       password: process.env.DB_PASSWORD || 'securepassword',
@@ -38,8 +38,8 @@ const knexConfig = {
   production: {
     client: 'postgresql',
     connection: {
-      host: process.env.DB_HOST || 'postgres',
-      port: process.env.DB_PORT || 5432,
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5433,
       database: process.env.DB_NAME || 'matchmaker',
       user: process.env.DB_USER || 'matchmaker',
       password: process.env.DB_PASSWORD || 'securepassword',

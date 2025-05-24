@@ -1,6 +1,6 @@
 # Task ID: 2
 # Title: Database Schema Design
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Design and implement PostgreSQL database schema for users, lobbies, games, and Elo ratings
