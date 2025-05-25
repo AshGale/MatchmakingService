@@ -439,6 +439,52 @@ class LobbyService {
       throw error;
     }
   }
+  /**
+   * Set player ready status in a lobby
+   * 
+   * @param {string} lobbyId Lobby ID
+   * @param {string} playerId Player ID
+   * @param {boolean} isReady Ready status
+   * @returns {Promise<object>} Result
+   */
+  async setPlayerReady(lobbyId, playerId, isReady) {
+    try {
+      // Check if player is in the lobby
+      const playerInLobby = await db('lobby_players')
+        .where({ lobby_id: lobbyId, user_id: playerId })
+        .first();
+      
+      if (!playerInLobby) {
+        throw new Error('Player not in lobby');
+      }
+      
+      // Update ready status
+      await db('lobby_players')
+        .where({ lobby_id: lobbyId, user_id: playerId })
+        .update({ is_ready: isReady });
+      
+      // Get all players in lobby with their ready status
+      const players = await db('lobby_players as lp')
+        .where('lp.lobby_id', lobbyId)
+        .join('users as u', 'lp.user_id', 'u.id')
+        .select('lp.user_id', 'u.username', 'lp.is_ready');
+      
+      return {
+        lobbyId,
+        playerId,
+        isReady,
+        allPlayersReady: players.every(p => p.is_ready),
+        players: players.map(p => ({
+          id: p.user_id,
+          username: p.username,
+          isReady: p.is_ready
+        }))
+      };
+    } catch (error) {
+      logger.error('Error setting player ready status', { error: error.message, lobbyId, playerId });
+      throw error;
+    }
+  }
 }
 
 export default LobbyService;

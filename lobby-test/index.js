@@ -18,10 +18,22 @@ async function apiCall(endpoint, method = 'GET', body = null, token = null) {
   };
   
   try {
+    console.log(`API call: ${method} ${endpoint}`, body ? JSON.stringify(body) : '');
     const response = await fetch(`${API_URL}/${endpoint}`, options);
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
     
-    if (!response.ok) throw new Error(`API Error: ${data.error || data.message || 'Unknown error'}`);
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON response:', responseText);
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+    
+    if (!response.ok) {
+      console.error(`API Error Response:`, data);
+      throw new Error(`API Error (${response.status}): ${data.error || data.message || 'Unknown error'}`);
+    }
     return data;
   } catch (error) {
     console.error(`Error in ${method} ${endpoint}:`, error.message);
@@ -86,49 +98,94 @@ async function getLobbyChat(lobbyId) {
   return apiCall(`lobbies/${lobbyId}/chat`, 'GET', null, accessToken);
 }
 
-// Run tests
-async function runTest() {
+// Test variables
+let testLobbyId = null;
+let username = 'testuser1';
+let password = 'Password123!';
+
+// Run single test
+async function runSingleTest(testName, testFn) {
   try {
-    console.log('\n🧪 LOBBY MANAGEMENT SYSTEM TEST 🧪\n');
-    
-    // Use existing test account
-    const username = 'testuser1';
-    const password = 'Password123!';
-    
-    console.log('🔑 Step 1: Login');
-    await login(username, password);
-    console.log('✅ Login successful');
-    
-    console.log('\n🏠 Step 2: Create lobby');
-    const lobby = await createLobby(`${username}'s Test Lobby`, 4);
-    console.log(`✅ Lobby created: "${lobby.name}" (ID: ${lobby.id})`);
-    console.log(`   Status: ${lobby.status}`);
-    console.log(`   Players: ${lobby.players.length}/${lobby.maxPlayers}`);
-    
-    console.log('\n🔍 Step 3: Get all lobbies');
-    const lobbies = await getLobbies();
-    console.log(`✅ Found ${lobbies.length} active lobbies`);
-    
-    console.log('\n👍 Step 4: Set player ready status');
-    const readyStatus = await setReady(lobby.id, true);
-    console.log('✅ Ready status set to true');
-    
-    console.log('\n🎮 Step 5: Try to start game (expected to fail with single player)');
-    try {
-      const gameStarted = await startGame(lobby.id);
-      console.log('⚠️ Unexpectedly started game:', gameStarted);
-    } catch (error) {
-      console.log('✅ Expected error: Not enough players to start game');
-    }
-    
-    console.log('\n🚪 Step 6: Leave lobby');
-    const leftLobby = await leaveLobby(lobby.id);
-    console.log('✅ Successfully left lobby');
-    
-    console.log('\n🎉 ALL TESTS COMPLETED SUCCESSFULLY! 🎉');
+    console.log(`\n🧪 TEST: ${testName}`);
+    await testFn();
+    console.log(`✅ PASSED: ${testName}\n`);
+    return true;
   } catch (error) {
-    console.error('❌ TEST FAILED:', error);
+    console.error(`❌ FAILED: ${testName}`);
+    console.error(`   Error: ${error.message}`);
+    return false;
   }
 }
 
-runTest();
+// Individual test functions
+async function testLogin() {
+  console.log(`Logging in as: ${username}`);
+  await login(username, password);
+  console.log('Login successful');
+}
+
+async function testCreateLobby() {
+  const lobby = await createLobby(`${username}'s Test Lobby`, 4);
+  testLobbyId = lobby.id; // Store for later tests
+  console.log(`Lobby created with ID: ${lobby.id}`);
+  console.log(`Status: ${lobby.status}`);
+  console.log(`Players: ${lobby.players.length}/${lobby.maxPlayers}`);
+}
+
+async function testGetLobbies() {
+  const lobbies = await getLobbies();
+  console.log(`Found ${lobbies.length} active lobbies`);
+}
+
+async function testSetReady() {
+  console.log(`Setting ready status for lobby: ${testLobbyId}`);
+  const result = await setReady(testLobbyId, true);
+  console.log('Ready status set successfully');
+}
+
+async function testStartGame() {
+  try {
+    await startGame(testLobbyId);
+    throw new Error('Game should not start with only one player');
+  } catch (error) {
+    // Accept either error message
+    if (error.message.includes('Not enough players') || error.message.includes('Only the lobby creator can start')) {
+      console.log(`Correctly received expected error: ${error.message}`);
+    } else {
+      throw error;
+    }
+  }
+}
+
+async function testLeaveLobby() {
+  await leaveLobby(testLobbyId);
+  console.log('Successfully left lobby');
+}
+
+// Run all tests in sequence
+async function runAllTests() {
+  console.log('\n🧪 LOBBY MANAGEMENT SYSTEM TEST SUITE 🧪\n');
+  
+  try {
+    let passed = true;
+    
+    // Run tests in sequence
+    passed &= await runSingleTest('User Login', testLogin);
+    
+    if (passed) passed &= await runSingleTest('Create Lobby', testCreateLobby);
+    if (passed) passed &= await runSingleTest('List Lobbies', testGetLobbies);
+    if (passed) passed &= await runSingleTest('Set Ready Status', testSetReady);
+    if (passed) passed &= await runSingleTest('Start Game (Expected Failure)', testStartGame);
+    if (passed) passed &= await runSingleTest('Leave Lobby', testLeaveLobby);
+    
+    if (passed) {
+      console.log('\n🎉 ALL TESTS COMPLETED SUCCESSFULLY! 🎉');
+    } else {
+      console.error('\n❌ SOME TESTS FAILED - SEE ABOVE FOR DETAILS');
+    }
+  } catch (error) {
+    console.error('\n❌ TEST EXECUTION ERROR:', error);
+  }
+}
+
+runAllTests();
