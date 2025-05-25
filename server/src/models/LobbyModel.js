@@ -33,7 +33,7 @@ class LobbyModel extends BaseModel {
       // Add host as first player
       await this.db('lobby_players').insert({
         lobby_id: lobby.id,
-        player_id: hostId,
+        user_id: hostId,
         joined_at: new Date(),
         is_ready: false
       });
@@ -61,7 +61,7 @@ class LobbyModel extends BaseModel {
           'users.username',
           'users.elo_rating'
         ])
-        .join('users', 'lobby_players.player_id', 'users.id')
+        .join('users', 'lobby_players.user_id', 'users.id')
         .where('lobby_players.lobby_id', lobbyId);
 
       return {
@@ -81,7 +81,7 @@ class LobbyModel extends BaseModel {
       let query = this.db(this.tableName)
         .select([
           `${this.tableName}.*`, 
-          this.db.raw('COUNT(lobby_players.player_id) as player_count')
+          this.db.raw('COUNT(lobby_players.user_id) as player_count')
         ])
         .leftJoin('lobby_players', `${this.tableName}.id`, 'lobby_players.lobby_id')
         .where(`${this.tableName}.status`, 'open')
@@ -126,7 +126,7 @@ class LobbyModel extends BaseModel {
       
       // Check if player is already in this lobby
       const existingPlayer = await this.db('lobby_players')
-        .where({ lobby_id: lobbyId, player_id: playerId })
+        .where({ lobby_id: lobbyId, user_id: playerId })
         .first();
         
       if (existingPlayer) {
@@ -136,7 +136,7 @@ class LobbyModel extends BaseModel {
       // Check if lobby is full
       const playerCount = await this.db('lobby_players')
         .where('lobby_id', lobbyId)
-        .count('player_id as count')
+        .count('user_id as count')
         .first();
         
       if (Number(playerCount.count) >= lobby.max_players) {
@@ -146,7 +146,7 @@ class LobbyModel extends BaseModel {
       // Add player to lobby
       await this.db('lobby_players').insert({
         lobby_id: lobbyId,
-        player_id: playerId,
+        user_id: playerId,
         joined_at: new Date(),
         is_ready: false
       });
@@ -162,7 +162,7 @@ class LobbyModel extends BaseModel {
     try {
       // Check if player is in the lobby
       const playerInLobby = await this.db('lobby_players')
-        .where({ lobby_id: lobbyId, player_id: playerId })
+        .where({ lobby_id: lobbyId, user_id: playerId })
         .first();
         
       if (!playerInLobby) {
@@ -174,7 +174,7 @@ class LobbyModel extends BaseModel {
       
       // Remove player from lobby
       await this.db('lobby_players')
-        .where({ lobby_id: lobbyId, player_id: playerId })
+        .where({ lobby_id: lobbyId, user_id: playerId })
         .del();
       
       // If player was the host, assign a new host or close the lobby
@@ -187,7 +187,7 @@ class LobbyModel extends BaseModel {
         if (nextPlayer) {
           // Assign new host
           await this.update(lobbyId, { 
-            host_id: nextPlayer.player_id,
+            host_id: nextPlayer.user_id,
             updated_at: new Date()
           });
         } else {
@@ -210,7 +210,7 @@ class LobbyModel extends BaseModel {
     try {
       // Update player ready status
       const updated = await this.db('lobby_players')
-        .where({ lobby_id: lobbyId, player_id: playerId })
+        .where({ lobby_id: lobbyId, user_id: playerId })
         .update({ is_ready: isReady });
         
       if (!updated) {

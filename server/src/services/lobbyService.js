@@ -22,7 +22,6 @@ class LobbyService {
           'u.username as creator_name',
           'l.max_players',
           'l.is_private',
-          'l.game_type',
           'l.status',
           'l.created_at'
         );
@@ -32,12 +31,10 @@ class LobbyService {
         query = query.where('l.is_private', filters.isPrivate);
       }
       
-      if (filters.gameType) {
-        query = query.where('l.game_type', filters.gameType);
-      }
+      // Game type filtering removed as the column doesn't exist in schema
       
-      // Always filter for only open lobbies
-      query = query.where('l.status', 'open');
+      // Filter for available lobbies (open or waiting)
+      query = query.whereIn('l.status', ['open', 'waiting']);
       
       const lobbies = await query;
       
