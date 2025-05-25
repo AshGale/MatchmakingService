@@ -64,13 +64,14 @@ export async function runEsmTest(testPath, options = {}) {
     
     // Handle completion
     testProcess.on('close', (code) => {
-      const success = code === 0;
+      // Consider the test successful only if exit code is 0 AND there are no errors
+      const success = code === 0 && !errorOutput.includes('Error:');
       
       resolve({
         success,
         code,
         output,
-        error: errorOutput,
+        error: errorOutput || (code !== 0 ? `Exit code: ${code}` : ''),
         file: testPath
       });
     });

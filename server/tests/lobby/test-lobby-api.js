@@ -98,8 +98,10 @@ async function getLobbyChat(lobbyId) {
 // Main test function
 async function runTest() {
   try {
-    // Generate a unique username
-    const username = `user_${Date.now().toString().substr(-6)}`;
+    // Generate a highly unique username with timestamp and random suffix
+    const timestamp = Date.now();
+    const randomSuffix = Math.floor(Math.random() * 10000);
+    const username = `user_${timestamp}_${randomSuffix}`;
     const password = 'Password123!';
     const email = `${username}@example.com`;
     
