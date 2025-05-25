@@ -2,15 +2,16 @@ import db from '../db.js';
 import logger from '../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import GameService from './gameService.js';
+import LobbyModel from '../models/LobbyModel.js';
 
 class LobbyService {
   /**
    * Get list of lobbies
    * 
-   * @param {boolean} includePrivate Whether to include private lobbies
+   * @param {Object} filters Filter options
    * @returns {Promise<Array>} List of lobbies
    */
-  async getLobbies(includePrivate = false) {
+  async getLobbies(filters = {}) {
     try {
       let query = db('lobbies as l')
         .join('users as u', 'l.creator_id', 'u.id')
@@ -21,13 +22,22 @@ class LobbyService {
           'u.username as creator_name',
           'l.max_players',
           'l.is_private',
+          'l.game_type',
           'l.status',
           'l.created_at'
         );
       
-      if (!includePrivate) {
-        query = query.where('l.is_private', false);
+      // Apply filters
+      if (filters.isPrivate !== undefined) {
+        query = query.where('l.is_private', filters.isPrivate);
       }
+      
+      if (filters.gameType) {
+        query = query.where('l.game_type', filters.gameType);
+      }
+      
+      // Always filter for only open lobbies
+      query = query.where('l.status', 'open');
       
       const lobbies = await query;
       
@@ -181,9 +191,10 @@ class LobbyService {
    * @param {string} lobbyId Lobby ID
    * @param {string} userId User ID
    * @param {string} username Username
-   * @returns {Promise<object>} Updated lobby
+   * @param {string|null} password Password for private lobbies
+   * @returns {Promise<object>} Result of the join operation
    */
-  async joinLobby(lobbyId, userId, username) {
+  async joinLobby(lobbyId, userId, username, password = null) {
     try {
       // Get lobby
       const lobby = await this.getLobbyById(lobbyId);

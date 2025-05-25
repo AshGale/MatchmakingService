@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import logger from './utils/logger.js';
 import { GameManager } from './services/gameManager.js';
 import { LobbyManager } from './services/lobbyManager.js';
+import { LobbyStateManager, LOBBY_STATES } from './services/lobbyStateManager.js';
+import LobbyModel from './models/LobbyModel.js';
 
 // Create singleton managers
 const gameManager = new GameManager();
@@ -17,6 +19,9 @@ const configureWebSockets = (server) => {
     pingTimeout: 10000,
     pingInterval: 5000
   });
+  
+  // Create the lobby state manager with socket.io instance
+  const lobbyStateManager = new LobbyStateManager(LobbyModel, io);
 
   // Middleware to authenticate socket connections
   io.use((socket, next) => {
@@ -51,11 +56,21 @@ const configureWebSockets = (server) => {
     // Join user's personal room for direct messages
     socket.join(`user:${id}`);
     
+    // Get active lobbies the user is in and join those rooms
+    const userLobbies = Array.from(lobbyManager.getLobbies(true))
+      .filter(lobby => lobby.players.some(player => player.id === id));
+      
+    userLobbies.forEach(lobby => {
+      socket.join(`lobby:${lobby.id}`);
+      logger.info(`User ${username} (${id}) automatically joined lobby room: ${lobby.id}`);
+    });
+    
     // Send initial state
     socket.emit('initial_state', {
       lobbies: lobbyManager.getLobbies(),
       onlineUsers: lobbyManager.getOnlineUsers(),
-      activeGames: gameManager.getPublicGamesList()
+      activeGames: gameManager.getPublicGamesList(),
+      userLobbies: userLobbies
     });
     
     // Notify others that user is online
@@ -76,8 +91,9 @@ const configureWebSockets = (server) => {
     // LOBBY EVENTS
     
     // Create lobby
-    socket.on('create_lobby', (data, callback) => {
+    socket.on('create_lobby', async (data, callback) => {
       try {
+        // Create in the in-memory manager first
         const lobby = lobbyManager.createLobby({
           name: data.name,
           creatorId: id,
@@ -86,13 +102,31 @@ const configureWebSockets = (server) => {
           isPrivate: data.isPrivate || false
         });
         
+        // Create in the database for persistence
+        const persistedLobby = await LobbyModel.createLobby(
+          id, 
+          {
+            name: data.name,
+            gameType: data.gameType || 'standard',
+            maxPlayers: data.maxPlayers || 2,
+            isPrivate: data.isPrivate || false,
+            password: data.password || null
+          }
+        );
+        
         // Join the lobby's room
         socket.join(`lobby:${lobby.id}`);
+        
+        // Set initial lobby state
+        await lobbyStateManager.transitionState(persistedLobby.id, LOBBY_STATES.FILLING);
+        
+        // Track player connection to lobby
+        lobbyStateManager.playerConnected(lobby.id, id, socket.id);
         
         // Notify everyone about the new lobby
         io.emit('lobby_created', lobby);
         
-        callback({ success: true, lobby });
+        callback({ success: true, lobby: {...lobby, dbId: persistedLobby.id} });
       } catch (error) {
         logger.error('Error creating lobby', { error: error.message, userId: id });
         callback({ success: false, error: error.message });
@@ -100,13 +134,25 @@ const configureWebSockets = (server) => {
     });
     
     // Join lobby
-    socket.on('join_lobby', (data, callback) => {
+    socket.on('join_lobby', async (data, callback) => {
       try {
-        const { lobbyId } = data;
+        const { lobbyId, password } = data;
+        
+        // First try to join in the database for validation
+        const joinResult = await LobbyModel.joinLobby(lobbyId, id, password);
+        
+        if (!joinResult.success) {
+          throw new Error(joinResult.message);
+        }
+        
+        // Now join in the in-memory manager
         const lobby = lobbyManager.joinLobby(lobbyId, id, username);
         
         // Join the lobby's room
         socket.join(`lobby:${lobbyId}`);
+        
+        // Track player connection to lobby
+        lobbyStateManager.playerConnected(lobbyId, id, socket.id);
         
         // Notify lobby members about the new player
         io.to(`lobby:${lobbyId}`).emit('player_joined_lobby', {
@@ -125,13 +171,25 @@ const configureWebSockets = (server) => {
     });
     
     // Leave lobby
-    socket.on('leave_lobby', (data, callback) => {
+    socket.on('leave_lobby', async (data, callback) => {
       try {
         const { lobbyId } = data;
+        
+        // First leave in the database
+        const leaveResult = await LobbyModel.leaveLobby(lobbyId, id);
+        
+        if (!leaveResult.success) {
+          throw new Error(leaveResult.message);
+        }
+        
+        // Now leave in the in-memory manager
         const result = lobbyManager.leaveLobby(lobbyId, id);
         
         // Leave the lobby's room
         socket.leave(`lobby:${lobbyId}`);
+        
+        // Track player disconnection from lobby
+        lobbyStateManager.playerDisconnected(lobbyId, id);
         
         // If lobby still exists, notify remaining players
         if (!result.lobbyDeleted) {
@@ -156,44 +214,56 @@ const configureWebSockets = (server) => {
       }
     });
     
+    // Player ready status
+    socket.on('set_ready_status', async (data, callback) => {
+      try {
+        const { lobbyId, isReady } = data;
+        
+        // Update ready status
+        const result = await lobbyStateManager.setPlayerReady(lobbyId, id, isReady);
+        
+        callback({ success: true, result });
+      } catch (error) {
+        logger.error('Error setting ready status', { error: error.message, userId: id, lobbyId: data.lobbyId });
+        callback({ success: false, error: error.message });
+      }
+    });
+    
+    // Lobby chat
+    socket.on('lobby_chat', async (data, callback) => {
+      try {
+        const { lobbyId, message } = data;
+        
+        if (!message || typeof message !== 'string' || message.trim() === '') {
+          throw new Error('Invalid message');
+        }
+        
+        // Add chat message
+        const chatMessage = await lobbyStateManager.addChatMessage(lobbyId, id, username, message.trim());
+        
+        callback({ success: true, message: chatMessage });
+      } catch (error) {
+        logger.error('Error sending chat message', { error: error.message, userId: id, lobbyId: data.lobbyId });
+        callback({ success: false, error: error.message });
+      }
+    });
+    
     // Start game from lobby
-    socket.on('start_game', (data, callback) => {
+    socket.on('start_game', async (data, callback) => {
       try {
         const { lobbyId } = data;
-        const lobby = lobbyManager.getLobby(lobbyId);
         
-        if (!lobby) {
-          throw new Error('Lobby not found');
+        // First verify and start in the database
+        const startResult = await LobbyModel.startGame(lobbyId, gameManager);
+        
+        if (!startResult.success) {
+          throw new Error(startResult.message);
         }
         
-        if (lobby.creatorId !== id) {
-          throw new Error('Only the lobby creator can start the game');
-        }
+        // Initialize the game
+        const result = await lobbyStateManager.initializeGame(lobbyId, id);
         
-        // Create a new game
-        const game = gameManager.createGame(lobby.players);
-        
-        // Add players to game room
-        lobby.players.forEach(player => {
-          const playerSocket = io.sockets.sockets.get(lobbyManager.getSocketId(player.id));
-          if (playerSocket) {
-            playerSocket.join(`game:${game.id}`);
-          }
-        });
-        
-        // Notify players that the game has started
-        io.to(`game:${game.id}`).emit('game_started', {
-          gameId: game.id,
-          players: game.players,
-          currentTurn: game.currentTurn,
-          state: game.state
-        });
-        
-        // Delete the lobby
-        lobbyManager.deleteLobby(lobbyId);
-        io.emit('lobby_deleted', { lobbyId });
-        
-        callback({ success: true, gameId: game.id });
+        callback({ success: true, gameId: result.gameId });
       } catch (error) {
         logger.error('Error starting game', { error: error.message, userId: id, lobbyId: data.lobbyId });
         callback({ success: false, error: error.message });
@@ -244,58 +314,25 @@ const configureWebSockets = (server) => {
     
     // GAME EVENTS
     
-    // Submit move
-    socket.on('submit_move', (data, callback) => {
+    // Game action (move, card play, etc.)
+    socket.on('game_action', (data, callback) => {
       try {
-        const { gameId, move } = data;
+        const { gameId, action } = data;
         
-        // Validate it's the player's turn
-        const game = gameManager.getGame(gameId);
-        if (!game) {
-          throw new Error('Game not found');
-        }
+        const result = gameManager.processAction(gameId, id, action);
         
-        if (game.currentTurn.playerId !== id) {
-          throw new Error('Not your turn');
-        }
-        
-        // Process the move
-        const result = gameManager.processMove(gameId, id, move);
-        
-        // Broadcast updated game state
-        io.to(`game:${gameId}`).emit('game_updated', {
+        // Broadcast the action to all players in the game
+        io.to(`game:${gameId}`).emit('game_action_performed', {
           gameId,
-          state: result.state,
-          currentTurn: result.currentTurn,
-          lastMove: {
-            playerId: id,
-            move
-          }
+          playerId: id,
+          username,
+          action,
+          result
         });
         
-        // Check if game is over
-        if (result.gameOver) {
-          io.to(`game:${gameId}`).emit('game_ended', {
-            gameId,
-            winner: result.winner,
-            reason: result.reason
-          });
-          
-          // Update Elo ratings
-          if (result.ratings) {
-            result.ratings.forEach(rating => {
-              io.to(`user:${rating.userId}`).emit('rating_updated', {
-                oldRating: rating.oldRating,
-                newRating: rating.newRating,
-                change: rating.change
-              });
-            });
-          }
-        }
-        
-        callback({ success: true });
+        callback({ success: true, result });
       } catch (error) {
-        logger.error('Error submitting move', { error: error.message, userId: id, gameId: data.gameId });
+        logger.error('Error processing game action', { error: error.message, userId: id, gameId: data.gameId });
         callback({ success: false, error: error.message });
       }
     });
@@ -446,8 +483,9 @@ const configureWebSockets = (server) => {
   // Check turn timers every 5 seconds
   setInterval(checkTurnTimers, 5000);
 
-  // Store the io instance for use elsewhere if needed
+  // Store instances for use elsewhere if needed
   configureWebSockets.io = io;
+  configureWebSockets.lobbyStateManager = lobbyStateManager;
   
   return io;
 };

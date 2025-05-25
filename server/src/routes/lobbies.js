@@ -1,8 +1,9 @@
 import express from 'express';
-import { param, body, validationResult } from 'express-validator';
 import auth from '../middleware/auth.js';
 import logger from '../utils/logger.js';
 import LobbyService from '../services/lobbyService.js';
+import { lobbyValidators, handleValidationErrors } from '../middleware/lobbyValidator.js';
+import { configureWebSockets } from '../websockets.js';
 
 const router = express.Router();
 
@@ -10,13 +11,28 @@ const lobbyService = new LobbyService();
 
 /**
  * @route GET /api/lobbies
- * @desc Get list of lobbies
+ * @desc Get list of lobbies with optional filtering
  * @access Private
  */
-router.get('/', auth, async (req, res) => {
+router.get('/', [
+  auth,
+  ...lobbyValidators.getLobbies,
+  handleValidationErrors
+], async (req, res) => {
   try {
     const includePrivate = req.query.includePrivate === 'true';
-    const lobbies = await lobbyService.getLobbies(includePrivate);
+    const gameType = req.query.gameType;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+    const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+    
+    const filters = {
+      gameType,
+      isPrivate: includePrivate ? undefined : false,
+      limit,
+      offset
+    };
+    
+    const lobbies = await lobbyService.getLobbies(filters);
     
     res.json(lobbies);
   } catch (error) {
@@ -32,26 +48,11 @@ router.get('/', auth, async (req, res) => {
  */
 router.post('/', [
   auth,
-  body('name')
-    .isLength({ min: 3, max: 50 })
-    .withMessage('Lobby name must be between 3 and 50 characters')
-    .trim(),
-  body('maxPlayers')
-    .optional()
-    .isInt({ min: 2, max: 10 })
-    .withMessage('Max players must be between 2 and 10'),
-  body('isPrivate')
-    .optional()
-    .isBoolean()
-    .withMessage('isPrivate must be a boolean')
+  ...lobbyValidators.createLobby,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
-    const { name, maxPlayers = 2, isPrivate = false } = req.body;
+    const { name, gameType = 'standard', maxPlayers = 2, isPrivate = false, password = null } = req.body;
     const userId = req.user.id;
     const username = req.user.username;
     
@@ -59,9 +60,27 @@ router.post('/', [
       name,
       creatorId: userId,
       creatorName: username,
+      gameType,
       maxPlayers,
-      isPrivate
+      isPrivate,
+      password: isPrivate ? password : null
     });
+    
+    // Notify connected clients through WebSockets about the new lobby
+    const io = configureWebSockets.io;
+    if (io) {
+      io.emit('lobby_created', {
+        id: lobby.id,
+        name: lobby.name,
+        creatorId: lobby.creatorId,
+        creatorName: lobby.creatorName,
+        gameType: lobby.gameType,
+        maxPlayers: lobby.maxPlayers,
+        isPrivate: lobby.isPrivate,
+        playerCount: 1,
+        status: lobby.status
+      });
+    }
     
     res.status(201).json(lobby);
   } catch (error) {
@@ -77,14 +96,10 @@ router.post('/', [
  */
 router.get('/:id', [
   auth,
-  param('id').isUUID().withMessage('Invalid lobby ID')
+  ...lobbyValidators.getLobby,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
     const lobbyId = req.params.id;
     const lobby = await lobbyService.getLobbyById(lobbyId);
     
@@ -115,19 +130,27 @@ router.get('/:id', [
  */
 router.post('/:id/join', [
   auth,
-  param('id').isUUID().withMessage('Invalid lobby ID')
+  ...lobbyValidators.joinLobby,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
     const lobbyId = req.params.id;
     const userId = req.user.id;
     const username = req.user.username;
+    const password = req.body.password || null;
     
-    const result = await lobbyService.joinLobby(lobbyId, userId, username);
+    const result = await lobbyService.joinLobby(lobbyId, userId, username, password);
+    
+    // Notify connected clients through WebSockets
+    if (result.success) {
+      const io = configureWebSockets.io;
+      if (io) {
+        io.to(`lobby:${lobbyId}`).emit('player_joined_lobby', {
+          lobbyId,
+          player: { id: userId, username }
+        });
+      }
+    }
     
     res.json(result);
   } catch (error) {
@@ -140,7 +163,8 @@ router.post('/:id/join', [
       error.message === 'Lobby is full' ||
       error.message === 'You are already in this lobby' ||
       error.message === 'Lobby is not accepting new players' ||
-      error.message === 'This is a private lobby'
+      error.message === 'This is a private lobby' ||
+      error.message === 'Invalid lobby password'
     ) {
       return res.status(400).json({ message: error.message });
     }
@@ -150,24 +174,41 @@ router.post('/:id/join', [
 });
 
 /**
- * @route POST /api/lobbies/:id/leave
+ * @route DELETE /api/lobbies/:id/leave
  * @desc Leave a lobby
  * @access Private
  */
-router.post('/:id/leave', [
+router.delete('/:id/leave', [
   auth,
-  param('id').isUUID().withMessage('Invalid lobby ID')
+  ...lobbyValidators.leaveLobby,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
     const lobbyId = req.params.id;
     const userId = req.user.id;
     
     const result = await lobbyService.leaveLobby(lobbyId, userId);
+    
+    // Notify connected clients through WebSockets
+    if (result.success) {
+      const io = configureWebSockets.io;
+      if (io) {
+        // If lobby was deleted, notify all clients
+        if (result.lobbyDeleted) {
+          io.emit('lobby_deleted', { lobbyId });
+        } else {
+          // Otherwise notify only lobby members
+          io.to(`lobby:${lobbyId}`).emit('player_left_lobby', {
+            lobbyId,
+            playerId: userId,
+            newOwner: result.newOwner
+          });
+          
+          // Also update the lobby in the public list
+          io.emit('lobby_updated', await lobbyService.getLobbyById(lobbyId));
+        }
+      }
+    }
     
     res.json(result);
   } catch (error) {
@@ -188,18 +229,26 @@ router.post('/:id/leave', [
  */
 router.post('/:id/start', [
   auth,
-  param('id').isUUID().withMessage('Invalid lobby ID')
+  ...lobbyValidators.startGame,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
     const lobbyId = req.params.id;
     const userId = req.user.id;
     
     const result = await lobbyService.startGame(lobbyId, userId);
+    
+    // Notify connected clients through WebSockets
+    if (result.gameId) {
+      const io = configureWebSockets.io;
+      if (io) {
+        io.to(`lobby:${lobbyId}`).emit('game_started', {
+          lobbyId,
+          gameId: result.gameId,
+          timestamp: Date.now()
+        });
+      }
+    }
     
     res.json(result);
   } catch (error) {
@@ -210,7 +259,8 @@ router.post('/:id/start', [
     } else if (
       error.message === 'Only the lobby creator can start the game' ||
       error.message === 'Not enough players to start' ||
-      error.message === 'Too many players to start'
+      error.message === 'Too many players to start' ||
+      error.message === 'Not all players are ready'
     ) {
       return res.status(400).json({ message: error.message });
     }
@@ -226,20 +276,27 @@ router.post('/:id/start', [
  */
 router.post('/:id/invite', [
   auth,
-  param('id').isUUID().withMessage('Invalid lobby ID'),
-  body('userId').isUUID().withMessage('Invalid user ID')
+  ...lobbyValidators.invitePlayer,
+  handleValidationErrors
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    
     const lobbyId = req.params.id;
     const creatorId = req.user.id;
     const targetUserId = req.body.userId;
     
     const result = await lobbyService.inviteToLobby(lobbyId, creatorId, targetUserId);
+    
+    // Notify target user if they're online
+    if (result.targetUser) {
+      const io = configureWebSockets.io;
+      if (io) {
+        io.to(`user:${targetUserId}`).emit('lobby_invitation', {
+          lobbyId,
+          inviterId: creatorId,
+          inviterName: req.user.username
+        });
+      }
+    }
     
     res.json(result);
   } catch (error) {
@@ -262,6 +319,92 @@ router.post('/:id/invite', [
     }
     
     res.status(500).json({ message: 'Server error inviting to lobby' });
+  }
+});
+
+/**
+ * @route POST /api/lobbies/:id/ready
+ * @desc Set player ready status in a lobby
+ * @access Private
+ */
+router.post('/:id/ready', [
+  auth,
+  ...lobbyValidators.setReady,
+  handleValidationErrors
+], async (req, res) => {
+  try {
+    const lobbyId = req.params.id;
+    const userId = req.user.id;
+    const isReady = req.body.isReady;
+    
+    // Check if lobby exists and player is in it
+    const lobby = await lobbyService.getLobbyById(lobbyId);
+    
+    if (!lobby) {
+      return res.status(404).json({ message: 'Lobby not found' });
+    }
+    
+    const playerInLobby = lobby.players.some(player => player.id === userId);
+    if (!playerInLobby) {
+      return res.status(400).json({ message: 'You are not in this lobby' });
+    }
+    
+    // Update ready status
+    const result = await lobbyService.setPlayerReady(lobbyId, userId, isReady);
+    
+    // Notify connected clients through WebSockets
+    const io = configureWebSockets.io;
+    if (io) {
+      io.to(`lobby:${lobbyId}`).emit('player_ready_status_changed', {
+        lobbyId,
+        playerId: userId,
+        isReady
+      });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Error setting ready status', { error: error.message, lobbyId: req.params.id, userId: req.user.id });
+    res.status(500).json({ message: 'Server error setting ready status' });
+  }
+});
+
+/**
+ * @route GET /api/lobbies/:id/chat
+ * @desc Get chat history for a lobby
+ * @access Private
+ */
+router.get('/:id/chat', [
+  auth,
+  param('id').isUUID().withMessage('Invalid lobby ID'),
+  handleValidationErrors
+], async (req, res) => {
+  try {
+    const lobbyId = req.params.id;
+    const userId = req.user.id;
+    
+    // Check if lobby exists and player is in it or has access
+    const lobby = await lobbyService.getLobbyById(lobbyId);
+    
+    if (!lobby) {
+      return res.status(404).json({ message: 'Lobby not found' });
+    }
+    
+    const playerInLobby = lobby.players.some(player => player.id === userId);
+    const isCreator = lobby.creatorId === userId;
+    const isInvited = lobby.invitedPlayers?.includes(userId);
+    
+    if (!playerInLobby && !isCreator && !isInvited) {
+      return res.status(403).json({ message: 'You do not have access to this lobby' });
+    }
+    
+    // Get chat history (implementation depends on how chat is stored)
+    const chatHistory = await lobbyService.getLobbyChat(lobbyId);
+    
+    res.json(chatHistory);
+  } catch (error) {
+    logger.error('Error fetching lobby chat', { error: error.message, lobbyId: req.params.id, userId: req.user.id });
+    res.status(500).json({ message: 'Server error fetching lobby chat' });
   }
 });
 

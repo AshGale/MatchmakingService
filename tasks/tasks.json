@@ -290,7 +290,58 @@
         5
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Lobby Creation API",
+          "description": "Design and implement the API endpoint for creating game lobbies with configurable settings",
+          "dependencies": [],
+          "details": "Create a RESTful API endpoint that allows users to create new game lobbies. Include functionality for setting lobby name, game type, player limits, privacy settings, and custom game parameters. Implement validation for all input parameters and proper error handling. Generate unique lobby IDs and set up initial lobby state.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Develop Lobby Listing and Filtering System",
+          "description": "Create API endpoints for retrieving and filtering available game lobbies",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement endpoints to list all available lobbies with pagination support. Add filtering capabilities by game type, player count, privacy status, and other relevant parameters. Include sorting options (newest, most players, etc.) and search functionality. Ensure efficient querying with proper indexing for scalability.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Build Lobby Joining and Leaving Functionality",
+          "description": "Implement the logic for players to join and leave lobbies with appropriate state updates",
+          "dependencies": [
+            1
+          ],
+          "details": "Create API endpoints for joining and leaving lobbies. Implement validation checks for lobby capacity, privacy settings, and player eligibility. Handle edge cases like disconnections and timeouts. Update lobby state when players join or leave, including role assignments and team balancing if applicable.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Develop Lobby State Management System",
+          "description": "Create a robust system for managing and persisting lobby state across all connected clients",
+          "dependencies": [
+            1,
+            3
+          ],
+          "details": "Implement a state management system that handles lobby lifecycle (created, filling, ready, in-game, closed). Create logic for lobby settings modification, player ready status, and lobby chat functionality. Develop mechanisms to handle edge cases like host disconnection, timeout management, and lobby expiration. Ensure data consistency across concurrent operations.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Implement Real-time Updates and Game Initialization",
+          "description": "Set up WebSocket integration for real-time lobby updates and game initialization process",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Integrate WebSockets for real-time lobby updates to all connected clients. Implement event broadcasting for player joins/leaves, setting changes, chat messages, and ready status updates. Create the game initialization sequence that transitions from a ready lobby to an active game. Develop fallback mechanisms for clients with connection issues and handle reconnection scenarios.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 7,
