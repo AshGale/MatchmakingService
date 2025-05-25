@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'path';
 import fs from 'fs';
 import chalk from 'chalk';
 import { promisify } from 'util';
+import { runTests, printSummary } from './esm-test-runner.js';
 
 const sleep = promisify(setTimeout);
 
@@ -41,41 +42,9 @@ const logger = {
   header: (msg) => console.log(chalk.bold.cyan(`\n${msg}\n${'-'.repeat(msg.length)}`))
 };
 
-// Helper to run a test file
-async function runTest(testName, testPath) {
-  logger.header(`Running: ${testName}`);
-  
-  // Check if file exists
-  if (!fs.existsSync(testPath)) {
-    logger.error(`Test file not found: ${testPath}`);
-    results.skipped++;
-    return false;
-  }
-  
-  try {
-    // Run the test with Node.js
-    const process = spawnSync('node', [testPath], {
-      stdio: 'inherit',
-      timeout: TEST_TIMEOUT,
-      env: { ...process.env, NODE_ENV: 'test' }
-    });
-    
-    if (process.status === 0) {
-      logger.success(`✅ ${testName} completed successfully`);
-      results.passed++;
-      return true;
-    } else {
-      logger.error(`❌ ${testName} failed with exit code ${process.status}`);
-      results.failed++;
-      results.failedTests.push(testName);
-      return false;
-    }
-  } catch (error) {
-    logger.error(`❌ ${testName} error: ${error.message}`);
-    results.failed++;
-    results.failedTests.push(testName);
-    return false;
-  }
+// Get test file paths from test groups
+function getTestFiles() {
+  return testGroups.map(group => group.path);
 }
 
 // Check if Docker containers are running
@@ -226,18 +195,23 @@ async function runAllTests() {
     logger.success('Docker containers are already running');
   }
   
-  results.total = testGroups.length;
+  // Get all test files from test groups
+  const testFiles = getTestFiles();
+  results.total = testFiles.length;
   
-  // Run each test sequentially
-  for (const test of testGroups) {
-    try {
-      await runTest(test.name, test.path);
-    } catch (error) {
-      logger.error(`Error executing test ${test.name}: ${error.message}`);
-      results.failed++;
-      results.failedTests.push(test.name);
-    }
-  }
+  // Run tests using our ES module compatible test runner
+  logger.info('Running tests with ES module support...');
+  const testResults = await runTests(testFiles, {
+    timeout: TEST_TIMEOUT,
+    env: { NODE_ENV: 'test' }
+  });
+  
+  // Process results
+  results.passed = testResults.filter(r => r.success).length;
+  results.failed = testResults.filter(r => !r.success).length;
+  results.failedTests = testResults
+    .filter(r => !r.success)
+    .map(r => r.name);
   
   // Stop Docker containers if we started them
   if (dockerStarted) {
@@ -252,7 +226,7 @@ async function runAllTests() {
   // Add Docker status to summary
   logger.info(`Docker containers were ${dockerWasRunning ? 'already running' : dockerStarted ? 'started for testing' : 'not available'}`)
   
-  // Print summary
+  // Print summary using our custom formatter
   logger.header('Test Summary');
   logger.info(`Total test suites: ${results.total}`);
   logger.success(`Passed: ${results.passed}`);
