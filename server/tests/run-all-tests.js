@@ -84,17 +84,27 @@ function checkDockerRunning() {
     logger.info('Checking if Docker containers are running...');
     
     // Check for running containers matching our service
-    const result = spawnSync('docker', ['ps', '--filter', 'name=matchmaking', '--format', '{{.Names}}'], {
-      encoding: 'utf-8'
+    // Using docker-compose ps instead of docker ps for more reliable container detection
+    const result = spawnSync('docker-compose', ['ps', '--services', '--filter', 'status=running'], {
+      encoding: 'utf-8',
+      cwd: projectRootDir
     });
     
     if (result.status !== 0) {
-      logger.error(`Failed to check Docker status: ${result.stderr}`);
+      logger.error(`Failed to check Docker status: ${result.stderr || 'Unknown error'}`);
       return false;
     }
     
     const runningContainers = result.stdout.trim().split('\n').filter(Boolean);
-    return runningContainers.length > 0;
+    const isRunning = runningContainers.length > 0;
+    
+    if (isRunning) {
+      logger.success(`Found ${runningContainers.length} running containers: ${runningContainers.join(', ')}`);
+    } else {
+      logger.warning('No running containers found');
+    }
+    
+    return isRunning;
   } catch (error) {
     logger.error(`Error checking Docker status: ${error.message}`);
     return false;
@@ -106,14 +116,33 @@ function startDockerContainers() {
   try {
     logger.info('Starting Docker containers...');
     
-    // Change to project root where docker-compose.yml is located
+    // First ensure containers are stopped to avoid conflicts
+    logger.info('Ensuring no conflicting containers are running...');
+    spawnSync('docker-compose', ['down'], {
+      cwd: projectRootDir,
+      stdio: 'inherit'
+    });
+    
+    // Start containers in detached mode
+    logger.info('Starting fresh containers...');
     const result = spawnSync('docker-compose', ['up', '-d'], {
       cwd: projectRootDir,
       stdio: 'inherit'
     });
     
     if (result.status !== 0) {
-      logger.error('Failed to start Docker containers');
+      logger.error(`Failed to start Docker containers: ${result.stderr || 'Unknown error'}`);
+      return false;
+    }
+    
+    // Verify containers started correctly
+    const verifyResult = spawnSync('docker-compose', ['ps'], {
+      cwd: projectRootDir,
+      encoding: 'utf-8'
+    });
+    
+    if (verifyResult.status !== 0 || !verifyResult.stdout.includes('Up')) {
+      logger.error('Containers did not start properly');
       return false;
     }
     
@@ -150,9 +179,28 @@ function stopDockerContainers() {
 
 // Wait for services to be ready
 async function waitForServices() {
-  logger.info(`Waiting ${DOCKER_STARTUP_WAIT/1000} seconds for services to be ready...`);
-  await sleep(DOCKER_STARTUP_WAIT);
-  logger.success('Services should be ready now');
+  const waitTimeSeconds = DOCKER_STARTUP_WAIT/1000;
+  logger.info(`Waiting ${waitTimeSeconds} seconds for services to be ready...`);
+  
+  // Show countdown to make the wait more informative
+  for (let i = waitTimeSeconds; i > 0; i -= 5) {
+    if (i < waitTimeSeconds) {
+      logger.info(`${i} seconds remaining...`);
+    }
+    await sleep(Math.min(i, 5) * 1000);
+  }
+  
+  // Verify services are actually ready by checking health status
+  const healthCheck = spawnSync('docker-compose', ['ps'], {
+    cwd: projectRootDir,
+    encoding: 'utf-8'
+  });
+  
+  if (healthCheck.status === 0 && healthCheck.stdout.includes('(healthy)')) {
+    logger.success('Services are healthy and ready');
+  } else {
+    logger.warning('Services may not be fully healthy, but continuing with tests');
+  }
 }
 
 // Main function to run all tests

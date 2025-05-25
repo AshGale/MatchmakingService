@@ -18,8 +18,9 @@ console.log('='.repeat(50) + '\n');
 
 // Check if Docker is running
 console.log('Checking Docker status...');
-const dockerCheck = spawnSync('docker', ['ps', '--filter', 'name=matchmaking', '--format', '{{.Names}}'], {
-  encoding: 'utf-8'
+const dockerCheck = spawnSync('docker-compose', ['ps', '--services', '--filter', 'status=running'], {
+  encoding: 'utf-8',
+  cwd: projectRootDir
 });
 
 const dockerRunning = dockerCheck.status === 0 && 
@@ -31,6 +32,16 @@ console.log(`Docker containers running: ${dockerRunning ? 'YES' : 'NO'}`);
 let dockerStarted = false;
 if (!dockerRunning) {
   console.log('\nStarting Docker containers...');
+  
+  // First ensure containers are stopped to avoid conflicts
+  console.log('Ensuring no conflicting containers are running...');
+  spawnSync('docker-compose', ['down'], {
+    cwd: projectRootDir,
+    stdio: 'inherit'
+  });
+  
+  // Start containers in detached mode
+  console.log('Starting fresh containers...');
   const dockerStart = spawnSync('docker-compose', ['up', '-d'], {
     cwd: projectRootDir,
     stdio: 'inherit'
@@ -40,11 +51,29 @@ if (!dockerRunning) {
   
   if (dockerStarted) {
     console.log('Docker containers started successfully');
-    console.log('\nWaiting 10 seconds for services to initialize...');
-    for (let i = 10; i > 0; i--) {
-      process.stdout.write(`${i}... `);
-      spawnSync('powershell', ['-Command', 'Start-Sleep -Seconds 1']);
+    console.log('\nWaiting for services to initialize...');
+    
+    // Show countdown for better visibility
+    const waitTimeSeconds = 30;
+    for (let i = waitTimeSeconds; i > 0; i -= 5) {
+      if (i < waitTimeSeconds) {
+        console.log(`${i} seconds remaining...`);
+      }
+      spawnSync('powershell', ['-Command', `Start-Sleep -Seconds ${Math.min(i, 5)}`]);
     }
+    
+    console.log('\nVerifying container health...');
+    const healthCheck = spawnSync('docker-compose', ['ps'], {
+      cwd: projectRootDir,
+      encoding: 'utf-8'
+    });
+    
+    if (healthCheck.status === 0 && healthCheck.stdout.includes('(healthy)')) {
+      console.log('Services are healthy and ready');
+    } else {
+      console.log('Services may not be fully healthy, but continuing with tests');
+    }
+    
     console.log('\nContinuing with test...\n');
   } else {
     console.log('Failed to start Docker containers');
