@@ -1,4 +1,4 @@
-// test-auth.js
+// c:\Users\ashga\Documents\Code\MatchmakingService\server\tests\auth\api-test.js
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 

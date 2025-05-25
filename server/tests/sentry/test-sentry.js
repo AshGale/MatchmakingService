@@ -1,5 +1,5 @@
-// Test script to verify Sentry is properly configured
-const Sentry = require('./instrument');
+// c:\Users\ashga\Documents\Code\MatchmakingService\server\tests\sentry\test-sentry.js
+import * as Sentry from '../../src/instrument.js';
 
 // Test capturing a basic error
 function testSentryCapture() {

@@ -1,0 +1,14 @@
+{
+  "name": "matchmaking-service-tests",
+  "version": "1.0.0",
+  "description": "Test suite for MatchmakingService",
+  "main": "run-all-tests.js",
+  "type": "module",
+  "scripts": {
+    "test": "node run-all-tests.js",
+    "test:docker": "node run-all-tests.js --docker-manage"
+  },
+  "dependencies": {
+    "chalk": "^5.2.0"
+  }
+}

@@ -1,4 +1,4 @@
-// c:\Users\ashga\Documents\Code\MatchmakingService\test-lobby-api.js
+// c:\Users\ashga\Documents\Code\MatchmakingService\server\tests\lobby\test-lobby-api.js
 import fetch from 'node-fetch';
 
 // Configuration
