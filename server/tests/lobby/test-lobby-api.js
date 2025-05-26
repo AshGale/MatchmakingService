@@ -1,6 +1,9 @@
 // c:\Users\ashga\Documents\Code\MatchmakingService\server\tests\lobby\test-lobby-api.js
 import fetch from 'node-fetch';
 
+// Utility for delaying execution to avoid rate limiting
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // Configuration
 const API_URL = 'http://localhost:3000/api';
 let accessToken = null;
@@ -105,21 +108,26 @@ async function runTest() {
     const password = 'Password123!';
     const email = `${username}@example.com`;
     
-    // Register and login
+    // Register and login with delays to avoid rate limiting
     await register(username, password, email);
+    await delay(1000); // 1 second delay
     await login(username, password);
+    await delay(500); // 0.5 second delay
     
     // Create a lobby
     const lobby = await createLobby(`${username}'s Lobby`, 4);
     console.log('Created lobby:', lobby);
+    await delay(500); // 0.5 second delay
     
     // Get list of lobbies
     const lobbies = await getLobbies();
     console.log('Available lobbies:', lobbies);
+    await delay(500); // 0.5 second delay
     
     // Set ready status
     const readyStatus = await setReady(lobby.id);
     console.log('Ready status set:', readyStatus);
+    await delay(500); // 0.5 second delay
     
     // Try to start the game (this might fail if not enough players are ready)
     try {
@@ -128,10 +136,12 @@ async function runTest() {
     } catch (error) {
       console.log('Expected error - cannot start game with only one player ready');
     }
+    await delay(500); // 0.5 second delay
     
     // Leave the lobby
     const leftLobby = await leaveLobby(lobby.id);
     console.log('Left lobby:', leftLobby);
+    await delay(500); // 0.5 second delay
     
     console.log('All tests completed successfully!');
   } catch (error) {
