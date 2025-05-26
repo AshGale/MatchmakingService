@@ -20,7 +20,10 @@ const DOCKER_STARTUP_WAIT = 30000; // 30 seconds
 const testGroups = [
   { name: 'Auth API Tests', path: join(testsRootDir, 'auth', 'api-test.js') },
   { name: 'Lobby API Tests', path: join(testsRootDir, 'lobby', 'test-lobby-api.js') },
-  { name: 'WebSocket Tests', path: join(testsRootDir, 'websocket', 'websocket.test.js') }
+  { name: 'WebSocket Tests', path: join(testsRootDir, 'websocket', 'websocket.test.js') },
+  { name: 'Matchmaking Algorithm Tests', path: join(testsRootDir, 'matchmaking', 'matchmaking.test.js') }
+  // WebSocket matchmaking tests require running server, exclude for automated tests
+  // { name: 'Matchmaking WebSocket Tests', path: join(testsRootDir, 'matchmaking', 'matchmaking-ws.test.js') }
   // Sentry tests excluded as requested
   // { name: 'Auth Tests', path: join(testsRootDir, 'auth', 'auth.test.js') }
 ];

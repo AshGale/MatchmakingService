@@ -5,10 +5,12 @@ import { GameManager } from './services/gameManager.js';
 import { LobbyManager } from './services/lobbyManager.js';
 import { LobbyStateManager, LOBBY_STATES } from './services/lobbyStateManager.js';
 import LobbyModel from './models/LobbyModel.js';
+import MatchmakingHandler from './services/matchmakingHandler.js';
 
 // Create singleton managers
 const gameManager = new GameManager();
 const lobbyManager = new LobbyManager();
+let matchmakingHandler = null; // Will be initialized with io instance
 
 // Connection tracking for enhanced management
 const connectionTracker = {
@@ -99,6 +101,9 @@ const configureWebSockets = (server) => {
   
   // Create the lobby state manager with socket.io instance
   const lobbyStateManager = new LobbyStateManager(LobbyModel, io);
+  
+  // Initialize matchmaking handler
+  matchmakingHandler = new MatchmakingHandler(io);
 
   // Middleware to authenticate socket connections
   io.use((socket, next) => {
@@ -193,6 +198,9 @@ const configureWebSockets = (server) => {
     
     // Join user's personal room for direct messages
     socket.join(`user:${id}`);
+    
+    // Register socket with matchmaking handler
+    matchmakingHandler.registerSocket(socket);
     
     // Get active lobbies the user is in and join those rooms
     const userLobbies = Array.from(lobbyManager.getLobbies(true))
@@ -989,6 +997,7 @@ const configureWebSockets = (server) => {
   // Store instances for use elsewhere if needed
   configureWebSockets.io = io;
   configureWebSockets.lobbyStateManager = lobbyStateManager;
+  configureWebSockets.matchmakingHandler = matchmakingHandler;
   
   return io;
 };

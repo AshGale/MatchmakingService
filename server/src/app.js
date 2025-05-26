@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import lobbyRoutes from './routes/lobbies.js';
 import gameRoutes from './routes/games.js';
 import userRoutes from './routes/users.js';
+import matchmakingRoutes from './routes/matchmaking.js';
 
 // Create Express app
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/auth', rateLimiter.authLimiter, authRoutes);
 app.use('/api/lobbies', lobbyRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/matchmaking', matchmakingRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
