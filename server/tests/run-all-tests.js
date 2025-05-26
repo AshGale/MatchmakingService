@@ -19,7 +19,8 @@ const TEST_TIMEOUT = 60000; // 60 seconds
 const DOCKER_STARTUP_WAIT = 30000; // 30 seconds
 const testGroups = [
   { name: 'Auth API Tests', path: join(testsRootDir, 'auth', 'api-test.js') },
-  { name: 'Lobby API Tests', path: join(testsRootDir, 'lobby', 'test-lobby-api.js') }
+  { name: 'Lobby API Tests', path: join(testsRootDir, 'lobby', 'test-lobby-api.js') },
+  { name: 'WebSocket Tests', path: join(testsRootDir, 'websocket', 'websocket.test.js') }
   // Sentry tests excluded as requested
   // { name: 'Auth Tests', path: join(testsRootDir, 'auth', 'auth.test.js') }
 ];

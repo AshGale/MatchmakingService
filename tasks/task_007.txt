@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: WebSocket Integration
-# Status: pending
+# Status: done
 # Dependencies: 4
 # Priority: high
 # Description: Implement WebSocket server for real-time communication between clients and server
@@ -84,31 +84,31 @@ Implement event handlers for all real-time features required by the application.
 Test WebSocket connection establishment and authentication. Verify event emission and reception for all implemented events. Test room joining and leaving functionality. Verify broadcast messages reach all intended recipients. Test reconnection handling after client disconnection. Measure message delivery latency to ensure it meets performance requirements (<100ms).
 
 # Subtasks:
-## 1. WebSocket Server Setup with Authentication [pending]
+## 1. WebSocket Server Setup with Authentication [done]
 ### Dependencies: None
 ### Description: Implement a secure WebSocket server with token-based authentication
 ### Details:
 Create a WebSocket server using a library like 'ws' for Node.js. Implement token-based authentication by validating credentials during the connection handshake. Use either query parameters, HTTP headers, or a message-based authentication system. Ensure connections are terminated if authentication fails.
 
-## 2. Room Management System [pending]
+## 2. Room Management System [done]
 ### Dependencies: 7.1
 ### Description: Develop a system to manage users, lobbies, and game rooms
 ### Details:
 Create data structures to track users, lobbies, and active games. Implement functions for creating/joining/leaving rooms, with appropriate access controls. Design a system to associate WebSocket connections with specific rooms and handle room state persistence.
 
-## 3. Lobby Event Handling [pending]
+## 3. Lobby Event Handling [done]
 ### Dependencies: 7.2
 ### Description: Implement event handlers for lobby-related activities
 ### Details:
 Create handlers for lobby events such as user joining/leaving, lobby creation/deletion, and chat messages. Implement broadcasting mechanisms to notify all relevant users of lobby state changes. Ensure proper validation of incoming lobby event messages.
 
-## 4. Game State Event Handling [pending]
+## 4. Game State Event Handling [done]
 ### Dependencies: 7.2
 ### Description: Develop handlers for game state changes and player actions
 ### Details:
 Implement handlers for game-specific events like moves, actions, and state changes. Create a system to validate game actions against game rules. Design efficient state synchronization to broadcast game updates to all players in a room.
 
-## 5. Connection Management and Error Handling [pending]
+## 5. Connection Management and Error Handling [done]
 ### Dependencies: 7.1, 7.2
 ### Description: Implement robust connection management with error recovery
 ### Details:

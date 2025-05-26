@@ -353,7 +353,7 @@
       "dependencies": [
         4
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -361,7 +361,7 @@
           "description": "Implement a secure WebSocket server with token-based authentication",
           "dependencies": [],
           "details": "Create a WebSocket server using a library like 'ws' for Node.js. Implement token-based authentication by validating credentials during the connection handshake. Use either query parameters, HTTP headers, or a message-based authentication system. Ensure connections are terminated if authentication fails.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -371,7 +371,7 @@
             1
           ],
           "details": "Create data structures to track users, lobbies, and active games. Implement functions for creating/joining/leaving rooms, with appropriate access controls. Design a system to associate WebSocket connections with specific rooms and handle room state persistence.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -381,7 +381,7 @@
             2
           ],
           "details": "Create handlers for lobby events such as user joining/leaving, lobby creation/deletion, and chat messages. Implement broadcasting mechanisms to notify all relevant users of lobby state changes. Ensure proper validation of incoming lobby event messages.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -391,7 +391,7 @@
             2
           ],
           "details": "Implement handlers for game-specific events like moves, actions, and state changes. Create a system to validate game actions against game rules. Design efficient state synchronization to broadcast game updates to all players in a room.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -402,7 +402,7 @@
             2
           ],
           "details": "Create systems to handle disconnections, reconnections, and connection timeouts. Implement error handling for various failure scenarios. Design logging for debugging and monitoring. Develop strategies for graceful degradation during server issues.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
