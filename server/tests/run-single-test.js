@@ -82,8 +82,13 @@ if (!dockerRunning) {
 
 // Run the test
 console.log(`\nExecuting test: ${TEST_NAME}\n`);
-const testProcess = spawnSync('node', [TEST_FILE], {
-  stdio: 'inherit'
+const testProcess = spawnSync('node', ['--experimental-vm-modules', TEST_FILE], {
+  stdio: 'inherit',
+  env: { 
+    ...process.env, 
+    NODE_ENV: 'test',
+    NODE_OPTIONS: '--experimental-vm-modules'
+  }
 });
 
 // Report result

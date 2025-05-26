@@ -1,5 +1,6 @@
 // c:\Users\ashga\Documents\Code\MatchmakingService\server\tests\sentry\test-sentry.js
 import * as Sentry from '../../src/instrument.js';
+import { exit } from 'process';
 
 // Test capturing a basic error
 function testSentryCapture() {
@@ -27,5 +28,5 @@ testSentryMessage();
 // Allow time for Sentry to send events before exiting
 setTimeout(() => {
   console.log('Test complete. Exiting...');
-  process.exit(0);
+  exit(0);
 }, 2000);

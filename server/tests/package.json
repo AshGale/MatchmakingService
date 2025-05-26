@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "chalk": "^5.2.0"
+  },
+  "devDependencies": {
+    "chai": "^5.2.0"
   }
 }
