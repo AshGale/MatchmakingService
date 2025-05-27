@@ -6,6 +6,7 @@ import UserService from '../services/userService.js';
 import auth from '../middleware/auth.js';
 import logger from '../utils/logger.js';
 import { registrationLimiter, loginLimiter } from '../middleware/rateLimiter.js';
+import { authValidation, handleValidationErrors } from '../middleware/security.js';
 
 const router = express.Router();
 
@@ -16,21 +17,7 @@ const userService = new UserService();
  * @desc Register a new user
  * @access Public
  */
-router.post('/register', registrationLimiter, [
-  // Validation
-  body('username')
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores')
-    .trim(),
-  
-  body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
-], async (req, res) => {
+router.post('/register', registrationLimiter, authValidation.register, handleValidationErrors, async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -83,11 +70,7 @@ router.post('/register', registrationLimiter, [
  * @desc Login user
  * @access Public
  */
-router.post('/login', loginLimiter, [
-  // Validation
-  body('username').trim().not().isEmpty(),
-  body('password').not().isEmpty()
-], async (req, res) => {
+router.post('/login', loginLimiter, authValidation.login, handleValidationErrors, async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -136,7 +119,7 @@ router.post('/login', loginLimiter, [
  * @desc Refresh access token
  * @access Public (with refresh token)
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', authValidation.refresh, handleValidationErrors, async (req, res) => {
   try {
     const { refreshToken } = req.body;
     
@@ -185,7 +168,7 @@ router.post('/refresh', async (req, res) => {
  * @desc Logout user by revoking refresh token
  * @access Private
  */
-router.post('/logout', auth, async (req, res) => {
+router.post('/logout', auth, authValidation.logout, handleValidationErrors, async (req, res) => {
   try {
     const { refreshToken } = req.body;
     

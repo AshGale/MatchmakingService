@@ -289,7 +289,7 @@
         3,
         5
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -297,7 +297,7 @@
           "description": "Design and implement the API endpoint for creating game lobbies with configurable settings",
           "dependencies": [],
           "details": "Create a RESTful API endpoint that allows users to create new game lobbies. Include functionality for setting lobby name, game type, player limits, privacy settings, and custom game parameters. Implement validation for all input parameters and proper error handling. Generate unique lobby IDs and set up initial lobby state.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -307,7 +307,7 @@
             1
           ],
           "details": "Implement endpoints to list all available lobbies with pagination support. Add filtering capabilities by game type, player count, privacy status, and other relevant parameters. Include sorting options (newest, most players, etc.) and search functionality. Ensure efficient querying with proper indexing for scalability.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -317,7 +317,7 @@
             1
           ],
           "details": "Create API endpoints for joining and leaving lobbies. Implement validation checks for lobby capacity, privacy settings, and player eligibility. Handle edge cases like disconnections and timeouts. Update lobby state when players join or leave, including role assignments and team balancing if applicable.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -328,7 +328,7 @@
             3
           ],
           "details": "Implement a state management system that handles lobby lifecycle (created, filling, ready, in-game, closed). Create logic for lobby settings modification, player ready status, and lobby chat functionality. Develop mechanisms to handle edge cases like host disconnection, timeout management, and lobby expiration. Ensure data consistency across concurrent operations.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -339,7 +339,7 @@
             4
           ],
           "details": "Integrate WebSockets for real-time lobby updates to all connected clients. Implement event broadcasting for player joins/leaves, setting changes, chat messages, and ready status updates. Create the game initialization sequence that transitions from a ready lobby to an active game. Develop fallback mechanisms for clients with connection issues and handle reconnection scenarios.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -417,7 +417,7 @@
         5,
         7
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -425,7 +425,7 @@
           "description": "Design and implement a system to manage the queue of players waiting for a match. This includes adding new players to the queue, updating their status, and efficiently removing them once matched.",
           "dependencies": [],
           "details": "Ensure the queue can handle high concurrency and scale for millions of users. Store player information such as status and skill rating. Consider using a database or in-memory data structure for fast access.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -435,7 +435,7 @@
             1
           ],
           "details": "Implement algorithms to compare player ratings and select optimal pairs or groups. Ensure the logic can efficiently process the queue and handle edge cases such as rating outliers.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -445,7 +445,7 @@
             2
           ],
           "details": "Track each player's wait time and dynamically adjust their matching criteria to increase the likelihood of finding a match over time, balancing fairness and queue times.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -455,7 +455,7 @@
             3
           ],
           "details": "Once a match is found, remove players from the queue, create a match instance, and send notifications (e.g., via websocket or push) to all matched players with connection details.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -470,7 +470,7 @@
         5,
         7
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -478,7 +478,7 @@
           "description": "Design and implement logic to create a new game instance, initialize game state, assign players, and set up any required resources or data structures.",
           "dependencies": [],
           "details": "This includes setting up the initial board or environment, assigning player roles, and storing the initial state in the database.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -488,7 +488,7 @@
             1
           ],
           "details": "This involves updating the active player, checking for valid actions, and preventing out-of-turn moves.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -498,7 +498,7 @@
             2
           ],
           "details": "This includes applying game rules, updating the board or state, and triggering any side effects or notifications.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -508,7 +508,7 @@
             2
           ],
           "details": "This requires timers, timeout checks, and logic to update the game state or notify players when a timeout occurs.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -519,7 +519,7 @@
             4
           ],
           "details": "This includes checking win/draw conditions after each move or timeout, updating the game status, and triggering end-of-game events.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -529,7 +529,7 @@
             5
           ],
           "details": "This involves calculating new ratings, updating player profiles, and ensuring consistency with the finalized game result.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

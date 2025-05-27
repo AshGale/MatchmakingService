@@ -1,6 +1,6 @@
 # Task ID: 9
 # Title: Game State Management
-# Status: pending
+# Status: done
 # Dependencies: 5, 7
 # Priority: high
 # Description: Implement game state tracking, turn management, and game progression logic
@@ -262,37 +262,37 @@ module.exports = new GameService();
 Test game creation with valid and invalid player combinations. Verify turn management works correctly, including turn transitions and time limits. Test move processing with valid and invalid moves. Verify game completion logic and Elo rating updates. Test concurrent game operations. Verify game state persistence and recovery after server restart.
 
 # Subtasks:
-## 1. Game Creation and Initialization [pending]
+## 1. Game Creation and Initialization [done]
 ### Dependencies: None
 ### Description: Design and implement logic to create a new game instance, initialize game state, assign players, and set up any required resources or data structures.
 ### Details:
 This includes setting up the initial board or environment, assigning player roles, and storing the initial state in the database.
 
-## 2. Turn Management and Validation [pending]
+## 2. Turn Management and Validation [done]
 ### Dependencies: 9.1
 ### Description: Implement mechanisms to track whose turn it is, validate turn order, and ensure only the correct player can act at any given time.
 ### Details:
 This involves updating the active player, checking for valid actions, and preventing out-of-turn moves.
 
-## 3. Move Processing and State Updates [pending]
+## 3. Move Processing and State Updates [done]
 ### Dependencies: 9.2
 ### Description: Process player moves, validate their legality, and update the game state accordingly, including persisting changes to the database.
 ### Details:
 This includes applying game rules, updating the board or state, and triggering any side effects or notifications.
 
-## 4. Turn Timeout Handling [pending]
+## 4. Turn Timeout Handling [done]
 ### Dependencies: 9.2
 ### Description: Detect and handle cases where a player exceeds their allowed turn time, enforcing penalties or auto-forfeits as needed.
 ### Details:
 This requires timers, timeout checks, and logic to update the game state or notify players when a timeout occurs.
 
-## 5. Game Completion Logic [pending]
+## 5. Game Completion Logic [done]
 ### Dependencies: 9.3, 9.4
 ### Description: Determine when the game has ended, identify the winner or draw, and finalize the game state.
 ### Details:
 This includes checking win/draw conditions after each move or timeout, updating the game status, and triggering end-of-game events.
 
-## 6. Integration with Elo Rating Updates [pending]
+## 6. Integration with Elo Rating Updates [done]
 ### Dependencies: 9.5
 ### Description: Update player Elo ratings based on the game outcome, ensuring accurate and atomic updates in coordination with game completion.
 ### Details:

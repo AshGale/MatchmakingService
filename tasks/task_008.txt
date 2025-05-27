@@ -1,6 +1,6 @@
 # Task ID: 8
 # Title: Match-Making Algorithm
-# Status: pending
+# Status: done
 # Dependencies: 5, 7
 # Priority: medium
 # Description: Implement match-making algorithm based on Elo ratings for quick match functionality
@@ -103,25 +103,25 @@ Implement a scheduled task to periodically call `updateWaitingPlayers()` and att
 Test match-making with players of similar and different Elo ratings. Verify range expansion works correctly over time. Test edge cases like empty queue, single player in queue, and many players with varied ratings. Measure match-making efficiency (time to match) under different scenarios. Test concurrent queue operations.
 
 # Subtasks:
-## 1. Player Queue Management [pending]
+## 1. Player Queue Management [done]
 ### Dependencies: None
 ### Description: Design and implement a system to manage the queue of players waiting for a match. This includes adding new players to the queue, updating their status, and efficiently removing them once matched.
 ### Details:
 Ensure the queue can handle high concurrency and scale for millions of users. Store player information such as status and skill rating. Consider using a database or in-memory data structure for fast access.
 
-## 2. Elo-Based Matching Logic [pending]
+## 2. Elo-Based Matching Logic [done]
 ### Dependencies: 8.1
 ### Description: Develop the core logic to pair players based on their Elo or skill rating, ensuring fair and balanced matches.
 ### Details:
 Implement algorithms to compare player ratings and select optimal pairs or groups. Ensure the logic can efficiently process the queue and handle edge cases such as rating outliers.
 
-## 3. Time-Based Range Expansion [pending]
+## 3. Time-Based Range Expansion [done]
 ### Dependencies: 8.2
 ### Description: Add functionality to expand the acceptable skill rating range for matching as players wait longer in the queue.
 ### Details:
 Track each player's wait time and dynamically adjust their matching criteria to increase the likelihood of finding a match over time, balancing fairness and queue times.
 
-## 4. Match Creation and Player Notification [pending]
+## 4. Match Creation and Player Notification [done]
 ### Dependencies: 8.3
 ### Description: Implement the process for creating matches from selected players and notifying them to join the game.
 ### Details:
