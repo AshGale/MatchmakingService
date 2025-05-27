@@ -1,5 +1,5 @@
 // server/tests/security/security.test.js
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiHttp from 'chai-http';
 import { createServer } from 'http';
 import express from 'express';

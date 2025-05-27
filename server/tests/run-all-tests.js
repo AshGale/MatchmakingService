@@ -7,12 +7,16 @@ import chalk from 'chalk';
 import { promisify } from 'util';
 import { runTests, printSummary } from './esm-test-runner.js';
 
+// Add file system promises for async file operations
+const fsPromises = fs.promises;
+
 const sleep = promisify(setTimeout);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const testsRootDir = __dirname;
 const projectRootDir = resolve(__dirname, '../..');
+const logFilePath = join(testsRootDir, 'test-results.log');
 
 // Configuration
 const TEST_TIMEOUT = 60000; // 60 seconds
@@ -37,13 +41,57 @@ const results = {
   failedTests: []
 };
 
-// Create a simple console logger with colors
+// Create logger with console output and file logging
 const logger = {
-  info: (msg) => console.log(chalk.blue(msg)),
-  success: (msg) => console.log(chalk.green(msg)),
-  error: (msg) => console.log(chalk.red(msg)),
-  warning: (msg) => console.log(chalk.yellow(msg)),
-  header: (msg) => console.log(chalk.bold.cyan(`\n${msg}\n${'-'.repeat(msg.length)}`))
+  // Initialize log file with timestamp
+  async initLogFile() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const header = `MatchmakingService Test Results - ${timestamp}\n${'='.repeat(60)}\n\n`;
+    await fsPromises.writeFile(logFilePath, header);
+    console.log(chalk.cyan(`Test results will be logged to: ${logFilePath}`));
+    return logFilePath;
+  },
+  
+  // Log to both console and file
+  async log(msg, level = 'info') {
+    const logMsg = `[${level.toUpperCase()}] ${msg}`;
+    await fsPromises.appendFile(logFilePath, `${logMsg}\n`);
+    return logMsg;
+  },
+  
+  // Convenience methods for different log levels
+  async info(msg) {
+    console.log(chalk.blue(msg));
+    await this.log(msg, 'info');
+  },
+  
+  async success(msg) {
+    console.log(chalk.green(msg));
+    await this.log(msg, 'success');
+  },
+  
+  async error(msg) {
+    console.log(chalk.red(msg));
+    await this.log(msg, 'error');
+  },
+  
+  async warning(msg) {
+    console.log(chalk.yellow(msg));
+    await this.log(msg, 'warning');
+  },
+  
+  async header(msg) {
+    const formattedMsg = `\n${msg}\n${'-'.repeat(msg.length)}`;
+    console.log(chalk.bold.cyan(formattedMsg));
+    await fsPromises.appendFile(logFilePath, `\n${msg}\n${'-'.repeat(msg.length)}\n`);
+  },
+  
+  // Log test output with detailed results
+  async logTestOutput(testName, output) {
+    const separator = '\n' + '='.repeat(80) + '\n';
+    const formattedOutput = `${separator}TEST OUTPUT: ${testName}${separator}\n${output}\n`;
+    await fsPromises.appendFile(logFilePath, formattedOutput);
+  }
 };
 
 // Get test file paths from test groups
@@ -179,7 +227,11 @@ async function waitForServices() {
 // Main function to run all tests
 async function runAllTests() {
   const startTime = new Date();
-  logger.header('Starting MatchmakingService Test Suite');
+  
+  // Initialize log file
+  await logger.initLogFile();
+  
+  await logger.header('Starting MatchmakingService Test Suite');
   
   // Check if Docker is running and handle accordingly
   const dockerWasRunning = checkDockerRunning();
@@ -216,10 +268,69 @@ async function runAllTests() {
   results.failedTests = testResults
     .filter(r => !r.success)
     .map(r => r.name);
+    
+  // Log detailed test outputs to the log file
+  for (const result of testResults) {
+    await logger.logTestOutput(
+      result.name,
+      `Status: ${result.success ? 'PASSED' : 'FAILED'}\n` +
+      `Duration: ${result.duration}ms\n` +
+      `Output:\n${result.output || 'No output'}\n` +
+      (result.error ? `Error:\n${result.error}\n` : '')
+    );
+  }
+  
+  // Find and run any security tests separately
+  await logger.header('Running Security Tests');
+  
+  try {
+    // Find security test files
+    const securityTestDir = join(testsRootDir, 'security');
+    const securityTestFiles = fs.existsSync(securityTestDir) ? 
+      fs.readdirSync(securityTestDir)
+        .filter(file => file.endsWith('.test.js'))
+        .map(file => join(securityTestDir, file)) : 
+      [];
+      
+    if (securityTestFiles.length > 0) {
+      await logger.info(`Found ${securityTestFiles.length} security test files`);
+      
+      // Run each security test
+      for (const testFile of securityTestFiles) {
+        const testName = testFile.split('/').pop();
+        await logger.info(`Running security test: ${testName}`);
+        
+        const testResult = spawnSync('node', [testFile], {
+          cwd: testsRootDir,
+          encoding: 'utf-8',
+          env: { ...process.env, NODE_ENV: 'test' }
+        });
+        
+        // Log the complete test output to the log file
+        await logger.logTestOutput(
+          testName,
+          `Exit code: ${testResult.status}\n` +
+          `Output:\n${testResult.stdout || 'No output'}\n` +
+          (testResult.stderr ? `Error:\n${testResult.stderr}\n` : '')
+        );
+        
+        // Show a short summary in the console
+        if (testResult.status === 0) {
+          await logger.success(`✅ ${testName} passed`);
+        } else {
+          await logger.error(`❌ ${testName} failed - see log file for details`);
+        }
+      }
+    } else {
+      await logger.warning('No security tests found');
+    }
+  } catch (error) {
+    await logger.error(`Error running security tests: ${error.message}`);
+  }
   
   // Stop Docker containers if we started them
   if (dockerStarted) {
-    logger.info('Tests completed. Stopping Docker containers...');
+    await logger.info('Tests completed. Stopping Docker containers...');
     stopDockerContainers();
   }
   
@@ -228,26 +339,34 @@ async function runAllTests() {
   const duration = (endTime - startTime) / 1000;
   
   // Add Docker status to summary
-  logger.info(`Docker containers were ${dockerWasRunning ? 'already running' : dockerStarted ? 'started for testing' : 'not available'}`)
+  await logger.info(`Docker containers were ${dockerWasRunning ? 'already running' : dockerStarted ? 'started for testing' : 'not available'}`)
   
   // Print summary using our custom formatter
-  logger.header('Test Summary');
-  logger.info(`Total test suites: ${results.total}`);
-  logger.success(`Passed: ${results.passed}`);
+  await logger.header('Test Summary');
+  await logger.info(`Total test suites: ${results.total}`);
+  await logger.success(`Passed: ${results.passed}`);
   
   if (results.failed > 0) {
-    logger.error(`Failed: ${results.failed}`);
-    logger.error('Failed tests:');
-    results.failedTests.forEach(test => logger.error(`  - ${test}`));
+    await logger.error(`Failed: ${results.failed}`);
+    await logger.error('Failed tests:');
+    for (const test of results.failedTests) {
+      await logger.error(`  - ${test}`);
+    }
   } else {
-    logger.success('All tests passed! 🎉');
+    await logger.success('All tests passed! 🎉');
   }
   
   if (results.skipped > 0) {
-    logger.warning(`Skipped: ${results.skipped}`);
+    await logger.warning(`Skipped: ${results.skipped}`);
   }
   
-  logger.info(`Duration: ${duration.toFixed(2)} seconds`);
+  // Add note about checking the log file for complete results
+  await logger.info(`\nComplete test results have been written to: ${logFilePath}`);
+  await logger.info('Check this file for any truncated output or detailed test information.');
+  
+  await logger.info(`Duration: ${duration.toFixed(2)} seconds`);
+  
+  console.log(chalk.cyan.bold(`\n📝 Complete test results saved to: ${logFilePath}`));
   
   // Exit with appropriate code
   process.exit(results.failed > 0 ? 1 : 0);

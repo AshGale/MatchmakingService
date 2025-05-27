@@ -1,5 +1,5 @@
 // server/tests/security/xss-sanitizer.test.js
-import chai from 'chai';
+import * as chai from 'chai';
 import { sanitizeString, sanitizeObject, sanitizeRequestBody } from '../../src/utils/sanitize.js';
 
 const { expect } = chai;
