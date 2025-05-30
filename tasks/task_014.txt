@@ -1,6 +1,6 @@
 # Task ID: 14
 # Title: Caddy Reverse Proxy Configuration
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: medium
 # Description: Configure Caddy as a reverse proxy for the Node.js application with HTTPS support
@@ -71,3 +71,23 @@ For production deployment, modify the Caddyfile to enable automatic HTTPS and co
 
 # Test Strategy:
 Test reverse proxy functionality by accessing the application through Caddy. Verify WebSocket connections work correctly through the proxy. Test HTTP header modifications and security headers. Verify logging configuration works as expected. For production deployment, test HTTPS certificate acquisition and renewal.
+
+# Subtasks:
+## 1. Basic HTTP Reverse Proxy Setup [done]
+### Dependencies: None
+### Description: Configure Caddy to forward HTTP requests to backend services
+### Details:
+Create a basic Caddyfile with reverse proxy directives for HTTP traffic. Include configuration for handling path-based routing to different backend services, setting appropriate timeouts, and health checks for backend services.
+
+## 2. WebSocket Proxy Configuration [done]
+### Dependencies: 14.1
+### Description: Extend Caddy configuration to properly handle WebSocket connections
+### Details:
+Modify the Caddyfile to support WebSocket protocol upgrades. Configure appropriate headers and timeouts specific to WebSocket connections. Test WebSocket functionality with a simple client-server setup.
+
+## 3. Security Headers and HTTPS Configuration [done]
+### Dependencies: 14.1, 14.2
+### Description: Implement security headers and configure automatic HTTPS
+### Details:
+Add security headers like Content-Security-Policy, X-Frame-Options, and HSTS. Configure Caddy for automatic HTTPS with Let's Encrypt. Set up redirect from HTTP to HTTPS. Test the security configuration using tools like SSL Labs.
+

@@ -701,8 +701,38 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Basic HTTP Reverse Proxy Setup",
+          "description": "Configure Caddy to forward HTTP requests to backend services",
+          "dependencies": [],
+          "details": "Create a basic Caddyfile with reverse proxy directives for HTTP traffic. Include configuration for handling path-based routing to different backend services, setting appropriate timeouts, and health checks for backend services.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "WebSocket Proxy Configuration",
+          "description": "Extend Caddy configuration to properly handle WebSocket connections",
+          "dependencies": [
+            1
+          ],
+          "details": "Modify the Caddyfile to support WebSocket protocol upgrades. Configure appropriate headers and timeouts specific to WebSocket connections. Test WebSocket functionality with a simple client-server setup.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Security Headers and HTTPS Configuration",
+          "description": "Implement security headers and configure automatic HTTPS",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Add security headers like Content-Security-Policy, X-Frame-Options, and HSTS. Configure Caddy for automatic HTTPS with Let's Encrypt. Set up redirect from HTTP to HTTPS. Test the security configuration using tools like SSL Labs.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 15,

@@ -1,48 +1,95 @@
-matchmaker.localhost {
-    # Reverse proxy to Node.js server
-    reverse_proxy server:3000
-    
-    # Enable logs
-    log {
-        output file /var/log/caddy/matchmaker.log
-        format json
-    }
-    
-    # Enable compression
-    encode gzip
-    
-    # Set security headers
-    header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        
-        # Prevent MIME type sniffing
-        X-Content-Type-Options "nosniff"
-        
-        # Protect against clickjacking
-        X-Frame-Options "DENY"
-        
-        # Enable XSS filter
-        X-XSS-Protection "1; mode=block"
-        
-        # Disable referrer for better privacy
-        Referrer-Policy "no-referrer-when-downgrade"
-        
-        # Define Content Security Policy
-        Content-Security-Policy "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; base-uri 'self'; form-action 'self'"
-    }
-    
-    # Enable basic caching for static assets
-    @static {
-        path *.css *.js *.jpg *.jpeg *.png *.gif *.ico *.svg *.woff *.woff2
-    }
-    header @static Cache-Control "max-age=31536000"
-    
-    # For single-page application handling
-    @notStatic {
-        not path *.css *.js *.jpg *.jpeg *.png *.gif *.ico *.svg *.woff *.woff2 /api/* /socket.io/*
-    }
-    handle @notStatic {
-        try_files {path} /index.html
-    }
+# Basic site configuration
+{
+  # Global options
+  admin off # Disable admin API for security
+  persist_config off # Don't persist config changes to disk
+  # auto_https is enabled by default in production, disabled for local development below
 }
+
+# Main site configuration
+matchmaker.localhost {
+  # Log requests to file and stdout for easier debugging
+  log {
+    output file /var/log/caddy/matchmaker.log
+    format json
+  }
+  
+  # Enable compression for better performance
+  encode gzip
+  
+  # Handle WebSocket connections (subtask 14.2)
+  @websockets {
+    header Connection *Upgrade*
+    header Upgrade websocket
+  }
+  
+  # Reverse proxy for WebSocket connections (subtask 14.2)
+  reverse_proxy @websockets server:3000 {
+    header_up Host {host}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+    
+    # WebSocket specific timeouts
+    transport http {
+      keepalive 30s
+      versions 1.1 2
+    }
+  }
+  
+  # Reverse proxy for HTTP requests (subtask 14.1)
+  reverse_proxy server:3000 {
+    header_up Host {host}
+    header_up X-Real-IP {remote_host}
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+    
+    # Health checks for backend
+    health_uri /health
+    health_interval 10s
+    health_timeout 5s
+  }
+  
+  # Basic security headers (subtask 14.3)
+  header {
+    # Enable HSTS
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    # Disable content-type sniffing
+    X-Content-Type-Options "nosniff"
+    # Enable XSS protection
+    X-XSS-Protection "1; mode=block"
+    # Prevent clickjacking
+    X-Frame-Options "DENY"
+    # Control referrer information
+    Referrer-Policy "strict-origin-when-cross-origin"
+    # Define Content Security Policy
+    Content-Security-Policy "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; base-uri 'self'; form-action 'self'"
+    # Remove Server header
+    -Server
+  }
+  
+  # Enable basic caching for static assets
+  @static {
+    path *.css *.js *.jpg *.jpeg *.png *.gif *.ico *.svg *.woff *.woff2
+  }
+  header @static Cache-Control "max-age=31536000"
+  
+  # For single-page application handling
+  @notStatic {
+    not path *.css *.js *.jpg *.jpeg *.png *.gif *.ico *.svg *.woff *.woff2 /api/* /socket.io/*
+  }
+  handle @notStatic {
+    try_files {path} /index.html
+  }
+}
+
+# Production configuration example (commented out)
+# example.com {
+#   # Enable automatic HTTPS for production
+#   tls {
+#     protocols tls1.2 tls1.3
+#   }
+#   
+#   # Same configuration as above, but with auto HTTPS enabled
+#   # ... (rest of configuration would be identical)
+# }

@@ -1,0 +1,13 @@
+{
+  "name": "caddy-tests",
+  "version": "1.0.0",
+  "description": "Tests for Caddy reverse proxy configuration",
+  "type": "module",
+  "main": "proxy-test.js",
+  "scripts": {
+    "test": "node proxy-test.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}

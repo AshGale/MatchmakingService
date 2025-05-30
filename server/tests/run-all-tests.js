@@ -29,7 +29,8 @@ const testGroups = [
   { name: 'Logging Service Tests', path: join(testsRootDir, 'logging', 'logging.test.js') },
   { name: 'Data Sanitizer Tests', path: join(testsRootDir, 'logging', 'data-sanitizer.test.js') },
   { name: 'Security Monitoring Tests', path: join(testsRootDir, 'logging', 'security-monitor.test.js') },
-  { name: 'Monitoring Service Tests', path: join(testsRootDir, 'logging', 'monitoring.test.js') }
+  { name: 'Monitoring Service Tests', path: join(testsRootDir, 'logging', 'monitoring.test.js') },
+  { name: 'Caddy Proxy Tests', path: join(testsRootDir, 'caddy', 'proxy-test.js') }
   // WebSocket matchmaking tests require running server, exclude for automated tests
   // { name: 'Matchmaking WebSocket Tests', path: join(testsRootDir, 'matchmaking', 'matchmaking-ws.test.js') }
   // Sentry tests excluded as requested
