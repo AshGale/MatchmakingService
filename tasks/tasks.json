@@ -622,7 +622,7 @@
         3,
         4
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -635,8 +635,61 @@
       "dependencies": [
         4
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Configure Logging Service",
+          "description": "Set up a centralized logging service with appropriate transports and log formats",
+          "dependencies": [],
+          "details": "Select and implement a logging library (like Winston or Pino). Configure log levels, formats (JSON preferred for machine readability), and storage options (file system, cloud storage). Set up log rotation and retention policies. Define environment-specific logging configurations.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement Request/Response Logging Middleware",
+          "description": "Create middleware to log all incoming requests and outgoing responses",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop middleware that captures request details (method, URL, headers, body), response details (status code, response time), and contextual information (user ID if authenticated, correlation IDs). Ensure sensitive data is properly redacted before logging. Integrate with the central logging service.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Implement Error Logging System",
+          "description": "Create a comprehensive error logging system that captures and logs all application errors",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement global error handlers to catch unhandled exceptions. Create structured error objects with stack traces, error codes, and contextual information. Set up alerting for critical errors. Ensure errors are properly categorized by severity. Integrate with the central logging service.",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Set Up Security Event Monitoring",
+          "description": "Implement logging for security-related events and suspicious activities",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Define security events to monitor (login attempts, permission changes, access to sensitive data). Create specialized logging for authentication events, authorization failures, and potential security threats. Implement rate limiting detection and logging. Set up alerts for suspicious patterns.",
+          "status": "done"
+        },
+        {
+          "id": 5,
+          "title": "Create Monitoring Dashboard and Alerts",
+          "description": "Set up visualization and alerting based on logged data",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Select and configure a monitoring tool to visualize log data. Create dashboards for application health, error rates, and security events. Set up alerting thresholds and notification channels (email, SMS, chat). Implement periodic log analysis reports. Test the entire logging and monitoring pipeline.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 14,

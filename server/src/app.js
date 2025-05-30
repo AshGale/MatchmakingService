@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 // import * as Sentry from './instrument.js';
-import logger from './utils/logger.js';
+import { logger, requestLogger, errorLogger, setupGlobalErrorHandlers } from './services/logging.js';
 import errorHandler from './middleware/errorHandler.js';
 import notFoundHandler from './middleware/notFoundHandler.js';
 import { securityMiddleware, handleValidationErrors, lobbyValidation, gameValidation, userValidation, matchmakingValidation } from './middleware/security.js';
@@ -23,6 +23,9 @@ const app = express();
 // Init Sentry request handler (must come before all other middleware)
 // app.use(Sentry.Handlers.requestHandler());
 
+// Setup global error handlers for unhandled exceptions and rejections
+setupGlobalErrorHandlers();
+
 // Apply comprehensive security middleware
 app.use(securityMiddleware);
 
@@ -33,7 +36,11 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
-    logger.warn(`Rate limit exceeded for IP: ${req.ip}`);
+    logger.warn({
+      message: 'Rate limit exceeded',
+      ip: req.ip,
+      endpoint: req.originalUrl
+    });
     res.status(429).json({
       message: 'Too many requests, please try again later.'
     });
@@ -45,6 +52,7 @@ app.use(limiter);
 import * as rateLimiter from './middleware/rateLimiter.js';
 
 // Logging middleware
+app.use(requestLogger);
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
 // CORS middleware with secure configuration
@@ -147,6 +155,9 @@ app.use(notFoundHandler);
 
 // Sentry error handler - must come before any other error middleware
 // app.use(Sentry.Handlers.errorHandler());
+
+// Custom error logger middleware
+app.use(errorLogger);
 
 // Regular error handler
 app.use(errorHandler);
