@@ -1,13 +1,15 @@
 import express from 'express';
-import { param, body, validationResult } from 'express-validator';
+import { param, body, query, validationResult } from 'express-validator';
 import auth from '../middleware/auth.js';
 import UserService from '../services/userService.js';
+import InvitationService from '../services/invitationService.js';
 import logger from '../utils/logger.js';
 import argon2 from 'argon2';
 
 const router = express.Router();
 
 const userService = new UserService();
+const invitationService = new InvitationService();
 
 /**
  * @route GET /api/users
@@ -182,6 +184,36 @@ router.patch('/me', [
   } catch (error) {
     logger.error('Error updating user profile', { error: error.message, userId: req.user.id });
     res.status(500).json({ message: 'Server error updating user profile' });
+  }
+});
+
+/**
+ * @route GET /api/users/search
+ * @desc Search for users by username
+ * @access Private
+ */
+router.get('/search', [
+  auth,
+  query('username').isString().trim().isLength({ min: 3 })
+    .withMessage('Search query must be at least 3 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    
+    const query = req.query.username;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const userId = req.user.id;
+    
+    const results = await invitationService.searchUsers(query, userId, page, limit);
+    
+    res.json(results);
+  } catch (error) {
+    logger.error('Error searching users', { error: error.message });
+    res.status(500).json({ message: 'Server error searching users' });
   }
 });
 

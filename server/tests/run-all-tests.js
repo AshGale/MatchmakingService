@@ -26,6 +26,8 @@ const testGroups = [
   { name: 'Lobby API Tests', path: join(testsRootDir, 'lobby', 'test-lobby-api.js') },
   { name: 'WebSocket Tests', path: join(testsRootDir, 'websocket', 'websocket.test.js') },
   { name: 'Matchmaking Algorithm Tests', path: join(testsRootDir, 'matchmaking', 'matchmaking.test.js') },
+  { name: 'Invitation API Tests', path: join(testsRootDir, 'invitations', 'invitation.test.js') },
+  { name: 'Invitation WebSocket Tests', path: join(testsRootDir, 'invitations', 'invitation-ws.test.js') },
   { name: 'Logging Service Tests', path: join(testsRootDir, 'logging', 'logging.test.js') },
   { name: 'Data Sanitizer Tests', path: join(testsRootDir, 'logging', 'data-sanitizer.test.js') },
   { name: 'Security Monitoring Tests', path: join(testsRootDir, 'logging', 'security-monitor.test.js') },

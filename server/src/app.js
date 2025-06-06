@@ -16,6 +16,7 @@ import lobbyRoutes from './routes/lobbies.js';
 import gameRoutes from './routes/games.js';
 import userRoutes from './routes/users.js';
 import matchmakingRoutes from './routes/matchmaking.js';
+import invitationRoutes from './routes/invitations.js';
 
 // Create Express app
 const app = express();
@@ -131,6 +132,9 @@ app.use('/api/matchmaking', rateLimiter.apiLimiter, (req, res, next) => {
   }
   next();
 }, handleValidationErrors, matchmakingRoutes);
+
+// Apply invitation routes
+app.use('/api/invitations', rateLimiter.apiLimiter, handleValidationErrors, invitationRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

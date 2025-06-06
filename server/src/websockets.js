@@ -6,11 +6,13 @@ import { LobbyManager } from './services/lobbyManager.js';
 import { LobbyStateManager, LOBBY_STATES } from './services/lobbyStateManager.js';
 import LobbyModel from './models/LobbyModel.js';
 import MatchmakingHandler from './services/matchmakingHandler.js';
+import InvitationService from './services/invitationService.js';
 
 // Create singleton managers
 const gameManager = new GameManager();
 const lobbyManager = new LobbyManager();
 let matchmakingHandler = null; // Will be initialized with io instance
+const invitationService = new InvitationService();
 
 // Connection tracking for enhanced management
 const connectionTracker = {
@@ -880,78 +882,83 @@ const configureWebSockets = (server) => {
     });
     
     // Send game invitation
-    socket.on('send_invitation', (data, callback) => {
+    socket.on('send_invitation', async (data, callback) => {
       try {
-        const { targetUserId } = data;
-        const targetSocketId = lobbyManager.getSocketId(targetUserId);
+        const { recipientId } = data;
         
-        if (!targetSocketId) {
-          throw new Error('User is not online');
+        // Verify that user exists even if offline
+        const invitation = await invitationService.createInvitation(id, recipientId);
+        
+        // If recipient is online, send real-time notification
+        for (const [socketId, connectedSocket] of io.sockets.sockets.entries()) {
+          if (connectedSocket.user && connectedSocket.user.id === recipientId) {
+            connectedSocket.emit('invitation_received', {
+              id: invitation.invitation.id,
+              sender: invitation.recipient,
+              expires_at: invitation.invitation.expires_at
+            });
+            break;
+          }
         }
         
-        const invitationId = lobbyManager.createInvitation(id, username, targetUserId);
-        
-        // Send invitation to target user
-        io.to(`user:${targetUserId}`).emit('game_invitation', {
-          invitationId,
-          fromUserId: id,
-          fromUsername: username
-        });
-        
-        callback({ success: true, invitationId });
+        callback({ success: true, invitation: invitation.invitation });
       } catch (error) {
-        logger.error('Error sending invitation', { error: error.message, userId: id, targetUserId: data.targetUserId });
+        logger.error('Error sending invitation', { error: error.message, userId: id, recipientId: data.recipientId });
         callback({ success: false, error: error.message });
       }
     });
     
     // Respond to game invitation
-    socket.on('respond_to_invitation', (data, callback) => {
+    socket.on('respond_to_invitation', async (data, callback) => {
       try {
         const { invitationId, accept } = data;
-        const invitation = lobbyManager.getInvitation(invitationId);
         
-        if (!invitation) {
-          throw new Error('Invitation not found or expired');
-        }
-        
-        if (invitation.targetUserId !== id) {
-          throw new Error('This invitation is not for you');
-        }
-        
-        // If declined, just notify the sender
+        // Handle invitation declined
         if (!accept) {
-          lobbyManager.removeInvitation(invitationId);
-          io.to(`user:${invitation.fromUserId}`).emit('invitation_declined', {
-            invitationId,
-            byUserId: id,
-            byUsername: username
-          });
+          const result = await invitationService.declineInvitation(invitationId, id);
           
-          callback({ success: true });
+          // Find sender socket and notify if online
+          for (const [socketId, senderSocket] of io.sockets.sockets.entries()) {
+            if (senderSocket.user && senderSocket.user.id === result.sender_id) {
+              senderSocket.emit('invitation_declined', {
+                invitationId: result.id,
+                declinedAt: result.responded_at,
+                recipientId: id,
+                recipientUsername: username
+              });
+              break;
+            }
+          }
+          
+          callback({ success: true, message: 'Invitation declined' });
           return;
         }
         
-        // If accepted, create a game
+        // Handle invitation accepted
+        const acceptResult = await invitationService.acceptInvitation(invitationId, id);
+        
+        // Create a game using the existing game manager
         const players = [
-          { id: invitation.fromUserId, username: invitation.fromUsername },
-          { id, username }
+          { id: acceptResult.sender.id, username: acceptResult.sender.username },
+          { id: acceptResult.recipient.id, username: acceptResult.recipient.username }
         ];
         
         const game = gameManager.createGame(players);
         
-        // Add players to game room
-        players.forEach(player => {
-          const playerSocketId = lobbyManager.getSocketId(player.id);
-          if (playerSocketId) {
-            const playerSocket = io.sockets.sockets.get(playerSocketId);
-            if (playerSocket) {
+        // Find both players' sockets and add them to the game room
+        for (const player of players) {
+          for (const [socketId, playerSocket] of io.sockets.sockets.entries()) {
+            if (playerSocket.user && playerSocket.user.id === player.id) {
               playerSocket.join(`game:${game.id}`);
+              playerSocket.emit('invitation_accepted', {
+                invitationId: acceptResult.invitation.id,
+                gameId: game.id,
+              });
             }
           }
-        });
+        }
         
-        // Notify both players
+        // Notify both players about the new game
         io.to(`game:${game.id}`).emit('game_started', {
           gameId: game.id,
           players: game.players,
@@ -959,12 +966,45 @@ const configureWebSockets = (server) => {
           state: game.state
         });
         
-        // Remove the invitation
-        lobbyManager.removeInvitation(invitationId);
-        
         callback({ success: true, gameId: game.id });
       } catch (error) {
         logger.error('Error responding to invitation', { error: error.message, userId: id, invitationId: data.invitationId });
+        callback({ success: false, error: error.message });
+      }
+    });
+    
+    // Get pending invitations
+    socket.on('get_pending_invitations', async (data, callback) => {
+      try {
+        const invitations = await invitationService.getPendingInvitations(id);
+        callback({ success: true, invitations });
+      } catch (error) {
+        logger.error('Error fetching pending invitations', { error: error.message, userId: id });
+        callback({ success: false, error: error.message });
+      }
+    });
+    
+    // Cancel a sent invitation
+    socket.on('cancel_invitation', async (data, callback) => {
+      try {
+        const { invitationId } = data;
+        const result = await invitationService.cancelInvitation(invitationId, id);
+        
+        // Notify recipient if online
+        for (const [socketId, recipientSocket] of io.sockets.sockets.entries()) {
+          if (recipientSocket.user && recipientSocket.user.id === result.recipient_id) {
+            recipientSocket.emit('invitation_cancelled', {
+              invitationId: result.id,
+              senderId: id,
+              cancelledAt: result.responded_at
+            });
+            break;
+          }
+        }
+        
+        callback({ success: true, message: 'Invitation cancelled' });
+      } catch (error) {
+        logger.error('Error cancelling invitation', { error: error.message, userId: id, invitationId: data.invitationId });
         callback({ success: false, error: error.message });
       }
     });
