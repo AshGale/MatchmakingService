@@ -8,7 +8,7 @@
       "testStrategy": "Create database schema validation tests to verify:\n- All tables have the correct columns with proper data types\n- Constraints are properly defined (foreign keys, check constraints)\n- Default values are set correctly\n- Enum values are restricted to specified options\n- Test inserting valid and invalid data to verify constraints",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -16,7 +16,7 @@
           "description": "Create the database schema for the lobbies table including all necessary columns, primary keys, indexes, and constraints.",
           "dependencies": [],
           "details": "Define columns for lobby_id (primary key), name, creation_timestamp, status, max_players, and other relevant fields. Include appropriate data types, NOT NULL constraints where needed, and indexes for frequently queried columns. Document validation rules for each field and create test cases to verify constraints.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -26,7 +26,7 @@
             1
           ],
           "details": "Define columns for player_id (primary key), username, lobby_id (foreign key to lobbies table), join_timestamp, status, and other player attributes. Implement foreign key constraints, indexes, and cascade rules for player-lobby relationships. Create validation tests to ensure referential integrity and business rules are enforced.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -37,7 +37,7 @@
             2
           ],
           "details": "Define columns for game_id (primary key), lobby_id (foreign key), start_timestamp, end_timestamp, game_state, winner_id (foreign key to players), and other game-specific fields. Implement all necessary constraints, indexes for performance, and validation rules. Create test cases to verify game creation, completion, and relationship integrity with lobbies and players.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
