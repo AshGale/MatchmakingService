@@ -1,0 +1,60 @@
+# Task ID: 10
+# Title: Implement PUT /api/lobbies/{id}/status Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: medium
+# Description: Create the API endpoint for updating lobby status with mock implementation.
+# Details:
+Implement the PUT /api/lobbies/{id}/status endpoint:
+
+1. Request validation:
+   - Validate path parameter (lobby ID)
+   - Validate request body schema: `{status: string, player_id?: string}`
+   - Validate status is one of: 'waiting', 'active', 'finished'
+   - Validate player_id format if provided
+
+2. Mock implementation:
+   - Validate status transition is legal
+   - Return structure: `{success: boolean, lobby: lobby_object}`
+
+3. Status transition validation:
+   - waiting → active: Require player_count >= 2
+   - active → finished: Valid transition
+   - finished → any: Invalid transition
+   - active → waiting: Invalid transition
+
+4. Error handling:
+   - Return 404 for non-existent lobby
+   - Return 400 for invalid status or illegal transition
+   - Return 403 if player_id doesn't match required permissions
+   - Return 500 for server errors
+
+# Test Strategy:
+Test the endpoint with:
+- All valid status transitions
+- All invalid status transitions
+- Missing player_id when required
+- Invalid player_id
+- Non-existent lobby ID
+- Verify response structure and success flag
+- Test error response messages for each failure case
+
+# Subtasks:
+## 1. Implement request validation for PUT /api/lobbies/{id}/status [pending]
+### Dependencies: None
+### Description: Create validation logic for the incoming request to ensure it contains valid lobby ID and status values
+### Details:
+Validate that the lobby ID exists in the system, check that the request body contains a valid 'status' field with one of the allowed values (e.g., 'open', 'closed', 'in_progress', 'completed'), and return appropriate 400 error responses for invalid requests
+
+## 2. Implement status transition validation logic [pending]
+### Dependencies: 10.1
+### Description: Create logic to validate that the requested status transition is allowed based on the current lobby status
+### Details:
+Retrieve the current lobby status, define allowed transitions (e.g., 'open' can transition to 'in_progress' but not directly to 'completed'), validate the requested transition against these rules, and return 422 error responses for invalid transitions with clear error messages
+
+## 3. Implement mock endpoint with error handling [pending]
+### Dependencies: 10.1, 10.2
+### Description: Create the complete mock implementation of the PUT /api/lobbies/{id}/status endpoint with proper error handling
+### Details:
+Integrate the request validation and status transition validation, update the lobby status in the mock data store if validations pass, handle potential errors (lobby not found: 404, unauthorized: 403, server errors: 500), and return appropriate success response (200 OK with updated lobby object) when status is successfully updated
+

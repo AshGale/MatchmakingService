@@ -1,0 +1,48 @@
+# Task ID: 13
+# Title: Implement LobbyCard UI Component
+# Status: pending
+# Dependencies: 19, 20
+# Priority: medium
+# Description: Create a reusable LobbyCard component for displaying lobby information with join functionality.
+# Details:
+Implement the LobbyCard component with:
+
+1. Props interface:
+   ```typescript
+   interface LobbyCardProps {
+     lobby: LobbyObject; // {id, status, player_count, max_players, created_at}
+     onJoin: (lobbyId: string) => void;
+     loading?: boolean;
+     disabled?: boolean;
+   }
+   ```
+
+2. Visual elements:
+   - Card container with appropriate styling
+   - Lobby status indicator with color coding
+   - Player count display (e.g., "2/4 players")
+   - Join button with loading state
+   - Created time in relative format (e.g., "5 minutes ago")
+
+3. Responsive design:
+   - Desktop: Grid layout with fixed width
+   - Mobile: Full width cards in vertical stack
+   - Appropriate spacing and typography
+
+4. States:
+   - Normal state
+   - Loading state (during join operation)
+   - Disabled state (when join not possible)
+   - Hover/focus states for interactive elements
+
+Use modern CSS approaches (CSS-in-JS, CSS modules, or styled components).
+
+# Test Strategy:
+Test the component with:
+- Snapshot tests for visual regression
+- Render tests with different prop combinations
+- Interaction tests for join button clicks
+- Loading state display tests
+- Responsive design tests at different viewport sizes
+- Accessibility tests (keyboard navigation, screen reader compatibility)
+- Test with React Testing Library and Storybook

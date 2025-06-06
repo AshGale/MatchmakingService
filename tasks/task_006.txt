@@ -1,0 +1,43 @@
+# Task ID: 6
+# Title: Implement GET /api/lobbies Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: medium
+# Description: Create the API endpoint for retrieving lobbies with optional status filtering and mock implementation.
+# Details:
+Implement the GET /api/lobbies endpoint:
+
+1. Query parameter handling:
+   - Parse optional status parameter (?status=waiting|active|finished)
+   - Validate status is one of the allowed values
+
+2. Mock implementation:
+   - Generate array of sample lobby objects
+   - Filter by status if provided
+   - Return structure: `{lobbies: [lobby objects], total_count: number}`
+
+3. Sample lobby object structure:
+   ```
+   {
+     id: uuid,
+     status: string,
+     player_count: number,
+     max_players: number,
+     created_at: timestamp
+   }
+   ```
+
+4. Error handling:
+   - Return 400 for invalid status value
+   - Return 500 for server errors
+
+Implement pagination if needed with limit/offset query parameters.
+
+# Test Strategy:
+Test the endpoint with:
+- No query parameters (should return all lobbies)
+- Each valid status value
+- Invalid status values
+- Verify response structure and data types
+- Verify filtering works correctly
+- Test with empty result sets

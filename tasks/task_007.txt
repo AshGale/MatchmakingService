@@ -1,0 +1,73 @@
+# Task ID: 7
+# Title: Implement GET /api/lobbies/{id} Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: medium
+# Description: Create the API endpoint for retrieving detailed information about a specific lobby with mock implementation.
+# Details:
+Implement the GET /api/lobbies/{id} endpoint:
+
+1. Path parameter handling:
+   - Extract and validate lobby ID from URL path
+   - Validate ID format (UUID)
+
+2. Mock implementation:
+   - Generate detailed lobby object with player list
+   - Return structure: `{lobby: lobby_object, players: [player objects]}`
+
+3. Sample response structure:
+   ```
+   {
+     lobby: {
+       id: uuid,
+       status: string,
+       player_count: number,
+       max_players: number,
+       created_at: timestamp,
+       updated_at: timestamp
+     },
+     players: [
+       {
+         id: uuid,
+         join_order: number,
+         joined_at: timestamp
+       }
+     ]
+   }
+   ```
+
+4. Error handling:
+   - Return 404 for non-existent lobby ID
+   - Return 400 for invalid ID format
+   - Return 500 for server errors
+
+# Test Strategy:
+Test the endpoint with:
+- Valid lobby IDs
+- Non-existent lobby IDs
+- Invalid ID formats
+- Verify response structure and data types
+- Test with lobbies having different player counts
+- Verify error responses have appropriate messages
+
+# Subtasks:
+## 1. Implement path parameter validation for lobby ID [pending]
+### Dependencies: None
+### Description: Create validation logic for the lobby ID path parameter in the GET /api/lobbies/{id} endpoint
+### Details:
+1. Add validation to ensure the lobby ID is in the correct format (UUID or numeric ID based on system requirements)
+2. Implement error handling for invalid IDs (return 400 Bad Request with appropriate error message)
+3. Add validation to check if the ID exists in the system before attempting to retrieve it
+4. Create unit tests for the validation logic covering valid and invalid ID scenarios
+
+## 2. Create mock implementation with detailed response structure [pending]
+### Dependencies: 7.1
+### Description: Implement a mock version of the GET /api/lobbies/{id} endpoint that returns a structured response
+### Details:
+1. Define the complete JSON response structure for a lobby (including id, name, game type, max players, current players, status, etc.)
+2. Create a mock data store or service that returns sample lobby data based on ID
+3. Implement the controller method that handles the GET request and returns the appropriate response
+4. Add appropriate HTTP status codes (200 for success, 404 for lobby not found)
+5. Document the response structure in API documentation
+6. Write integration tests to verify the endpoint returns the expected structure
+

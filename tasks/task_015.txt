@@ -1,0 +1,64 @@
+# Task ID: 15
+# Title: Implement FilterBar UI Component
+# Status: pending
+# Dependencies: 19
+# Priority: low
+# Description: Create a component for filtering lobbies by status with active state indication and count badges.
+# Details:
+Implement the FilterBar component with:
+
+1. Props interface:
+   ```typescript
+   interface FilterBarProps {
+     activeFilter: string; // 'all', 'waiting', 'active', 'finished'
+     onFilterChange: (filter: string) => void;
+     counts: {
+       all: number;
+       waiting: number;
+       active: number;
+       finished: number;
+     };
+   }
+   ```
+
+2. Visual elements:
+   - Row of filter buttons/tabs
+   - Active state indication for current filter
+   - Count badge for each filter option
+   - Consistent styling with other components
+
+3. Responsive design:
+   - Desktop: Horizontal button row
+   - Mobile: Dropdown or scrollable horizontal list
+
+4. Accessibility:
+   - Keyboard navigation support
+   - ARIA attributes for current selection
+   - Focus management
+
+Implement with appropriate event handlers for filter changes.
+
+# Test Strategy:
+Test the component with:
+- Snapshot tests for visual regression
+- Render tests with different active filters
+- Interaction tests for filter selection
+- Verify onFilterChange is called with correct parameter
+- Verify count badges display correctly
+- Responsive design tests
+- Accessibility tests (keyboard navigation, screen reader compatibility)
+- Test with React Testing Library and Storybook
+
+# Subtasks:
+## 1. Create FilterBar component structure and styling [pending]
+### Dependencies: None
+### Description: Implement the basic structure and styling of the FilterBar UI component
+### Details:
+Create a new FilterBar component with appropriate HTML structure. Implement responsive styling using CSS/SCSS. Include filter input fields, dropdown selectors, and buttons as needed. Ensure the component follows the application's design system and is mobile-friendly. Add appropriate accessibility attributes.
+
+## 2. Implement filter state management and event handling [pending]
+### Dependencies: 15.1
+### Description: Add state management and event handlers to make the FilterBar functional
+### Details:
+Set up state variables to track filter values. Implement onChange handlers for all filter inputs. Create functions to handle filter submission and reset. Implement debouncing for text inputs if needed. Add props for receiving initial filter values and for passing filter changes to parent components. Test all filter combinations to ensure proper functionality.
+

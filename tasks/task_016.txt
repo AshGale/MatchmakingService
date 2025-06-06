@@ -1,0 +1,49 @@
+# Task ID: 16
+# Title: Implement CreateLobbyForm UI Component
+# Status: pending
+# Dependencies: 19
+# Priority: medium
+# Description: Create a form component for creating new lobbies with player count selection and validation.
+# Details:
+Implement the CreateLobbyForm component with:
+
+1. Props interface:
+   ```typescript
+   interface CreateLobbyFormProps {
+     onSubmit: (maxPlayers: number) => void;
+     loading?: boolean;
+     error?: string;
+   }
+   ```
+
+2. Form elements:
+   - Player count selection (radio buttons or dropdown)
+   - Options for 2, 3, and 4 players
+   - Submit button with loading state
+   - Error message display
+
+3. Form validation:
+   - Ensure player count is selected
+   - Validate range (2-4)
+
+4. States:
+   - Initial state
+   - Loading state during submission
+   - Error state with message
+   - Success state with reset
+
+5. Accessibility:
+   - Proper form labeling
+   - Error announcements for screen readers
+   - Keyboard navigation support
+
+# Test Strategy:
+Test the component with:
+- Snapshot tests for visual regression
+- Form submission tests with different player counts
+- Validation tests for required fields
+- Loading state display tests
+- Error state display tests
+- Form reset functionality tests
+- Accessibility tests (form labeling, keyboard usage)
+- Test with React Testing Library and Storybook

@@ -1,0 +1,47 @@
+# Task ID: 14
+# Title: Implement LobbyList UI Component
+# Status: pending
+# Dependencies: 13, 19, 20
+# Priority: medium
+# Description: Create a component for displaying a grid of LobbyCard components with loading and error states.
+# Details:
+Implement the LobbyList component with:
+
+1. Props interface:
+   ```typescript
+   interface LobbyListProps {
+     lobbies: LobbyObject[];
+     onJoinLobby: (lobbyId: string) => void;
+     loading?: boolean;
+     error?: string;
+   }
+   ```
+
+2. Visual elements:
+   - Container for lobby cards grid
+   - Loading skeleton placeholders during loading
+   - Empty state message when no lobbies available
+   - Error message display when error occurs
+
+3. Responsive design:
+   - Desktop: Grid layout (3-4 cards per row)
+   - Tablet: 2 cards per row
+   - Mobile: Single column layout
+
+4. States:
+   - Normal state with lobby cards
+   - Loading state with skeletons
+   - Empty state with message
+   - Error state with message and retry option
+
+Use the LobbyCard component for each lobby item.
+
+# Test Strategy:
+Test the component with:
+- Snapshot tests for visual regression
+- Render tests with different data sets (empty, few items, many items)
+- Loading state display tests
+- Error state display tests
+- Responsive layout tests at different breakpoints
+- Verify correct props are passed to child LobbyCard components
+- Test with React Testing Library and Storybook

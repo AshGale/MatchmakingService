@@ -1,0 +1,333 @@
+# Refined Matchmaking Service Product Requirements Document
+*Optimized for Independent Development and Clean Integration*
+
+## 1. Introduction
+
+This refined PRD restructures the matchmaking service development to emphasize **separation of concerns** and **independent development workflows**. Each layer can be developed, tested, and validated in isolation before integration points are established. This approach reduces dependencies, enables parallel development, and ensures robust system architecture.
+
+## 2. Development approach philosophy
+
+### 2.1 Independent layer development
+Each system layer (Database, Backend API, Frontend Components, API Client) will be developed as standalone modules with clearly defined interfaces and mock dependencies. This enables:
+- Parallel development by different team members
+- Independent testing and validation
+- Reduced coupling and increased maintainability
+- Clear integration contracts between layers
+
+### 2.2 Integration-focused design
+After independent layer completion, specific integration tasks will connect the components using well-defined interfaces. Integration tasks focus solely on connecting working parts rather than building functionality.
+
+## 3. Phase 1: Independent layer development
+
+### 3.1 Database layer (Independent)
+**Deliverable**: Fully functional database schema with operations
+
+#### Core requirements
+- **DB-001**: Design and implement lobbies table schema
+  - Columns: id (UUID), player_count (int), max_players (int), status (enum), created_at, updated_at
+  - Constraints: max_players between 2-4, status in (waiting, active, finished)
+
+- **DB-002**: Design and implement players table schema
+  - Columns: id (UUID), session_id (VARCHAR), lobby_id (UUID FK), join_order (int), joined_at
+  - Constraints: unique session_id per lobby, join_order sequential
+
+- **DB-003**: Design and implement games table schema  
+  - Columns: id (UUID), lobby_id (UUID FK), status (enum), current_turn_player_id (UUID FK), started_at, finished_at
+  - Constraints: one game per lobby, valid player references
+
+- **DB-004**: Implement performance indexes
+  - Index on lobbies.status for filtering queries
+  - Index on players.session_id for session lookups
+  - Composite index on (lobby_id, join_order) for turn management
+
+- **DB-005**: Create database operation functions (stored procedures/queries)
+  - createLobby(max_players) → lobby_id
+  - addPlayerToLobby(lobby_id, session_id) → player_id
+  - updateLobbyStatus(lobby_id, new_status) → success boolean
+  - getLobbyDetails(lobby_id) → lobby object
+  - getLobbiesByStatus(status) → lobby array
+  - cleanupExpiredSessions(timeout_minutes) → cleanup count
+
+- **DB-006**: Implement database connection and configuration management
+  - Connection pooling setup
+  - Transaction handling utilities
+  - Error handling for database operations
+
+#### Testing approach
+- Unit tests for each database function with test data
+- Performance tests for indexed queries
+- Constraint validation tests
+- Connection pooling and transaction tests
+
+### 3.2 Backend API layer (Independent)
+**Deliverable**: Complete REST API with mock data responses
+
+#### Core requirements  
+- **API-001**: Implement POST `/api/lobbies` endpoint
+  - Request: `{max_players: number}`
+  - Response: `{lobby_id: string, status: string, player_count: number}`
+  - Mock implementation returns hardcoded successful responses
+
+- **API-002**: Implement GET `/api/lobbies` endpoint
+  - Query params: `?status=waiting|active|finished`
+  - Response: `{lobbies: [lobby objects], total_count: number}`
+  - Mock implementation returns array of sample lobby objects
+
+- **API-003**: Implement GET `/api/lobbies/{id}` endpoint
+  - Response: `{lobby: lobby_object, players: [player objects]}`
+  - Mock implementation returns detailed lobby with player list
+
+- **API-004**: Implement POST `/api/lobbies/{id}/join` endpoint
+  - Request: `{session_id: string}`
+  - Response: `{success: boolean, player_id: string, lobby: lobby_object}`
+  - Mock implementation validates capacity and returns success
+
+- **API-005**: Implement POST `/api/quick-join` endpoint
+  - Request: `{session_id: string, preferred_players?: number}`
+  - Response: `{lobby_id: string, created_new: boolean}`
+  - Mock implementation with matchmaking algorithm simulation
+
+- **API-006**: Implement PUT `/api/lobbies/{id}/status` endpoint
+  - Request: `{status: string, player_id?: string}`
+  - Response: `{success: boolean, lobby: lobby_object}`
+  - Mock implementation validates status transitions
+
+- **API-007**: Implement comprehensive middleware stack
+  - Request validation middleware using schema validation
+  - Error handling middleware with structured error responses
+  - CORS middleware configured for frontend origins
+  - Logging middleware for request/response tracking
+
+- **API-008**: Implement business logic modules (isolated)
+  - LobbyManager class with capacity validation, status transitions
+  - MatchmakingEngine class with quick-join algorithm
+  - SessionManager class with session validation and cleanup
+  - Each class operates with mock data interfaces
+
+#### Testing approach
+- Unit tests for each endpoint with various request scenarios
+- Middleware testing with invalid requests and edge cases
+- Business logic testing with comprehensive test cases
+- API contract testing using OpenAPI specifications
+
+### 3.3 Frontend components layer (Independent)
+**Deliverable**: Complete UI component library with mock data
+
+#### Core requirements
+- **UI-001**: LobbyCard component
+  - Props: `{lobby: LobbyObject, onJoin: function, loading: boolean}`
+  - Displays lobby details with conditional join button
+  - Visual status indicators and loading states
+  - Responsive design with mobile/desktop layouts
+
+- **UI-002**: LobbyList component  
+  - Props: `{lobbies: LobbyObject[], loading: boolean, error: string}`
+  - Renders grid of LobbyCard components
+  - Handles empty states and error states
+  - Implements loading skeletons
+
+- **UI-003**: FilterBar component
+  - Props: `{activeFilter: string, onFilterChange: function, counts: object}`
+  - Filter buttons with active state indication
+  - Filter count badges
+  - Responsive dropdown for mobile
+
+- **UI-004**: CreateLobbyForm component
+  - Props: `{onSubmit: function, loading: boolean, error: string}`
+  - Player count selection with validation
+  - Form submission with loading states
+  - Error display and form reset capabilities
+
+- **UI-005**: QuickJoinButton component
+  - Props: `{onQuickJoin: function, loading: boolean, disabled: boolean}`
+  - Single-click quick join with loading indication
+  - Disabled state handling
+  - Success/error feedback integration
+
+- **UI-006**: LoadingSpinner and ErrorMessage components
+  - Reusable loading indicator with different sizes
+  - Structured error message display with retry options
+  - Consistent styling across all components
+
+- **UI-007**: State management hooks (isolated)
+  - useLobbyState hook for lobby data management
+  - useFilterState hook for filter management  
+  - useLoadingState hook for async operation states
+  - useErrorState hook for error handling
+
+#### Testing approach
+- Component unit tests with React Testing Library
+- Visual regression tests with Storybook
+- Accessibility tests with axe-core
+- Responsive design tests across breakpoints
+
+### 3.4 API client layer (Independent)
+**Deliverable**: Complete HTTP client library with mock backend
+
+#### Core requirements
+- **CLIENT-001**: HTTP client configuration
+  - Base URL configuration with environment variables
+  - Request/response interceptors for common headers
+  - Timeout configuration (5s default, 30s for long operations)
+  - Retry logic for network failures (3 attempts with exponential backoff)
+
+- **CLIENT-002**: Lobby management client functions
+  - `createLobby(maxPlayers)` → Promise<LobbyResponse>
+  - `fetchLobbies(status?)` → Promise<LobbiesResponse>
+  - `fetchLobbyDetails(lobbyId)` → Promise<LobbyDetailsResponse>
+  - Each function includes comprehensive error handling
+
+- **CLIENT-003**: Player action client functions
+  - `joinLobby(lobbyId, sessionId)` → Promise<JoinResponse>
+  - `quickJoin(sessionId, preferredPlayers?)` → Promise<QuickJoinResponse>
+  - `updateLobbyStatus(lobbyId, status)` → Promise<StatusUpdateResponse>
+
+- **CLIENT-004**: Error handling system
+  - Network error classification (timeout, connection, server)
+  - API error response parsing with error codes
+  - User-friendly error message mapping
+  - Automatic retry for recoverable errors
+
+- **CLIENT-005**: Mock backend server
+  - Express.js server mimicking real API responses
+  - Configurable response delays and error scenarios
+  - State persistence for testing complex flows
+  - Easy switching between mock and real backend
+
+#### Testing approach
+- Unit tests for each client function with mock responses
+- Network error simulation and retry logic testing
+- Integration tests with mock backend server
+- Performance tests for timeout and retry scenarios
+
+## 4. Phase 2: Integration layer development
+
+### 4.1 Database-backend integration
+**Deliverable**: Backend API connected to real database
+
+#### Integration requirements
+- **INT-DB-001**: Replace mock database functions in backend with real database calls
+  - Update LobbyManager to use actual database operations
+  - Implement transaction handling for multi-step operations
+  - Add database connection health checks
+
+- **INT-DB-002**: Implement database transaction workflows
+  - Lobby creation with automatic player addition transaction
+  - Player joining with lobby status update transaction
+  - Game completion with cleanup transaction
+
+- **INT-DB-003**: Add database error handling to API endpoints
+  - Database connection error responses
+  - Constraint violation error mapping
+  - Transaction rollback error handling
+
+#### Testing approach
+- Integration tests with real database instance
+- Transaction rollback testing with simulated failures
+- Concurrent access testing with multiple API calls
+- Database performance testing under load
+
+### 4.2 Backend-frontend integration
+**Deliverable**: Frontend connected to real backend API
+
+#### Integration requirements
+- **INT-FE-001**: Replace mock API client with real backend calls
+  - Update API client base URL to real backend
+  - Remove mock response logic
+  - Add real error handling for backend responses
+
+- **INT-FE-002**: Implement real-time lobby updates
+  - Polling mechanism for lobby list refresh (every 5 seconds)
+  - Optimistic updates for user actions
+  - Conflict resolution for concurrent updates
+
+- **INT-FE-003**: Add session management integration
+  - Generate and persist session IDs in browser storage
+  - Include session ID in all API requests
+  - Handle session expiration scenarios
+
+#### Testing approach
+- End-to-end tests covering complete user journeys
+- Real-time update testing with multiple browser instances
+- Session management testing with browser refresh scenarios
+- Network failure recovery testing
+
+### 4.3 Component integration
+**Deliverable**: Integrated frontend application
+
+#### Integration requirements
+- **INT-COMP-001**: Connect isolated components into main application
+  - Implement main App component with component composition
+  - Add routing if multiple pages needed
+  - Implement global state management for shared data
+
+- **INT-COMP-002**: Implement cross-component communication
+  - Parent-child data flow for lobby updates
+  - Event handling for user actions across components
+  - Global state updates propagating to all components
+
+- **INT-COMP-003**: Add application-level error boundaries
+  - Component error boundary for graceful failure handling
+  - Global error state management
+  - User notification system for application errors
+
+#### Testing approach
+- Integration tests for component interactions
+- User journey testing with full application flow
+- Error boundary testing with component failures
+- State management testing across component updates
+
+## 5. Phase 3: End-to-end integration and testing
+
+### 5.1 System integration verification
+**Deliverable**: Complete working system with all components integrated
+
+#### Integration requirements
+- **E2E-001**: Verify complete user journeys
+  - Lobby creation → joining → game start → completion flow
+  - Quick-join with various scenarios (existing lobby, new lobby creation)
+  - Concurrent user interactions with proper conflict resolution
+
+- **E2E-002**: Performance and reliability testing
+  - Load testing with multiple concurrent users
+  - Database performance under realistic usage patterns
+  - Frontend responsiveness with real data loads
+
+- **E2E-003**: Cross-browser and device compatibility
+  - Testing across major browsers (Chrome, Firefox, Safari, Edge)
+  - Mobile device testing (iOS Safari, Android Chrome)
+  - Responsive design validation across screen sizes
+
+#### Testing approach
+- Automated end-to-end tests using Playwright or Cypress
+- Manual testing scenarios for edge cases
+- Performance monitoring and profiling
+- Cross-platform compatibility verification
+
+## 6. Development workflow and dependencies
+
+### 6.1 Parallel development approach
+1. **Week 1-2**: All four independent layers developed simultaneously by different developers
+2. **Week 3**: Integration layer development begins after all independent layers are complete
+3. **Week 4**: End-to-end integration and comprehensive testing
+
+### 6.2 Quality gates
+Each independent layer must pass:
+- Complete unit test coverage (>90%)
+- Code review and approval
+- Documentation completion
+- Mock/simulation testing validation
+
+Integration phases require:
+- Integration test suite passing
+- Performance benchmarks met
+- Security review completion
+- User acceptance testing approval
+
+### 6.3 Risk mitigation
+- **Interface contracts**: Clearly defined APIs between layers prevent integration issues
+- **Mock implementations**: Allow development to continue even if dependencies are blocked
+- **Incremental integration**: Gradual connection of components reduces integration complexity
+- **Rollback capability**: Each integration step can be reverted if issues arise
+
+This refined approach ensures robust, maintainable code while enabling efficient parallel development and reducing integration risks.

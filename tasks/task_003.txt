@@ -1,0 +1,83 @@
+# Task ID: 3
+# Title: Implement Database Operation Functions
+# Status: pending
+# Dependencies: 1, 2
+# Priority: high
+# Description: Create database operation functions/stored procedures for common lobby and player operations.
+# Details:
+Implement the following database functions:
+
+1. createLobby(max_players) → lobby_id
+   - Validates max_players is between 2-4
+   - Creates new lobby with 'waiting' status
+   - Returns the new lobby_id
+
+2. addPlayerToLobby(lobby_id, session_id) → player_id
+   - Validates lobby exists and has capacity
+   - Checks session_id isn't already in the lobby
+   - Assigns sequential join_order
+   - Increments lobby player_count
+   - Returns new player_id
+
+3. updateLobbyStatus(lobby_id, new_status) → success boolean
+   - Validates status transition is legal
+   - Updates lobby status and updated_at
+   - Returns success flag
+
+4. getLobbyDetails(lobby_id) → lobby object
+   - Returns complete lobby info with player list
+
+5. getLobbiesByStatus(status) → lobby array
+   - Returns all lobbies matching the status
+
+6. cleanupExpiredSessions(timeout_minutes) → cleanup count
+   - Removes players with sessions older than timeout
+   - Updates affected lobbies
+   - Returns count of cleaned sessions
+
+# Test Strategy:
+Unit test each function with:
+- Valid input parameters
+- Invalid/boundary inputs
+- Edge cases (empty lobbies, full lobbies)
+- Concurrent operation tests
+- Transaction integrity tests
+- Performance tests with varying data volumes
+
+# Subtasks:
+## 1. Implement createLobby function [pending]
+### Dependencies: None
+### Description: Create the database function to initialize a new lobby with validation and error handling
+### Details:
+Implement the createLobby function that takes lobby parameters (name, max players, game settings), validates inputs, creates a new lobby record with a unique ID, sets initial status to 'waiting', handles transactions properly, and returns the created lobby ID. Include error handling for duplicate names and invalid parameters.
+
+## 2. Implement addPlayerToLobby function [pending]
+### Dependencies: 3.1
+### Description: Create the function to add a player to an existing lobby with proper validation
+### Details:
+Implement the addPlayerToLobby function that takes player ID and lobby ID, validates the lobby exists and isn't full, checks if player is already in another lobby, adds the player to the lobby, updates player count, and handles race conditions. Include error handling for full lobbies and non-existent lobbies.
+
+## 3. Implement updateLobbyStatus function [pending]
+### Dependencies: 3.1
+### Description: Create the function to update a lobby's status with validation and state transitions
+### Details:
+Implement the updateLobbyStatus function that takes lobby ID and new status, validates the lobby exists, ensures the status transition is valid (e.g., 'waiting' to 'in_progress', 'in_progress' to 'completed'), updates the status with timestamp, and handles transactions. Include error handling for invalid transitions and non-existent lobbies.
+
+## 4. Implement getLobbyDetails and getLobbiesByStatus functions [pending]
+### Dependencies: 3.1, 3.3
+### Description: Create the query functions to retrieve lobby information
+### Details:
+Implement two functions: getLobbyDetails that retrieves complete information about a specific lobby by ID including players and settings, and getLobbiesByStatus that returns a list of lobbies filtered by status (waiting, in_progress, etc.). Include pagination for getLobbiesByStatus and proper error handling for both functions.
+
+## 5. Implement cleanupExpiredSessions function [pending]
+### Dependencies: 3.3
+### Description: Create the maintenance function to remove inactive lobbies
+### Details:
+Implement the cleanupExpiredSessions function that identifies and removes lobbies that have been inactive beyond a threshold period. Include parameters for customizing the expiration threshold, handle batch processing for large numbers of expired lobbies, and implement logging of cleaned up sessions. Ensure proper transaction handling.
+
+## 6. Write comprehensive tests for all database functions [pending]
+### Dependencies: 3.1, 3.2, 3.3, 3.4, 3.5
+### Description: Create unit and integration tests for all implemented database functions
+### Details:
+Develop a comprehensive test suite that covers all implemented database functions. Include unit tests for validation logic, integration tests for database interactions, edge case testing (full lobbies, race conditions), performance testing for functions like getLobbiesByStatus with large datasets, and transaction rollback tests. Use mocking where appropriate and ensure test database isolation.
+

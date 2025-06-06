@@ -1,0 +1,39 @@
+# Task ID: 8
+# Title: Implement POST /api/lobbies/{id}/join Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: high
+# Description: Create the API endpoint for joining an existing lobby with mock implementation.
+# Details:
+Implement the POST /api/lobbies/{id}/join endpoint:
+
+1. Request validation:
+   - Validate path parameter (lobby ID)
+   - Validate request body schema: `{session_id: string}`
+   - Validate session_id format
+
+2. Mock implementation:
+   - Check if mock lobby has capacity
+   - Generate player ID if successful
+   - Return structure: `{success: boolean, player_id: string, lobby: lobby_object}`
+
+3. Error handling:
+   - Return 404 for non-existent lobby
+   - Return 400 for invalid session_id
+   - Return 409 if lobby is full or player already in lobby
+   - Return 500 for server errors
+
+4. Mock validation logic:
+   - Check if lobby status is 'waiting'
+   - Check if player_count < max_players
+   - Check if session_id is not already in the lobby
+
+# Test Strategy:
+Test the endpoint with:
+- Valid join request to lobby with capacity
+- Join request to full lobby
+- Join request with existing session_id
+- Join request to non-existent lobby
+- Join request to non-waiting lobby
+- Verify response structure and success flag
+- Test error response messages

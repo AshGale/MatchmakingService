@@ -1,0 +1,60 @@
+# Task ID: 1
+# Title: Design Database Schema
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Create the database schema design for lobbies, players, and games tables with all required columns and constraints.
+# Details:
+Design the following tables:
+1. Lobbies table:
+   - id (UUID primary key)
+   - player_count (integer, default 0)
+   - max_players (integer, between 2-4)
+   - status (enum: 'waiting', 'active', 'finished')
+   - created_at (timestamp)
+   - updated_at (timestamp)
+
+2. Players table:
+   - id (UUID primary key)
+   - session_id (VARCHAR, unique per lobby)
+   - lobby_id (UUID, foreign key to lobbies.id)
+   - join_order (integer, sequential within lobby)
+   - joined_at (timestamp)
+
+3. Games table:
+   - id (UUID primary key)
+   - lobby_id (UUID, foreign key to lobbies.id)
+   - status (enum: 'active', 'finished')
+   - current_turn_player_id (UUID, foreign key to players.id)
+   - started_at (timestamp)
+   - finished_at (timestamp, nullable)
+
+Ensure proper foreign key constraints and check constraints for enum values and numeric ranges.
+
+# Test Strategy:
+Create database schema validation tests to verify:
+- All tables have the correct columns with proper data types
+- Constraints are properly defined (foreign keys, check constraints)
+- Default values are set correctly
+- Enum values are restricted to specified options
+- Test inserting valid and invalid data to verify constraints
+
+# Subtasks:
+## 1. Design Lobbies Table Schema [pending]
+### Dependencies: None
+### Description: Create the database schema for the lobbies table including all necessary columns, primary keys, indexes, and constraints.
+### Details:
+Define columns for lobby_id (primary key), name, creation_timestamp, status, max_players, and other relevant fields. Include appropriate data types, NOT NULL constraints where needed, and indexes for frequently queried columns. Document validation rules for each field and create test cases to verify constraints.
+
+## 2. Design Players Table Schema [pending]
+### Dependencies: 1.1
+### Description: Create the database schema for the players table with proper relationships to the lobbies table.
+### Details:
+Define columns for player_id (primary key), username, lobby_id (foreign key to lobbies table), join_timestamp, status, and other player attributes. Implement foreign key constraints, indexes, and cascade rules for player-lobby relationships. Create validation tests to ensure referential integrity and business rules are enforced.
+
+## 3. Design Games Table Schema [pending]
+### Dependencies: 1.1, 1.2
+### Description: Create the database schema for the games table with relationships to lobbies and players tables.
+### Details:
+Define columns for game_id (primary key), lobby_id (foreign key), start_timestamp, end_timestamp, game_state, winner_id (foreign key to players), and other game-specific fields. Implement all necessary constraints, indexes for performance, and validation rules. Create test cases to verify game creation, completion, and relationship integrity with lobbies and players.
+

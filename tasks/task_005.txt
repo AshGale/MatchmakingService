@@ -1,0 +1,35 @@
+# Task ID: 5
+# Title: Implement POST /api/lobbies Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: high
+# Description: Create the API endpoint for creating new lobbies with mock implementation.
+# Details:
+Implement the POST /api/lobbies endpoint:
+
+1. Request validation:
+   - Validate request body schema: `{max_players: number}`
+   - Validate max_players is between 2-4
+
+2. Mock implementation:
+   - Generate a random UUID for lobby_id
+   - Return hardcoded successful response
+   - Structure: `{lobby_id: string, status: 'waiting', player_count: 0, max_players: number}`
+
+3. Error handling:
+   - Return 400 for invalid max_players
+   - Return 500 for server errors
+
+4. Documentation:
+   - Add JSDoc comments
+   - Document request/response format
+
+Implement using Express.js with appropriate middleware for request parsing.
+
+# Test Strategy:
+Test the endpoint with:
+- Valid request with different max_players values
+- Invalid requests (missing fields, invalid types, out of range values)
+- Verify response structure matches specification
+- Verify appropriate status codes are returned
+- Test request validation error messages

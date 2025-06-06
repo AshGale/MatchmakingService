@@ -1,0 +1,45 @@
+# Task ID: 17
+# Title: Implement QuickJoinButton UI Component
+# Status: pending
+# Dependencies: 19
+# Priority: low
+# Description: Create a button component for quick-joining a lobby with loading and disabled states.
+# Details:
+Implement the QuickJoinButton component with:
+
+1. Props interface:
+   ```typescript
+   interface QuickJoinButtonProps {
+     onQuickJoin: () => void;
+     loading?: boolean;
+     disabled?: boolean;
+     preferredPlayers?: number;
+   }
+   ```
+
+2. Visual elements:
+   - Prominent button with "Quick Join" text
+   - Loading spinner during loading state
+   - Visual indication for disabled state
+   - Optional player count preference indicator
+
+3. States:
+   - Normal state (clickable)
+   - Loading state (during join operation)
+   - Disabled state (when quick join not available)
+   - Hover/focus states
+
+4. Accessibility:
+   - Proper ARIA attributes
+   - Loading state announcement
+   - Disabled state handling
+
+# Test Strategy:
+Test the component with:
+- Snapshot tests for visual regression
+- Click handler tests
+- Loading state display tests
+- Disabled state behavior tests
+- Verify onQuickJoin is called correctly
+- Accessibility tests (keyboard usage, screen reader compatibility)
+- Test with React Testing Library and Storybook

@@ -1,0 +1,38 @@
+# Task ID: 9
+# Title: Implement POST /api/quick-join Endpoint
+# Status: pending
+# Dependencies: 3, 11
+# Priority: medium
+# Description: Create the API endpoint for quick-joining a lobby with matchmaking algorithm simulation.
+# Details:
+Implement the POST /api/quick-join endpoint:
+
+1. Request validation:
+   - Validate request body schema: `{session_id: string, preferred_players?: number}`
+   - Validate session_id format
+   - Validate preferred_players is between 2-4 if provided
+
+2. Mock implementation:
+   - Simulate matchmaking algorithm
+   - Either "find" existing lobby or "create" new one
+   - Return structure: `{lobby_id: string, created_new: boolean}`
+
+3. Matchmaking algorithm simulation:
+   - Randomly decide whether to create new lobby or join existing
+   - If preferred_players provided, use it for new lobby max_players
+   - Default to 4 players if not specified
+
+4. Error handling:
+   - Return 400 for invalid session_id or preferred_players
+   - Return 500 for server errors
+
+Include randomization to simulate different matchmaking scenarios.
+
+# Test Strategy:
+Test the endpoint with:
+- Valid request without preferred_players
+- Valid request with different preferred_players values
+- Invalid requests (bad session_id, out of range preferred_players)
+- Multiple requests to verify both join and create scenarios occur
+- Verify response structure and data types
+- Test error responses

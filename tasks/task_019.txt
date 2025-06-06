@@ -1,0 +1,90 @@
+# Task ID: 19
+# Title: Implement State Management Hooks
+# Status: pending
+# Dependencies: 20
+# Priority: medium
+# Description: Create custom React hooks for managing lobby data, filters, loading states, and errors.
+# Details:
+Implement the following custom hooks:
+
+1. useLobbyState hook:
+   ```typescript
+   interface UseLobbyStateResult {
+     lobbies: LobbyObject[];
+     selectedLobby: LobbyObject | null;
+     fetchLobbies: (status?: string) => Promise<void>;
+     fetchLobbyDetails: (id: string) => Promise<void>;
+     createLobby: (maxPlayers: number) => Promise<string>;
+     joinLobby: (lobbyId: string) => Promise<boolean>;
+     loading: boolean;
+     error: string | null;
+   }
+   ```
+
+2. useFilterState hook:
+   ```typescript
+   interface UseFilterStateResult {
+     activeFilter: string;
+     setFilter: (filter: string) => void;
+     filterCounts: Record<string, number>;
+     updateFilterCounts: (lobbies: LobbyObject[]) => void;
+   }
+   ```
+
+3. useLoadingState hook:
+   ```typescript
+   interface UseLoadingStateResult {
+     isLoading: boolean;
+     startLoading: () => void;
+     stopLoading: () => void;
+     withLoading: <T>(promise: Promise<T>) => Promise<T>;
+   }
+   ```
+
+4. useErrorState hook:
+   ```typescript
+   interface UseErrorStateResult {
+     error: string | null;
+     setError: (message: string) => void;
+     clearError: () => void;
+     handleError: (error: any) => void;
+   }
+   ```
+
+Implement with mock data initially, designed to work with real API later.
+
+# Test Strategy:
+Test each hook with:
+- Render tests using a test component
+- State update tests
+- Async operation tests
+- Error handling tests
+- Mock API response tests
+- Test interactions between hooks when used together
+- Test with React Testing Library and React Hooks Testing Library
+
+# Subtasks:
+## 1. Implement useLobbyState hook [pending]
+### Dependencies: None
+### Description: Create a custom hook to manage the lobby state including players, game settings, and lobby status
+### Details:
+Implement the useLobbyState hook that will: 1) Store and manage lobby data (players, settings, status), 2) Provide methods to update lobby information, 3) Handle joining/leaving players, 4) Synchronize with backend services, 5) Include proper TypeScript typing for all state and functions
+
+## 2. Implement useFilterState hook [pending]
+### Dependencies: None
+### Description: Create a custom hook to manage filtering and sorting options for data display
+### Details:
+Implement the useFilterState hook that will: 1) Maintain filter criteria and sorting preferences, 2) Provide methods to update filters, 3) Support multiple filter combinations, 4) Include filter reset functionality, 5) Optimize to prevent unnecessary re-renders when filter state changes
+
+## 3. Implement useLoadingState hook [pending]
+### Dependencies: None
+### Description: Create a custom hook to manage loading states for async operations throughout the application
+### Details:
+Implement the useLoadingState hook that will: 1) Track loading status for different operations, 2) Support multiple concurrent loading states, 3) Provide methods to set/clear loading states, 4) Include timeout handling for long-running operations, 5) Integrate with the other state hooks to coordinate loading indicators
+
+## 4. Implement useErrorState hook [pending]
+### Dependencies: 19.1, 19.2, 19.3
+### Description: Create a custom hook to handle and display error states across the application
+### Details:
+Implement the useErrorState hook that will: 1) Capture and store error information, 2) Provide error handling methods, 3) Support different error categories and severity levels, 4) Include error clearing functionality, 5) Integrate with the other hooks to handle errors from their operations, 6) Implement retry mechanisms for failed operations
+

@@ -1,0 +1,44 @@
+# Task ID: 18
+# Title: Implement Loading and Error UI Components
+# Status: pending
+# Dependencies: 19
+# Priority: low
+# Description: Create reusable loading spinner and error message components for consistent UI feedback.
+# Details:
+Implement the following components:
+
+1. LoadingSpinner component:
+   ```typescript
+   interface LoadingSpinnerProps {
+     size?: 'small' | 'medium' | 'large';
+     color?: string;
+     text?: string;
+   }
+   ```
+   - Animated spinner with configurable size
+   - Optional loading text
+   - Accessible loading indicator
+
+2. ErrorMessage component:
+   ```typescript
+   interface ErrorMessageProps {
+     message: string;
+     onRetry?: () => void;
+     variant?: 'inline' | 'block' | 'toast';
+   }
+   ```
+   - Error icon and message
+   - Optional retry button
+   - Different display variants
+   - Consistent styling with other components
+
+Ensure components are fully reusable across the application.
+
+# Test Strategy:
+Test the components with:
+- Snapshot tests for visual regression
+- Render tests with different props
+- Animation tests for loading spinner
+- Retry functionality tests for error component
+- Accessibility tests (ARIA attributes, screen reader compatibility)
+- Test with React Testing Library and Storybook

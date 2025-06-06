@@ -1,0 +1,82 @@
+# Task ID: 12
+# Title: Implement Business Logic Modules
+# Status: pending
+# Dependencies: 3, 11
+# Priority: high
+# Description: Create isolated business logic classes for lobby management, matchmaking, and session management with mock data interfaces.
+# Details:
+Implement the following business logic modules:
+
+1. LobbyManager class:
+   - Methods for creating, retrieving, and updating lobbies
+   - Capacity validation logic
+   - Status transition validation
+   - Player addition/removal logic
+
+2. MatchmakingEngine class:
+   - Quick-join algorithm implementation
+   - Lobby selection based on preferences
+   - Fallback to new lobby creation
+   - Optimized matching strategies
+
+3. SessionManager class:
+   - Session validation methods
+   - Session cleanup for inactive sessions
+   - Session tracking and management
+
+Each class should:
+- Use dependency injection for data access
+- Work with mock data interfaces initially
+- Include comprehensive error handling
+- Be fully unit-testable in isolation
+- Follow SOLID principles
+
+# Test Strategy:
+Test each module with:
+- Unit tests for all public methods
+- Mock dependencies to isolate testing
+- Test happy paths and error scenarios
+- Test edge cases and boundary conditions
+- Verify business rules are correctly enforced
+- Test with various mock data configurations
+
+# Subtasks:
+## 1. Implement LobbyManager class with core functionality [pending]
+### Dependencies: None
+### Description: Create the LobbyManager class that handles player lobbies, including methods for creating, joining, and leaving lobbies.
+### Details:
+Implement the following methods:
+- createLobby(playerId, settings): Creates a new lobby with the specified player as host
+- joinLobby(playerId, lobbyId): Adds a player to an existing lobby
+- leaveLobby(playerId, lobbyId): Removes a player from a lobby
+- getLobbyInfo(lobbyId): Returns details about a specific lobby
+- listAvailableLobbies(): Returns all open lobbies
+
+Ensure proper error handling for cases like lobby not found, player already in lobby, etc. Write comprehensive unit tests for each method.
+
+## 2. Implement MatchmakingEngine class with matchmaking algorithms [pending]
+### Dependencies: 12.1
+### Description: Create the MatchmakingEngine class that handles player matching based on skill levels, preferences, and other criteria.
+### Details:
+Implement the following methods:
+- findMatch(playerId, criteria): Finds suitable matches based on player criteria
+- createQueue(queueType): Creates a new matchmaking queue
+- addToQueue(playerId, queueId): Adds a player to a matchmaking queue
+- removeFromQueue(playerId): Removes a player from any queues
+- processQueue(queueId): Processes a queue to create matches
+
+Implement at least one matchmaking algorithm (e.g., ELO-based, skill-based). Include timeout handling for long queue times. Write unit tests that verify the matchmaking logic works correctly with various player combinations.
+
+## 3. Implement SessionManager class with session handling [pending]
+### Dependencies: 12.1, 12.2
+### Description: Create the SessionManager class that manages active game sessions, including creation, monitoring, and cleanup.
+### Details:
+Implement the following methods:
+- createSession(players, settings): Creates a new game session
+- endSession(sessionId): Properly terminates a session
+- getSessionStatus(sessionId): Returns the current status of a session
+- listActiveSessions(): Returns all currently active sessions
+- updateSessionState(sessionId, newState): Updates the state of an ongoing session
+
+Ensure the SessionManager can handle session timeouts and disconnections gracefully. Implement proper cleanup of resources when sessions end. Write integration tests that verify the interaction between LobbyManager, MatchmakingEngine, and SessionManager.
+
