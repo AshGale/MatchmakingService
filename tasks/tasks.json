@@ -142,8 +142,50 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
-      "subtasks": []
+      "status": "in-progress",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Configure Connection Pool",
+          "description": "Set up and tune the database connection pool to efficiently manage and reuse database connections, optimizing for performance and resource usage.",
+          "dependencies": [],
+          "details": "Define pool size, timeout settings, and connection validation parameters. Ensure the pool is appropriate for the expected workload and database limits.",
+          "status": "in-progress"
+        },
+        {
+          "id": 2,
+          "title": "Implement Transaction Handling",
+          "description": "Design and implement mechanisms for managing database transactions to ensure data consistency and integrity.",
+          "dependencies": [
+            1
+          ],
+          "details": "Establish transaction boundaries, support commit and rollback operations, and ensure transactions are properly managed within pooled connections.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Develop Error Handling Strategy",
+          "description": "Create robust error handling for database operations, including connection failures, transaction errors, and pool exhaustion scenarios.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement retry logic, logging, and escalation procedures for critical failures. Ensure errors are handled gracefully to maintain application stability.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Implement Health Check Mechanisms",
+          "description": "Set up health checks to monitor the status of database connections and the connection pool, enabling proactive detection of issues.",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Integrate periodic connection validation, pool status monitoring, and alerting for unhealthy states. Ensure health checks are lightweight and do not impact performance.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 5,
@@ -528,7 +570,7 @@
       "testStrategy": "Test the HTTP client with:\n- Configuration tests for different environments\n- Interceptor functionality tests\n- Timeout handling tests\n- Retry logic tests with mock failures\n- Error transformation tests\n- Mock server response tests\n- Performance tests for concurrent requests",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -536,7 +578,7 @@
           "description": "Set up the core HTTP client with essential configuration parameters",
           "dependencies": [],
           "details": "Create the base HTTP client configuration including base URL, default headers, serialization/deserialization settings, and connection pool settings. Document the configuration options and their default values.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -546,7 +588,7 @@
             1
           ],
           "details": "Create interceptors for common tasks such as authentication token injection, request logging, response validation, and error transformation. Ensure interceptors are modular and can be conditionally applied based on request characteristics.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -556,7 +598,7 @@
             1
           ],
           "details": "Set up appropriate timeout values for connection establishment, request writing, and response reading. Implement custom exception handling for timeout scenarios and provide clear error messages. Create configuration options to adjust timeouts based on endpoint characteristics.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -567,7 +609,7 @@
             3
           ],
           "details": "Develop a retry mechanism with configurable policies including max attempts, backoff strategy, and retry-eligible error conditions. Implement circuit breaker pattern to prevent overwhelming failing services. Add metrics collection for retry attempts and success rates.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     }

@@ -8,7 +8,7 @@
       "testStrategy": "Create database schema validation tests to verify:\n- All tables have the correct columns with proper data types\n- Constraints are properly defined (foreign keys, check constraints)\n- Default values are set correctly\n- Enum values are restricted to specified options\n- Test inserting valid and invalid data to verify constraints",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -16,7 +16,7 @@
           "description": "Create the database schema for the lobbies table including all necessary columns, primary keys, indexes, and constraints.",
           "dependencies": [],
           "details": "Define columns for lobby_id (primary key), name, creation_timestamp, status, max_players, and other relevant fields. Include appropriate data types, NOT NULL constraints where needed, and indexes for frequently queried columns. Document validation rules for each field and create test cases to verify constraints.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -26,7 +26,7 @@
             1
           ],
           "details": "Define columns for player_id (primary key), username, lobby_id (foreign key to lobbies table), join_timestamp, status, and other player attributes. Implement foreign key constraints, indexes, and cascade rules for player-lobby relationships. Create validation tests to ensure referential integrity and business rules are enforced.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -37,7 +37,7 @@
             2
           ],
           "details": "Define columns for game_id (primary key), lobby_id (foreign key), start_timestamp, end_timestamp, game_state, winner_id (foreign key to players), and other game-specific fields. Implement all necessary constraints, indexes for performance, and validation rules. Create test cases to verify game creation, completion, and relationship integrity with lobbies and players.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -142,7 +142,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": []
     },
     {
@@ -152,7 +152,10 @@
       "details": "Implement the POST /api/lobbies endpoint:\n\n1. Request validation:\n   - Validate request body schema: `{max_players: number}`\n   - Validate max_players is between 2-4\n\n2. Mock implementation:\n   - Generate a random UUID for lobby_id\n   - Return hardcoded successful response\n   - Structure: `{lobby_id: string, status: 'waiting', player_count: 0, max_players: number}`\n\n3. Error handling:\n   - Return 400 for invalid max_players\n   - Return 500 for server errors\n\n4. Documentation:\n   - Add JSDoc comments\n   - Document request/response format\n\nImplement using Express.js with appropriate middleware for request parsing.",
       "testStrategy": "Test the endpoint with:\n- Valid request with different max_players values\n- Invalid requests (missing fields, invalid types, out of range values)\n- Verify response structure matches specification\n- Verify appropriate status codes are returned\n- Test request validation error messages",
       "priority": "high",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -163,7 +166,10 @@
       "details": "Implement the GET /api/lobbies endpoint:\n\n1. Query parameter handling:\n   - Parse optional status parameter (?status=waiting|active|finished)\n   - Validate status is one of the allowed values\n\n2. Mock implementation:\n   - Generate array of sample lobby objects\n   - Filter by status if provided\n   - Return structure: `{lobbies: [lobby objects], total_count: number}`\n\n3. Sample lobby object structure:\n   ```\n   {\n     id: uuid,\n     status: string,\n     player_count: number,\n     max_players: number,\n     created_at: timestamp\n   }\n   ```\n\n4. Error handling:\n   - Return 400 for invalid status value\n   - Return 500 for server errors\n\nImplement pagination if needed with limit/offset query parameters.",
       "testStrategy": "Test the endpoint with:\n- No query parameters (should return all lobbies)\n- Each valid status value\n- Invalid status values\n- Verify response structure and data types\n- Verify filtering works correctly\n- Test with empty result sets",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -174,7 +180,10 @@
       "details": "Implement the GET /api/lobbies/{id} endpoint:\n\n1. Path parameter handling:\n   - Extract and validate lobby ID from URL path\n   - Validate ID format (UUID)\n\n2. Mock implementation:\n   - Generate detailed lobby object with player list\n   - Return structure: `{lobby: lobby_object, players: [player objects]}`\n\n3. Sample response structure:\n   ```\n   {\n     lobby: {\n       id: uuid,\n       status: string,\n       player_count: number,\n       max_players: number,\n       created_at: timestamp,\n       updated_at: timestamp\n     },\n     players: [\n       {\n         id: uuid,\n         join_order: number,\n         joined_at: timestamp\n       }\n     ]\n   }\n   ```\n\n4. Error handling:\n   - Return 404 for non-existent lobby ID\n   - Return 400 for invalid ID format\n   - Return 500 for server errors",
       "testStrategy": "Test the endpoint with:\n- Valid lobby IDs\n- Non-existent lobby IDs\n- Invalid ID formats\n- Verify response structure and data types\n- Test with lobbies having different player counts\n- Verify error responses have appropriate messages",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": [
         {
@@ -204,7 +213,10 @@
       "details": "Implement the POST /api/lobbies/{id}/join endpoint:\n\n1. Request validation:\n   - Validate path parameter (lobby ID)\n   - Validate request body schema: `{session_id: string}`\n   - Validate session_id format\n\n2. Mock implementation:\n   - Check if mock lobby has capacity\n   - Generate player ID if successful\n   - Return structure: `{success: boolean, player_id: string, lobby: lobby_object}`\n\n3. Error handling:\n   - Return 404 for non-existent lobby\n   - Return 400 for invalid session_id\n   - Return 409 if lobby is full or player already in lobby\n   - Return 500 for server errors\n\n4. Mock validation logic:\n   - Check if lobby status is 'waiting'\n   - Check if player_count < max_players\n   - Check if session_id is not already in the lobby",
       "testStrategy": "Test the endpoint with:\n- Valid join request to lobby with capacity\n- Join request to full lobby\n- Join request with existing session_id\n- Join request to non-existent lobby\n- Join request to non-waiting lobby\n- Verify response structure and success flag\n- Test error response messages",
       "priority": "high",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -215,7 +227,10 @@
       "details": "Implement the POST /api/quick-join endpoint:\n\n1. Request validation:\n   - Validate request body schema: `{session_id: string, preferred_players?: number}`\n   - Validate session_id format\n   - Validate preferred_players is between 2-4 if provided\n\n2. Mock implementation:\n   - Simulate matchmaking algorithm\n   - Either \"find\" existing lobby or \"create\" new one\n   - Return structure: `{lobby_id: string, created_new: boolean}`\n\n3. Matchmaking algorithm simulation:\n   - Randomly decide whether to create new lobby or join existing\n   - If preferred_players provided, use it for new lobby max_players\n   - Default to 4 players if not specified\n\n4. Error handling:\n   - Return 400 for invalid session_id or preferred_players\n   - Return 500 for server errors\n\nInclude randomization to simulate different matchmaking scenarios.",
       "testStrategy": "Test the endpoint with:\n- Valid request without preferred_players\n- Valid request with different preferred_players values\n- Invalid requests (bad session_id, out of range preferred_players)\n- Multiple requests to verify both join and create scenarios occur\n- Verify response structure and data types\n- Test error responses",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -226,7 +241,10 @@
       "details": "Implement the PUT /api/lobbies/{id}/status endpoint:\n\n1. Request validation:\n   - Validate path parameter (lobby ID)\n   - Validate request body schema: `{status: string, player_id?: string}`\n   - Validate status is one of: 'waiting', 'active', 'finished'\n   - Validate player_id format if provided\n\n2. Mock implementation:\n   - Validate status transition is legal\n   - Return structure: `{success: boolean, lobby: lobby_object}`\n\n3. Status transition validation:\n   - waiting → active: Require player_count >= 2\n   - active → finished: Valid transition\n   - finished → any: Invalid transition\n   - active → waiting: Invalid transition\n\n4. Error handling:\n   - Return 404 for non-existent lobby\n   - Return 400 for invalid status or illegal transition\n   - Return 403 if player_id doesn't match required permissions\n   - Return 500 for server errors",
       "testStrategy": "Test the endpoint with:\n- All valid status transitions\n- All invalid status transitions\n- Missing player_id when required\n- Invalid player_id\n- Non-existent lobby ID\n- Verify response structure and success flag\n- Test error response messages for each failure case",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": [
         {
@@ -268,7 +286,7 @@
       "testStrategy": "Test middleware with:\n- Requests that trigger each middleware component\n- Invalid requests to test validation middleware\n- Errors at different levels to test error handling\n- Cross-origin requests to test CORS\n- Verify logs contain appropriate information\n- Test middleware order by checking execution sequence",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -276,7 +294,7 @@
           "description": "Create middleware to validate incoming API requests against defined schemas",
           "dependencies": [],
           "details": "Develop a middleware that validates request bodies, query parameters, and URL parameters against predefined schemas. Use a validation library like Joi or Yup. Implement validation error responses with appropriate HTTP status codes and error messages. Include type checking and required field validation.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -284,7 +302,7 @@
           "description": "Create a centralized error handling middleware to catch and process all API errors",
           "dependencies": [],
           "details": "Develop middleware that catches errors from all routes and other middleware. Implement different handling for various error types (validation errors, authentication errors, server errors, etc.). Create standardized error response format with appropriate HTTP status codes. Add support for custom error classes and error logging.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -292,7 +310,7 @@
           "description": "Set up Cross-Origin Resource Sharing middleware to control API access from different domains",
           "dependencies": [],
           "details": "Configure CORS middleware with appropriate settings for allowed origins, methods, headers, and credentials. Implement different CORS rules for development and production environments. Test CORS configuration with cross-domain requests. Handle preflight requests correctly.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -304,7 +322,7 @@
             3
           ],
           "details": "Develop middleware that logs request details (method, URL, headers, body) and response details (status code, response time, size). Implement different log levels (info, warn, error). Add request ID generation for request tracking. Configure log rotation and storage. Ensure sensitive data is not logged (passwords, tokens, etc.).",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -315,7 +333,10 @@
       "details": "Implement the following business logic modules:\n\n1. LobbyManager class:\n   - Methods for creating, retrieving, and updating lobbies\n   - Capacity validation logic\n   - Status transition validation\n   - Player addition/removal logic\n\n2. MatchmakingEngine class:\n   - Quick-join algorithm implementation\n   - Lobby selection based on preferences\n   - Fallback to new lobby creation\n   - Optimized matching strategies\n\n3. SessionManager class:\n   - Session validation methods\n   - Session cleanup for inactive sessions\n   - Session tracking and management\n\nEach class should:\n- Use dependency injection for data access\n- Work with mock data interfaces initially\n- Include comprehensive error handling\n- Be fully unit-testable in isolation\n- Follow SOLID principles",
       "testStrategy": "Test each module with:\n- Unit tests for all public methods\n- Mock dependencies to isolate testing\n- Test happy paths and error scenarios\n- Test edge cases and boundary conditions\n- Verify business rules are correctly enforced\n- Test with various mock data configurations",
       "priority": "high",
-      "dependencies": [],
+      "dependencies": [
+        "3",
+        "11"
+      ],
       "status": "pending",
       "subtasks": [
         {
@@ -356,7 +377,10 @@
       "details": "Implement the LobbyCard component with:\n\n1. Props interface:\n   ```typescript\n   interface LobbyCardProps {\n     lobby: LobbyObject; // {id, status, player_count, max_players, created_at}\n     onJoin: (lobbyId: string) => void;\n     loading?: boolean;\n     disabled?: boolean;\n   }\n   ```\n\n2. Visual elements:\n   - Card container with appropriate styling\n   - Lobby status indicator with color coding\n   - Player count display (e.g., \"2/4 players\")\n   - Join button with loading state\n   - Created time in relative format (e.g., \"5 minutes ago\")\n\n3. Responsive design:\n   - Desktop: Grid layout with fixed width\n   - Mobile: Full width cards in vertical stack\n   - Appropriate spacing and typography\n\n4. States:\n   - Normal state\n   - Loading state (during join operation)\n   - Disabled state (when join not possible)\n   - Hover/focus states for interactive elements\n\nUse modern CSS approaches (CSS-in-JS, CSS modules, or styled components).",
       "testStrategy": "Test the component with:\n- Snapshot tests for visual regression\n- Render tests with different prop combinations\n- Interaction tests for join button clicks\n- Loading state display tests\n- Responsive design tests at different viewport sizes\n- Accessibility tests (keyboard navigation, screen reader compatibility)\n- Test with React Testing Library and Storybook",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "19",
+        "20"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -368,7 +392,9 @@
       "testStrategy": "Test the component with:\n- Snapshot tests for visual regression\n- Render tests with different data sets (empty, few items, many items)\n- Loading state display tests\n- Error state display tests\n- Responsive layout tests at different breakpoints\n- Verify correct props are passed to child LobbyCard components\n- Test with React Testing Library and Storybook",
       "priority": "medium",
       "dependencies": [
-        13
+        13,
+        "19",
+        "20"
       ],
       "status": "pending",
       "subtasks": []
@@ -380,9 +406,30 @@
       "details": "Implement the FilterBar component with:\n\n1. Props interface:\n   ```typescript\n   interface FilterBarProps {\n     activeFilter: string; // 'all', 'waiting', 'active', 'finished'\n     onFilterChange: (filter: string) => void;\n     counts: {\n       all: number;\n       waiting: number;\n       active: number;\n       finished: number;\n     };\n   }\n   ```\n\n2. Visual elements:\n   - Row of filter buttons/tabs\n   - Active state indication for current filter\n   - Count badge for each filter option\n   - Consistent styling with other components\n\n3. Responsive design:\n   - Desktop: Horizontal button row\n   - Mobile: Dropdown or scrollable horizontal list\n\n4. Accessibility:\n   - Keyboard navigation support\n   - ARIA attributes for current selection\n   - Focus management\n\nImplement with appropriate event handlers for filter changes.",
       "testStrategy": "Test the component with:\n- Snapshot tests for visual regression\n- Render tests with different active filters\n- Interaction tests for filter selection\n- Verify onFilterChange is called with correct parameter\n- Verify count badges display correctly\n- Responsive design tests\n- Accessibility tests (keyboard navigation, screen reader compatibility)\n- Test with React Testing Library and Storybook",
       "priority": "low",
-      "dependencies": [],
+      "dependencies": [
+        "19"
+      ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create FilterBar component structure and styling",
+          "description": "Implement the basic structure and styling of the FilterBar UI component",
+          "dependencies": [],
+          "details": "Create a new FilterBar component with appropriate HTML structure. Implement responsive styling using CSS/SCSS. Include filter input fields, dropdown selectors, and buttons as needed. Ensure the component follows the application's design system and is mobile-friendly. Add appropriate accessibility attributes.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Implement filter state management and event handling",
+          "description": "Add state management and event handlers to make the FilterBar functional",
+          "dependencies": [
+            1
+          ],
+          "details": "Set up state variables to track filter values. Implement onChange handlers for all filter inputs. Create functions to handle filter submission and reset. Implement debouncing for text inputs if needed. Add props for receiving initial filter values and for passing filter changes to parent components. Test all filter combinations to ensure proper functionality.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 16,
@@ -391,7 +438,9 @@
       "details": "Implement the CreateLobbyForm component with:\n\n1. Props interface:\n   ```typescript\n   interface CreateLobbyFormProps {\n     onSubmit: (maxPlayers: number) => void;\n     loading?: boolean;\n     error?: string;\n   }\n   ```\n\n2. Form elements:\n   - Player count selection (radio buttons or dropdown)\n   - Options for 2, 3, and 4 players\n   - Submit button with loading state\n   - Error message display\n\n3. Form validation:\n   - Ensure player count is selected\n   - Validate range (2-4)\n\n4. States:\n   - Initial state\n   - Loading state during submission\n   - Error state with message\n   - Success state with reset\n\n5. Accessibility:\n   - Proper form labeling\n   - Error announcements for screen readers\n   - Keyboard navigation support",
       "testStrategy": "Test the component with:\n- Snapshot tests for visual regression\n- Form submission tests with different player counts\n- Validation tests for required fields\n- Loading state display tests\n- Error state display tests\n- Form reset functionality tests\n- Accessibility tests (form labeling, keyboard usage)\n- Test with React Testing Library and Storybook",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "19"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -402,7 +451,9 @@
       "details": "Implement the QuickJoinButton component with:\n\n1. Props interface:\n   ```typescript\n   interface QuickJoinButtonProps {\n     onQuickJoin: () => void;\n     loading?: boolean;\n     disabled?: boolean;\n     preferredPlayers?: number;\n   }\n   ```\n\n2. Visual elements:\n   - Prominent button with \"Quick Join\" text\n   - Loading spinner during loading state\n   - Visual indication for disabled state\n   - Optional player count preference indicator\n\n3. States:\n   - Normal state (clickable)\n   - Loading state (during join operation)\n   - Disabled state (when quick join not available)\n   - Hover/focus states\n\n4. Accessibility:\n   - Proper ARIA attributes\n   - Loading state announcement\n   - Disabled state handling",
       "testStrategy": "Test the component with:\n- Snapshot tests for visual regression\n- Click handler tests\n- Loading state display tests\n- Disabled state behavior tests\n- Verify onQuickJoin is called correctly\n- Accessibility tests (keyboard usage, screen reader compatibility)\n- Test with React Testing Library and Storybook",
       "priority": "low",
-      "dependencies": [],
+      "dependencies": [
+        "19"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -413,7 +464,9 @@
       "details": "Implement the following components:\n\n1. LoadingSpinner component:\n   ```typescript\n   interface LoadingSpinnerProps {\n     size?: 'small' | 'medium' | 'large';\n     color?: string;\n     text?: string;\n   }\n   ```\n   - Animated spinner with configurable size\n   - Optional loading text\n   - Accessible loading indicator\n\n2. ErrorMessage component:\n   ```typescript\n   interface ErrorMessageProps {\n     message: string;\n     onRetry?: () => void;\n     variant?: 'inline' | 'block' | 'toast';\n   }\n   ```\n   - Error icon and message\n   - Optional retry button\n   - Different display variants\n   - Consistent styling with other components\n\nEnsure components are fully reusable across the application.",
       "testStrategy": "Test the components with:\n- Snapshot tests for visual regression\n- Render tests with different props\n- Animation tests for loading spinner\n- Retry functionality tests for error component\n- Accessibility tests (ARIA attributes, screen reader compatibility)\n- Test with React Testing Library and Storybook",
       "priority": "low",
-      "dependencies": [],
+      "dependencies": [
+        "19"
+      ],
       "status": "pending",
       "subtasks": []
     },
@@ -424,7 +477,9 @@
       "details": "Implement the following custom hooks:\n\n1. useLobbyState hook:\n   ```typescript\n   interface UseLobbyStateResult {\n     lobbies: LobbyObject[];\n     selectedLobby: LobbyObject | null;\n     fetchLobbies: (status?: string) => Promise<void>;\n     fetchLobbyDetails: (id: string) => Promise<void>;\n     createLobby: (maxPlayers: number) => Promise<string>;\n     joinLobby: (lobbyId: string) => Promise<boolean>;\n     loading: boolean;\n     error: string | null;\n   }\n   ```\n\n2. useFilterState hook:\n   ```typescript\n   interface UseFilterStateResult {\n     activeFilter: string;\n     setFilter: (filter: string) => void;\n     filterCounts: Record<string, number>;\n     updateFilterCounts: (lobbies: LobbyObject[]) => void;\n   }\n   ```\n\n3. useLoadingState hook:\n   ```typescript\n   interface UseLoadingStateResult {\n     isLoading: boolean;\n     startLoading: () => void;\n     stopLoading: () => void;\n     withLoading: <T>(promise: Promise<T>) => Promise<T>;\n   }\n   ```\n\n4. useErrorState hook:\n   ```typescript\n   interface UseErrorStateResult {\n     error: string | null;\n     setError: (message: string) => void;\n     clearError: () => void;\n     handleError: (error: any) => void;\n   }\n   ```\n\nImplement with mock data initially, designed to work with real API later.",
       "testStrategy": "Test each hook with:\n- Render tests using a test component\n- State update tests\n- Async operation tests\n- Error handling tests\n- Mock API response tests\n- Test interactions between hooks when used together\n- Test with React Testing Library and React Hooks Testing Library",
       "priority": "medium",
-      "dependencies": [],
+      "dependencies": [
+        "20"
+      ],
       "status": "pending",
       "subtasks": [
         {
@@ -473,7 +528,7 @@
       "testStrategy": "Test the HTTP client with:\n- Configuration tests for different environments\n- Interceptor functionality tests\n- Timeout handling tests\n- Retry logic tests with mock failures\n- Error transformation tests\n- Mock server response tests\n- Performance tests for concurrent requests",
       "priority": "high",
       "dependencies": [],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -481,7 +536,7 @@
           "description": "Set up the core HTTP client with essential configuration parameters",
           "dependencies": [],
           "details": "Create the base HTTP client configuration including base URL, default headers, serialization/deserialization settings, and connection pool settings. Document the configuration options and their default values.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -491,7 +546,7 @@
             1
           ],
           "details": "Create interceptors for common tasks such as authentication token injection, request logging, response validation, and error transformation. Ensure interceptors are modular and can be conditionally applied based on request characteristics.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -501,7 +556,7 @@
             1
           ],
           "details": "Set up appropriate timeout values for connection establishment, request writing, and response reading. Implement custom exception handling for timeout scenarios and provide clear error messages. Create configuration options to adjust timeouts based on endpoint characteristics.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -512,7 +567,7 @@
             3
           ],
           "details": "Develop a retry mechanism with configurable policies including max attempts, backoff strategy, and retry-eligible error conditions. Implement circuit breaker pattern to prevent overwhelming failing services. Add metrics collection for retry attempts and success rates.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     }
