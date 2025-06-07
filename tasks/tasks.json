@@ -94,7 +94,7 @@
         1,
         2
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -102,7 +102,7 @@
           "description": "Create the database function to initialize a new lobby with validation and error handling",
           "dependencies": [],
           "details": "Implement the createLobby function that takes lobby parameters (name, max players, game settings), validates inputs, creates a new lobby record with a unique ID, sets initial status to 'waiting', handles transactions properly, and returns the created lobby ID. Include error handling for duplicate names and invalid parameters.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -112,7 +112,7 @@
             1
           ],
           "details": "Implement the addPlayerToLobby function that takes player ID and lobby ID, validates the lobby exists and isn't full, checks if player is already in another lobby, adds the player to the lobby, updates player count, and handles race conditions. Include error handling for full lobbies and non-existent lobbies.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -122,7 +122,7 @@
             1
           ],
           "details": "Implement the updateLobbyStatus function that takes lobby ID and new status, validates the lobby exists, ensures the status transition is valid (e.g., 'waiting' to 'in_progress', 'in_progress' to 'completed'), updates the status with timestamp, and handles transactions. Include error handling for invalid transitions and non-existent lobbies.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -133,7 +133,7 @@
             3
           ],
           "details": "Implement two functions: getLobbyDetails that retrieves complete information about a specific lobby by ID including players and settings, and getLobbiesByStatus that returns a list of lobbies filtered by status (waiting, in_progress, etc.). Include pagination for getLobbiesByStatus and proper error handling for both functions.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -143,7 +143,7 @@
             3
           ],
           "details": "Implement the cleanupExpiredSessions function that identifies and removes lobbies that have been inactive beyond a threshold period. Include parameters for customizing the expiration threshold, handle batch processing for large numbers of expired lobbies, and implement logging of cleaned up sessions. Ensure proper transaction handling.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -157,7 +157,7 @@
             5
           ],
           "details": "Develop a comprehensive test suite that covers all implemented database functions. Include unit tests for validation logic, integration tests for database interactions, edge case testing (full lobbies, race conditions), performance testing for functions like getLobbiesByStatus with large datasets, and transaction rollback tests. Use mocking where appropriate and ensure test database isolation.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
