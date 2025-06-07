@@ -51,7 +51,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": []
     },
     {
@@ -142,8 +142,50 @@
       "dependencies": [
         1
       ],
-      "status": "in-progress",
-      "subtasks": []
+      "status": "done",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Configure Connection Pool",
+          "description": "Set up and tune the database connection pool to efficiently manage and reuse database connections, optimizing for performance and resource usage.",
+          "dependencies": [],
+          "details": "Define pool size, timeout settings, and connection validation parameters. Ensure the pool is appropriate for the expected workload and database limits.",
+          "status": "done"
+        },
+        {
+          "id": 2,
+          "title": "Implement Transaction Handling",
+          "description": "Design and implement mechanisms for managing database transactions to ensure data consistency and integrity.",
+          "dependencies": [
+            1
+          ],
+          "details": "Establish transaction boundaries, support commit and rollback operations, and ensure transactions are properly managed within pooled connections.",
+          "status": "done"
+        },
+        {
+          "id": 3,
+          "title": "Develop Error Handling Strategy",
+          "description": "Create robust error handling for database operations, including connection failures, transaction errors, and pool exhaustion scenarios.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement retry logic, logging, and escalation procedures for critical failures. Ensure errors are handled gracefully to maintain application stability.",
+          "status": "done"
+        },
+        {
+          "id": 4,
+          "title": "Implement Health Check Mechanisms",
+          "description": "Set up health checks to monitor the status of database connections and the connection pool, enabling proactive detection of issues.",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Integrate periodic connection validation, pool status monitoring, and alerting for unhealthy states. Ensure health checks are lightweight and do not impact performance.",
+          "status": "done"
+        }
+      ]
     },
     {
       "id": 5,
