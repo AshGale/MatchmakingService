@@ -227,7 +227,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -288,7 +288,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -408,7 +408,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": [
         {
           "id": 1,
@@ -416,7 +416,7 @@
           "description": "Create the LobbyManager class that handles player lobbies, including methods for creating, joining, and leaving lobbies.",
           "dependencies": [],
           "details": "Implement the following methods:\n- createLobby(playerId, settings): Creates a new lobby with the specified player as host\n- joinLobby(playerId, lobbyId): Adds a player to an existing lobby\n- leaveLobby(playerId, lobbyId): Removes a player from a lobby\n- getLobbyInfo(lobbyId): Returns details about a specific lobby\n- listAvailableLobbies(): Returns all open lobbies\n\nEnsure proper error handling for cases like lobby not found, player already in lobby, etc. Write comprehensive unit tests for each method.",
-          "status": "pending"
+          "status": "in-progress"
         },
         {
           "id": 2,

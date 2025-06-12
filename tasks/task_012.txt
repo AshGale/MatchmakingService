@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Implement Business Logic Modules
-# Status: pending
+# Status: in-progress
 # Dependencies: 3, 11
 # Priority: high
 # Description: Create isolated business logic classes for lobby management, matchmaking, and session management with mock data interfaces.
@@ -41,7 +41,7 @@ Test each module with:
 - Test with various mock data configurations
 
 # Subtasks:
-## 1. Implement LobbyManager class with core functionality [pending]
+## 1. Implement LobbyManager class with core functionality [in-progress]
 ### Dependencies: None
 ### Description: Create the LobbyManager class that handles player lobbies, including methods for creating, joining, and leaving lobbies.
 ### Details:

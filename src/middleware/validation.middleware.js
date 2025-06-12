@@ -60,7 +60,18 @@ const schemas = {
       id: Joi.string().uuid().required()
     }),
     body: Joi.object({
-      session_id: Joi.string().required()
+      session_id: Joi.string()
+        .trim()
+        .min(8)
+        .max(128)
+        .pattern(/^[a-zA-Z0-9_-]+$/)
+        .required()
+        .messages({
+          'string.pattern.base': 'session_id must contain only alphanumeric characters, underscores, and hyphens',
+          'string.min': 'session_id must be at least {#limit} characters long',
+          'string.max': 'session_id must be at most {#limit} characters long',
+          'any.required': 'session_id is required'
+        })
     })
   },
   

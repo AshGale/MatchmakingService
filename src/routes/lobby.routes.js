@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { validators } = require('../middleware/validation.middleware');
-const { ValidationError } = require('../middleware/error.middleware');
+const { ValidationError, NotFoundError, ConflictError } = require('../middleware/error.middleware');
 
 const router = express.Router();
 
@@ -153,6 +153,9 @@ router.get('/:id', validators.getLobbyById, (req, res, next) => {
  * @apiSuccess {Object} lobby Updated lobby information
  *
  * @apiError {Object} error Error message and details
+ * @apiError (404) {Object} error Lobby not found error
+ * @apiError (409) {Object} error Lobby full or player already exists error
+ * @apiError (400) {Object} error Validation error (invalid session_id or lobby not in 'waiting' state)
  */
 router.post('/:id/join', validators.joinLobby, (req, res, next) => {
   try {
@@ -160,19 +163,45 @@ router.post('/:id/join', validators.joinLobby, (req, res, next) => {
     const { session_id } = req.body;
     
     // Mock implementation
-    // Check if lobby is at capacity
+    // 1. Check if lobby exists (404 if not found)
     const mockLobby = {
       lobby_id: id,
       status: 'waiting',
       player_count: 2,
-      max_players: 4
+      max_players: 4,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
-    if (mockLobby.player_count >= mockLobby.max_players) {
-      return next(new ValidationError('Lobby is at capacity'));
+    // Simulate 30% chance lobby doesn't exist
+    if (Math.random() < 0.3) {
+      return next(new NotFoundError(`Lobby with id ${id} not found`));
     }
     
-    // Generate player ID and update lobby
+    // 2. Check if lobby is in 'waiting' status
+    if (mockLobby.status !== 'waiting') {
+      return next(new ValidationError(`Cannot join lobby in '${mockLobby.status}' status`));
+    }
+    
+    // 3. Check if lobby is at capacity
+    if (mockLobby.player_count >= mockLobby.max_players) {
+      return next(new ConflictError('Lobby is at capacity'));
+    }
+    
+    // 4. Check if session_id already exists in this lobby
+    // Mock player list for demonstration
+    const existingPlayers = [
+      { player_id: uuidv4(), session_id: 'existing-session', join_order: 1 },
+      { player_id: uuidv4(), session_id: 'another-session', join_order: 2 }
+    ];
+    
+    // Check if session already exists
+    const existingPlayer = existingPlayers.find(player => player.session_id === session_id);
+    if (existingPlayer) {
+      return next(new ConflictError('Player with this session already exists in lobby'));
+    }
+    
+    // 5. Generate player ID and update lobby
     const player_id = uuidv4();
     mockLobby.player_count += 1;
     

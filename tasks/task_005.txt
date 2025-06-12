@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement POST /api/lobbies Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: high
 # Description: Create the API endpoint for creating new lobbies with mock implementation.

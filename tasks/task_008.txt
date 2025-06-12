@@ -1,6 +1,6 @@
 # Task ID: 8
 # Title: Implement POST /api/lobbies/{id}/join Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: high
 # Description: Create the API endpoint for joining an existing lobby with mock implementation.
