@@ -1,6 +1,6 @@
 # Task ID: 16
 # Title: Implement CreateLobbyForm UI Component
-# Status: pending
+# Status: done
 # Dependencies: 19
 # Priority: medium
 # Description: Create a form component for creating new lobbies with player count selection and validation.
