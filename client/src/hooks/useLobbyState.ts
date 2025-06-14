@@ -43,10 +43,10 @@ const MOCK_LOBBIES: LobbyObject[] = [
  * @returns {UseLobbyStateResult} Lobby state and operations
  */
 export const useLobbyState = (): UseLobbyStateResult => {
-  const [lobbies, setLobbies] = useState<LobbyObject[]>([]);
-  const [selectedLobby, setSelectedLobby] = useState<LobbyObject | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [lobbies, setLobbies] = useState([]);
+  const [selectedLobby, setSelectedLobby] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   /**
    * Fetch lobbies with optional status filter

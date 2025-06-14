@@ -6,7 +6,7 @@ import { UseLoadingStateResult } from '../types';
  * @returns {UseLoadingStateResult} Loading state and operations
  */
 export const useLoadingState = (): UseLoadingStateResult => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   /**
    * Set loading state to true

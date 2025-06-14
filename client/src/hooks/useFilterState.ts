@@ -6,8 +6,8 @@ import { LobbyObject, UseFilterStateResult } from '../types';
  * @returns {UseFilterStateResult} Filter state and operations
  */
 export const useFilterState = (): UseFilterStateResult => {
-  const [activeFilter, setActiveFilter] = useState<string>('all');
-  const [filterCounts, setFilterCounts] = useState<Record<string, number>>({
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [filterCounts, setFilterCounts] = useState({
     all: 0,
     open: 0,
     full: 0,
