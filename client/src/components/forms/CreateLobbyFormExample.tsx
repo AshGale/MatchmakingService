@@ -30,7 +30,7 @@ const CreateLobbyFormExample = () => {
       <CreateLobbyForm 
         onSubmit={handleCreateLobby}
         loading={loading}
-        error={error}
+        error={error ? String(error) : undefined}
       />
     </div>
   );
