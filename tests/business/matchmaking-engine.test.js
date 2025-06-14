@@ -192,6 +192,8 @@ describe('MatchmakingEngine', () => {
     const queueId = 'test-queue-id';
     const queueType = 'casual';
     const playerId = 'test-player-id';
+    const playerId1 = 'session-123';
+    const playerId2 = 'session-456';
     
     beforeEach(() => {
       // Reset the mock for each test
