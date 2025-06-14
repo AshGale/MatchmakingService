@@ -408,7 +408,7 @@
         "3",
         "11"
       ],
-      "status": "in-progress",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -416,7 +416,7 @@
           "description": "Create the LobbyManager class that handles player lobbies, including methods for creating, joining, and leaving lobbies.",
           "dependencies": [],
           "details": "Implement the following methods:\n- createLobby(playerId, settings): Creates a new lobby with the specified player as host\n- joinLobby(playerId, lobbyId): Adds a player to an existing lobby\n- leaveLobby(playerId, lobbyId): Removes a player from a lobby\n- getLobbyInfo(lobbyId): Returns details about a specific lobby\n- listAvailableLobbies(): Returns all open lobbies\n\nEnsure proper error handling for cases like lobby not found, player already in lobby, etc. Write comprehensive unit tests for each method.",
-          "status": "in-progress"
+          "status": "done"
         },
         {
           "id": 2,
@@ -426,7 +426,7 @@
             1
           ],
           "details": "Implement the following methods:\n- findMatch(playerId, criteria): Finds suitable matches based on player criteria\n- createQueue(queueType): Creates a new matchmaking queue\n- addToQueue(playerId, queueId): Adds a player to a matchmaking queue\n- removeFromQueue(playerId): Removes a player from any queues\n- processQueue(queueId): Processes a queue to create matches\n\nImplement at least one matchmaking algorithm (e.g., ELO-based, skill-based). Include timeout handling for long queue times. Write unit tests that verify the matchmaking logic works correctly with various player combinations.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -437,7 +437,7 @@
             2
           ],
           "details": "Implement the following methods:\n- createSession(players, settings): Creates a new game session\n- endSession(sessionId): Properly terminates a session\n- getSessionStatus(sessionId): Returns the current status of a session\n- listActiveSessions(): Returns all currently active sessions\n- updateSessionState(sessionId, newState): Updates the state of an ongoing session\n\nEnsure the SessionManager can handle session timeouts and disconnections gracefully. Implement proper cleanup of resources when sessions end. Write integration tests that verify the interaction between LobbyManager, MatchmakingEngine, and SessionManager.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

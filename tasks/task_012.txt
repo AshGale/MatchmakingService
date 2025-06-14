@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Implement Business Logic Modules
-# Status: in-progress
+# Status: done
 # Dependencies: 3, 11
 # Priority: high
 # Description: Create isolated business logic classes for lobby management, matchmaking, and session management with mock data interfaces.
@@ -41,7 +41,7 @@ Test each module with:
 - Test with various mock data configurations
 
 # Subtasks:
-## 1. Implement LobbyManager class with core functionality [in-progress]
+## 1. Implement LobbyManager class with core functionality [done]
 ### Dependencies: None
 ### Description: Create the LobbyManager class that handles player lobbies, including methods for creating, joining, and leaving lobbies.
 ### Details:
@@ -54,7 +54,7 @@ Implement the following methods:
 
 Ensure proper error handling for cases like lobby not found, player already in lobby, etc. Write comprehensive unit tests for each method.
 
-## 2. Implement MatchmakingEngine class with matchmaking algorithms [pending]
+## 2. Implement MatchmakingEngine class with matchmaking algorithms [done]
 ### Dependencies: 12.1
 ### Description: Create the MatchmakingEngine class that handles player matching based on skill levels, preferences, and other criteria.
 ### Details:
@@ -67,7 +67,7 @@ Implement the following methods:
 
 Implement at least one matchmaking algorithm (e.g., ELO-based, skill-based). Include timeout handling for long queue times. Write unit tests that verify the matchmaking logic works correctly with various player combinations.
 
-## 3. Implement SessionManager class with session handling [pending]
+## 3. Implement SessionManager class with session handling [done]
 ### Dependencies: 12.1, 12.2
 ### Description: Create the SessionManager class that manages active game sessions, including creation, monitoring, and cleanup.
 ### Details:

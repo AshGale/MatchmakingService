@@ -303,11 +303,87 @@ async function cleanupExpiredSessions(timeoutMinutes, options = {}) {
   }, { client: options.client });
 }
 
+/**
+ * Removes a player from a lobby
+ * 
+ * @param {string} lobbyId - UUID of the lobby
+ * @param {string} playerId - UUID of the player to remove
+ * @param {Object} options - Additional options
+ * @param {Object} options.client - Optional database client for transaction control
+ * @returns {Promise<boolean>} - Whether the player was successfully removed
+ * @throws {DatabaseError} - If validation fails or database operation errors
+ */
+async function removePlayerFromLobby(lobbyId, playerId, options = {}) {
+  // Input validation
+  if (!lobbyId) {
+    throw new DatabaseError('Lobby ID is required', {
+      code: 'INVALID_INPUT',
+      details: { lobbyId }
+    });
+  }
+  
+  if (!playerId) {
+    throw new DatabaseError('Player ID is required', {
+      code: 'INVALID_INPUT',
+      details: { playerId }
+    });
+  }
+  
+  return withTransaction(async (client) => {
+    try {
+      // Check if lobby exists
+      const lobbyCheck = await client.query(
+        'SELECT id, status FROM lobbies WHERE id = $1', 
+        [lobbyId]
+      );
+      
+      if (lobbyCheck.rows.length === 0) {
+        throw new DatabaseError('Lobby not found', {
+          code: 'NOT_FOUND',
+          details: { lobbyId }
+        });
+      }
+      
+      // Check if player exists in this lobby
+      const playerCheck = await client.query(
+        'SELECT id FROM players WHERE id = $1 AND lobby_id = $2',
+        [playerId, lobbyId]
+      );
+      
+      if (playerCheck.rows.length === 0) {
+        throw new DatabaseError('Player not found in this lobby', {
+          code: 'NOT_FOUND',
+          details: { playerId, lobbyId }
+        });
+      }
+      
+      // Remove player
+      const result = await client.query(
+        'DELETE FROM players WHERE id = $1 AND lobby_id = $2 RETURNING id',
+        [playerId, lobbyId]
+      );
+      
+      return result.rows.length > 0;
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+      
+      throw new DatabaseError('Failed to remove player from lobby', {
+        cause: error,
+        originalError: error,
+        details: { lobbyId, playerId }
+      });
+    }
+  }, { client: options.client });
+}
+
 module.exports = {
   createLobby,
   addPlayerToLobby,
   updateLobbyStatus,
   getLobbyDetails,
   getLobbiesByStatus,
-  cleanupExpiredSessions
+  cleanupExpiredSessions,
+  removePlayerFromLobby
 };
