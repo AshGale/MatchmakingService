@@ -551,7 +551,7 @@
       "dependencies": [
         "20"
       ],
-      "status": "in-progress",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -559,7 +559,7 @@
           "description": "Create a custom hook to manage the lobby state including players, game settings, and lobby status",
           "dependencies": [],
           "details": "Implement the useLobbyState hook that will: 1) Store and manage lobby data (players, settings, status), 2) Provide methods to update lobby information, 3) Handle joining/leaving players, 4) Synchronize with backend services, 5) Include proper TypeScript typing for all state and functions",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -567,7 +567,7 @@
           "description": "Create a custom hook to manage filtering and sorting options for data display",
           "dependencies": [],
           "details": "Implement the useFilterState hook that will: 1) Maintain filter criteria and sorting preferences, 2) Provide methods to update filters, 3) Support multiple filter combinations, 4) Include filter reset functionality, 5) Optimize to prevent unnecessary re-renders when filter state changes",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -575,7 +575,7 @@
           "description": "Create a custom hook to manage loading states for async operations throughout the application",
           "dependencies": [],
           "details": "Implement the useLoadingState hook that will: 1) Track loading status for different operations, 2) Support multiple concurrent loading states, 3) Provide methods to set/clear loading states, 4) Include timeout handling for long-running operations, 5) Integrate with the other state hooks to coordinate loading indicators",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -587,7 +587,7 @@
             3
           ],
           "details": "Implement the useErrorState hook that will: 1) Capture and store error information, 2) Provide error handling methods, 3) Support different error categories and severity levels, 4) Include error clearing functionality, 5) Integrate with the other hooks to handle errors from their operations, 6) Implement retry mechanisms for failed operations",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

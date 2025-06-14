@@ -1,6 +1,6 @@
 # Task ID: 19
 # Title: Implement State Management Hooks
-# Status: in-progress
+# Status: done
 # Dependencies: 20
 # Priority: medium
 # Description: Create custom React hooks for managing lobby data, filters, loading states, and errors.
@@ -64,25 +64,25 @@ Test each hook with:
 - Test with React Testing Library and React Hooks Testing Library
 
 # Subtasks:
-## 1. Implement useLobbyState hook [pending]
+## 1. Implement useLobbyState hook [done]
 ### Dependencies: None
 ### Description: Create a custom hook to manage the lobby state including players, game settings, and lobby status
 ### Details:
 Implement the useLobbyState hook that will: 1) Store and manage lobby data (players, settings, status), 2) Provide methods to update lobby information, 3) Handle joining/leaving players, 4) Synchronize with backend services, 5) Include proper TypeScript typing for all state and functions
 
-## 2. Implement useFilterState hook [pending]
+## 2. Implement useFilterState hook [done]
 ### Dependencies: None
 ### Description: Create a custom hook to manage filtering and sorting options for data display
 ### Details:
 Implement the useFilterState hook that will: 1) Maintain filter criteria and sorting preferences, 2) Provide methods to update filters, 3) Support multiple filter combinations, 4) Include filter reset functionality, 5) Optimize to prevent unnecessary re-renders when filter state changes
 
-## 3. Implement useLoadingState hook [pending]
+## 3. Implement useLoadingState hook [done]
 ### Dependencies: None
 ### Description: Create a custom hook to manage loading states for async operations throughout the application
 ### Details:
 Implement the useLoadingState hook that will: 1) Track loading status for different operations, 2) Support multiple concurrent loading states, 3) Provide methods to set/clear loading states, 4) Include timeout handling for long-running operations, 5) Integrate with the other state hooks to coordinate loading indicators
 
-## 4. Implement useErrorState hook [pending]
+## 4. Implement useErrorState hook [done]
 ### Dependencies: 19.1, 19.2, 19.3
 ### Description: Create a custom hook to handle and display error states across the application
 ### Details:
