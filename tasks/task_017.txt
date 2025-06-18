@@ -1,6 +1,6 @@
 # Task ID: 17
 # Title: Implement QuickJoinButton UI Component
-# Status: pending
+# Status: done
 # Dependencies: 19
 # Priority: low
 # Description: Create a button component for quick-joining a lobby with loading and disabled states.

@@ -1,0 +1,85 @@
+.container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: none;
+  background-color: #f5f5f5;
+  color: #555;
+  font-weight: 500;
+  border-radius: 20px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  outline: none;
+}
+
+.filterButton:hover {
+  background-color: #e0e0e0;
+}
+
+.filterButton:focus-visible {
+  box-shadow: 0 0 0 2px #2196f3;
+}
+
+.filterButton.active {
+  background-color: #2196f3;
+  color: white;
+}
+
+.label {
+  margin-right: 8px;
+}
+
+.count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0 8px;
+}
+
+.active .count {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .container {
+    justify-content: flex-start;
+    padding-bottom: 12px;
+  }
+  
+  .filterButton {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .count {
+    min-width: 20px;
+    height: 20px;
+  }
+}
+
+/* Hide scrollbar for clean UI while keeping functionality */
+.container::-webkit-scrollbar {
+  display: none;
+}
+
+.container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

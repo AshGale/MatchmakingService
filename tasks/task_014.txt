@@ -1,6 +1,6 @@
 # Task ID: 14
 # Title: Implement LobbyList UI Component
-# Status: pending
+# Status: done
 # Dependencies: 13, 19, 20
 # Priority: medium
 # Description: Create a component for displaying a grid of LobbyCard components with loading and error states.

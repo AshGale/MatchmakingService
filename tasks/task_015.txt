@@ -1,6 +1,6 @@
 # Task ID: 15
 # Title: Implement FilterBar UI Component
-# Status: pending
+# Status: done
 # Dependencies: 19
 # Priority: low
 # Description: Create a component for filtering lobbies by status with active state indication and count badges.
@@ -50,13 +50,13 @@ Test the component with:
 - Test with React Testing Library and Storybook
 
 # Subtasks:
-## 1. Create FilterBar component structure and styling [pending]
+## 1. Create FilterBar component structure and styling [done]
 ### Dependencies: None
 ### Description: Implement the basic structure and styling of the FilterBar UI component
 ### Details:
 Create a new FilterBar component with appropriate HTML structure. Implement responsive styling using CSS/SCSS. Include filter input fields, dropdown selectors, and buttons as needed. Ensure the component follows the application's design system and is mobile-friendly. Add appropriate accessibility attributes.
 
-## 2. Implement filter state management and event handling [pending]
+## 2. Implement filter state management and event handling [done]
 ### Dependencies: 15.1
 ### Description: Add state management and event handlers to make the FilterBar functional
 ### Details:
