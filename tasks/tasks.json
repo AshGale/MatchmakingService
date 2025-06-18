@@ -669,7 +669,7 @@
           "description": "Create the first two sections of the README.md file: Project Overview and Prerequisites.",
           "dependencies": [],
           "details": "For the Project Overview section, write a concise description of the MatchmakingService project, include a placeholder for the architecture diagram, and list the key features of the application. For the Prerequisites section, document all required software with specific version requirements (PostgreSQL, Node.js, npm/yarn), system requirements, and any required accounts or access tokens. Use proper Markdown formatting with headers (## for sections, ### for subsections), bullet points for lists, and emphasis for important information.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Verify all information is accurate by checking project documentation and dependencies. Ensure Markdown renders correctly by previewing in a Markdown editor."
         },
         {
@@ -680,7 +680,7 @@
             1
           ],
           "details": "For the Installation section, provide detailed step-by-step clone and setup instructions, including all commands needed to install dependencies. Include troubleshooting tips for common installation issues. For the Environment Configuration section, list all required environment variables with descriptions, create a sample .env template (with placeholder values, not real credentials), and provide instructions for secure handling of sensitive variables. Use code blocks for commands and file contents using triple backticks, and create a table for environment variables showing variable name, purpose, and example value.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test the installation steps on a clean environment to ensure they work as documented. Verify all environment variables are correctly listed by checking the application code."
         },
         {
@@ -691,7 +691,7 @@
             2
           ],
           "details": "For the Database Setup section, provide PostgreSQL installation instructions or links to official guides, include all commands for database creation, schema initialization, and migration execution. Document seed data setup if applicable. For the Running the Application section, document all commands to start both backend and frontend components, clearly distinguish between development and production modes, and list all available npm/yarn scripts with their purposes. Use code blocks for all commands and organize information in a logical sequence that a new developer would follow.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Execute all database setup commands on a test system to verify accuracy. Test all application startup commands to ensure they work as documented."
         },
         {
@@ -779,7 +779,7 @@
       "description": "Create a comprehensive guide that documents all environment variables used in the application, including their purpose, default values, and configuration instructions with a step-by-step process for setting up the .env file.",
       "details": "The implementation should include:\n\n1. Create a markdown document named `ENV_SETUP_GUIDE.md` in the project's documentation folder.\n2. Document all environment variables used across the application, organized by component (frontend, backend, database, etc.).\n3. For each environment variable, include:\n   - Name and description of what it controls\n   - Default value (if any)\n   - Required vs optional status\n   - Acceptable value formats and ranges\n   - Security considerations (for sensitive variables)\n4. Create a step-by-step guide for setting up the .env file:\n   - Instructions for copying .env.example to .env\n   - Explanation of each variable that needs to be configured\n   - Examples of properly configured values\n   - Common pitfalls and troubleshooting tips\n5. Include information about environment-specific configurations (development, testing, production)\n6. Document any tools or commands that can validate the environment configuration\n7. Explain how the application loads environment variables and any fallback mechanisms\n8. Cross-reference with the existing README.md (Task #22) to ensure consistency\n\nThe guide should be written in clear, concise language suitable for developers of all experience levels. Use code blocks, tables, and formatting to improve readability.",
       "testStrategy": "To verify the completion of this task:\n\n1. Review the ENV_SETUP_GUIDE.md document for completeness:\n   - Confirm all environment variables are documented with their descriptions, default values, and configuration instructions\n   - Verify the step-by-step guide is clear and follows the .env.example template\n   - Check that all components of the application (frontend, backend, database) are covered\n\n2. Practical validation:\n   - Have a team member who is unfamiliar with the project follow the guide to set up their environment\n   - Time how long it takes and note any points of confusion\n   - Verify they can successfully run the application after following the guide\n\n3. Technical validation:\n   - Confirm all environment variables mentioned in the codebase are documented in the guide\n   - Verify default values match what's in the code\n   - Test that the application behaves as expected with the documented configuration options\n\n4. Integration testing:\n   - Ensure the guide works with the unified project startup script (Task #23)\n   - Verify consistency with the README.md (Task #22)\n\n5. Peer review:\n   - Have at least two developers review the guide for accuracy and completeness\n   - Incorporate feedback and make necessary revisions",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "medium",
       "subtasks": [
@@ -789,7 +789,7 @@
           "description": "Create the initial ENV_SETUP_GUIDE.md document and document all environment variables organized by component (frontend, backend, database, etc.).",
           "dependencies": [],
           "details": "1. Create a new markdown file named `ENV_SETUP_GUIDE.md` in the project's documentation folder.\n2. Add an introduction explaining the purpose of the guide.\n3. Create sections for each component (frontend, backend, database, etc.).\n4. For each component, list all environment variables with their complete details:\n   - Name and description of what it controls\n   - Default value (if any)\n   - Required vs optional status\n   - Acceptable value formats and ranges\n   - Security considerations (for sensitive variables)\n5. Use tables or structured formatting to present the information clearly.\n6. Review the codebase thoroughly to ensure all environment variables are captured.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Have another team member review the document for completeness and accuracy by cross-checking with the actual codebase."
         },
         {
@@ -798,7 +798,7 @@
           "description": "Develop a comprehensive step-by-step guide for setting up the .env file, including examples, troubleshooting tips, and environment-specific configurations.",
           "dependencies": [],
           "details": "1. Add a new section titled 'Setting Up Your Environment Variables'.\n2. Provide clear instructions for copying .env.example to .env.\n3. Create a walkthrough explaining each variable that needs configuration.\n4. Include practical examples of properly configured values for different scenarios.\n5. Document common pitfalls and their solutions in a troubleshooting section.\n6. Create separate subsections for environment-specific configurations (development, testing, production).\n7. Use code blocks to show example configurations.\n8. Include warnings or notes for security-sensitive variables.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test the instructions by having a new developer follow them to set up their environment, noting any points of confusion."
         },
         {
@@ -807,7 +807,7 @@
           "description": "Document how the application loads environment variables, validation tools, and ensure integration with existing documentation.",
           "dependencies": [],
           "details": "1. Add a section explaining how the application loads environment variables.\n2. Document any fallback mechanisms or hierarchies used when variables are missing.\n3. Research and document any tools or commands that can validate the environment configuration.\n4. Create a section on validation and troubleshooting environment issues.\n5. Review the existing README.md (Task #22) and ensure consistency between documents.\n6. Add cross-references between the ENV_SETUP_GUIDE.md and README.md.\n7. Add a final review checklist for developers to verify their environment setup.\n8. Format the entire document for readability with appropriate headings, lists, and emphasis.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Verify all documented validation tools work as described, and ensure cross-references between documents are accurate and helpful."
         }
       ]
