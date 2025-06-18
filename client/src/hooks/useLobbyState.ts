@@ -43,10 +43,10 @@ const MOCK_LOBBIES: LobbyObject[] = [
  * @returns {UseLobbyStateResult} Lobby state and operations
  */
 export const useLobbyState = (): UseLobbyStateResult => {
-  const [lobbies, setLobbies] = useState([]);
-  const [selectedLobby, setSelectedLobby] = useState(null);
+  const [lobbies, setLobbies] = useState<LobbyObject[]>([]);
+  const [selectedLobby, setSelectedLobby] = useState<LobbyObject | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * Fetch lobbies with optional status filter
@@ -157,7 +157,17 @@ export const useLobbyState = (): UseLobbyStateResult => {
         return false;
       }
       
-      const lobby = { ...lobbies[lobbyIndex] };
+      // Create a copy of the lobby safely to avoid spread type errors
+      const foundLobby = lobbies[lobbyIndex];
+      const lobby: LobbyObject = {
+        id: foundLobby.id,
+        maxPlayers: foundLobby.maxPlayers,
+        currentPlayers: foundLobby.currentPlayers,
+        status: foundLobby.status,
+        createdAt: foundLobby.createdAt,
+        updatedAt: foundLobby.updatedAt,
+        players: foundLobby.players ? [...foundLobby.players] : []
+      };
       
       if (lobby.currentPlayers >= lobby.maxPlayers) {
         setError('Lobby is full');
@@ -176,9 +186,10 @@ export const useLobbyState = (): UseLobbyStateResult => {
         ],
       };
       
-      // Update lobbies state
-      const updatedLobbies = [...lobbies];
-      updatedLobbies[lobbyIndex] = updatedLobby;
+      // Update lobbies state with proper typing
+      const updatedLobbies = lobbies.map((lobby, index) => 
+        index === lobbyIndex ? updatedLobby : lobby
+      );
       
       setLobbies(updatedLobbies);
       setSelectedLobby(updatedLobby);

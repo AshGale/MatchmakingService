@@ -29,7 +29,7 @@ export const useFilterState = (): UseFilterStateResult => {
    */
   const updateFilterCounts = useCallback((lobbies: LobbyObject[]): void => {
     // Initialize counts
-    const counts: Record<string, number> = {
+    const counts = {
       all: lobbies.length,
       open: 0,
       full: 0,
@@ -39,12 +39,14 @@ export const useFilterState = (): UseFilterStateResult => {
     
     // Count lobbies by status
     lobbies.forEach(lobby => {
-      if (counts[lobby.status] !== undefined) {
+      // Safe type check for valid status values
+      if (lobby.status === 'open' || lobby.status === 'full' || 
+          lobby.status === 'in-game' || lobby.status === 'closed') {
         counts[lobby.status] += 1;
       }
     });
     
-    setFilterCounts(counts);
+    setFilterCounts(counts as {all: number; open: number; full: number; 'in-game': number; closed: number;});
   }, []);
   
   return {

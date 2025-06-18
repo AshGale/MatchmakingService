@@ -6,7 +6,7 @@ import { UseErrorStateResult } from '../types';
  * @returns {UseErrorStateResult} Error state and operations
  */
 export const useErrorState = (): UseErrorStateResult => {
-  const [error, setErrorState] = useState(null);
+  const [error, setErrorState] = useState<string | null>(null);
   
   /**
    * Set an error message
