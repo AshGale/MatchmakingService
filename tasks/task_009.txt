@@ -1,6 +1,6 @@
 # Task ID: 9
 # Title: Implement POST /api/quick-join Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: medium
 # Description: Create the API endpoint for quick-joining a lobby with matchmaking algorithm simulation.

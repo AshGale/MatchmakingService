@@ -241,7 +241,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -255,7 +255,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -263,7 +263,7 @@
           "description": "Create validation logic for the lobby ID path parameter in the GET /api/lobbies/{id} endpoint",
           "dependencies": [],
           "details": "1. Add validation to ensure the lobby ID is in the correct format (UUID or numeric ID based on system requirements)\n2. Implement error handling for invalid IDs (return 400 Bad Request with appropriate error message)\n3. Add validation to check if the ID exists in the system before attempting to retrieve it\n4. Create unit tests for the validation logic covering valid and invalid ID scenarios",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -273,7 +273,7 @@
             1
           ],
           "details": "1. Define the complete JSON response structure for a lobby (including id, name, game type, max players, current players, status, etc.)\n2. Create a mock data store or service that returns sample lobby data based on ID\n3. Implement the controller method that handles the GET request and returns the appropriate response\n4. Add appropriate HTTP status codes (200 for success, 404 for lobby not found)\n5. Document the response structure in API documentation\n6. Write integration tests to verify the endpoint returns the expected structure",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -302,7 +302,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -316,7 +316,7 @@
         "3",
         "11"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -324,7 +324,7 @@
           "description": "Create validation logic for the incoming request to ensure it contains valid lobby ID and status values",
           "dependencies": [],
           "details": "Validate that the lobby ID exists in the system, check that the request body contains a valid 'status' field with one of the allowed values (e.g., 'open', 'closed', 'in_progress', 'completed'), and return appropriate 400 error responses for invalid requests",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -334,7 +334,7 @@
             1
           ],
           "details": "Retrieve the current lobby status, define allowed transitions (e.g., 'open' can transition to 'in_progress' but not directly to 'completed'), validate the requested transition against these rules, and return 422 error responses for invalid transitions with clear error messages",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -345,7 +345,7 @@
             2
           ],
           "details": "Integrate the request validation and status transition validation, update the lobby status in the mock data store if validations pass, handle potential errors (lobby not found: 404, unauthorized: 403, server errors: 500), and return appropriate success response (200 OK with updated lobby object) when status is successfully updated",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -452,7 +452,7 @@
         "19",
         "20"
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {

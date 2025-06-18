@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Implement GET /api/lobbies/{id} Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: medium
 # Description: Create the API endpoint for retrieving detailed information about a specific lobby with mock implementation.
@@ -51,7 +51,7 @@ Test the endpoint with:
 - Verify error responses have appropriate messages
 
 # Subtasks:
-## 1. Implement path parameter validation for lobby ID [pending]
+## 1. Implement path parameter validation for lobby ID [done]
 ### Dependencies: None
 ### Description: Create validation logic for the lobby ID path parameter in the GET /api/lobbies/{id} endpoint
 ### Details:
@@ -60,7 +60,7 @@ Test the endpoint with:
 3. Add validation to check if the ID exists in the system before attempting to retrieve it
 4. Create unit tests for the validation logic covering valid and invalid ID scenarios
 
-## 2. Create mock implementation with detailed response structure [pending]
+## 2. Create mock implementation with detailed response structure [done]
 ### Dependencies: 7.1
 ### Description: Implement a mock version of the GET /api/lobbies/{id} endpoint that returns a structured response
 ### Details:

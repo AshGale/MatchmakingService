@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Implement GET /api/lobbies Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: medium
 # Description: Create the API endpoint for retrieving lobbies with optional status filtering and mock implementation.

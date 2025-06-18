@@ -1,6 +1,6 @@
 # Task ID: 13
 # Title: Implement LobbyCard UI Component
-# Status: pending
+# Status: done
 # Dependencies: 19, 20
 # Priority: medium
 # Description: Create a reusable LobbyCard component for displaying lobby information with join functionality.

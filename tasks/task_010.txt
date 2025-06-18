@@ -1,6 +1,6 @@
 # Task ID: 10
 # Title: Implement PUT /api/lobbies/{id}/status Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 11
 # Priority: medium
 # Description: Create the API endpoint for updating lobby status with mock implementation.
@@ -40,19 +40,19 @@ Test the endpoint with:
 - Test error response messages for each failure case
 
 # Subtasks:
-## 1. Implement request validation for PUT /api/lobbies/{id}/status [pending]
+## 1. Implement request validation for PUT /api/lobbies/{id}/status [done]
 ### Dependencies: None
 ### Description: Create validation logic for the incoming request to ensure it contains valid lobby ID and status values
 ### Details:
 Validate that the lobby ID exists in the system, check that the request body contains a valid 'status' field with one of the allowed values (e.g., 'open', 'closed', 'in_progress', 'completed'), and return appropriate 400 error responses for invalid requests
 
-## 2. Implement status transition validation logic [pending]
+## 2. Implement status transition validation logic [done]
 ### Dependencies: 10.1
 ### Description: Create logic to validate that the requested status transition is allowed based on the current lobby status
 ### Details:
 Retrieve the current lobby status, define allowed transitions (e.g., 'open' can transition to 'in_progress' but not directly to 'completed'), validate the requested transition against these rules, and return 422 error responses for invalid transitions with clear error messages
 
-## 3. Implement mock endpoint with error handling [pending]
+## 3. Implement mock endpoint with error handling [done]
 ### Dependencies: 10.1, 10.2
 ### Description: Create the complete mock implementation of the PUT /api/lobbies/{id}/status endpoint with proper error handling
 ### Details:
