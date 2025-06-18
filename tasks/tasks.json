@@ -724,7 +724,7 @@
       "description": "Develop a single command startup script that initializes all project components (database, backend, frontend) while checking for prerequisites and handling initialization steps automatically.",
       "details": "The unified startup script should:\n\n1. Be created as a shell script (e.g., `start.sh` for Unix/Linux/macOS) and a batch file (e.g., `start.bat` for Windows) to ensure cross-platform compatibility.\n\n2. Check for prerequisites:\n   - Verify PostgreSQL is installed and running (use `pg_isready` or similar command)\n   - Check for Node.js and npm/yarn with minimum version requirements\n   - Verify all required environment variables are set\n\n3. Database initialization:\n   - Check if the database exists, create it if not\n   - Run migrations if needed\n   - Seed initial data if the database is newly created\n\n4. Backend server:\n   - Install dependencies if node_modules is missing or outdated\n   - Build the backend if needed\n   - Start the backend server with proper environment configuration\n\n5. Frontend application:\n   - Install dependencies if node_modules is missing or outdated\n   - Build the frontend if in production mode\n   - Start the development server if in development mode\n\n6. Implement proper error handling with informative messages\n   - Display clear error messages for missing prerequisites\n   - Provide guidance on how to resolve common issues\n\n7. Include a help option (-h or --help) that displays usage information\n\n8. Add configuration options:\n   - Environment selection (dev, test, prod)\n   - Component selection (--db-only, --backend-only, --frontend-only)\n   - Verbose mode for detailed logging\n\n9. Implement proper process management to ensure clean shutdown of all components when the script is terminated.",
       "testStrategy": "Testing should verify that the script works correctly across different environments and scenarios:\n\n1. Test on multiple operating systems:\n   - Test on Linux, macOS, and Windows to ensure cross-platform compatibility\n   - Verify that the appropriate script (shell or batch) works correctly on each platform\n\n2. Test prerequisite checking:\n   - Test with PostgreSQL stopped to verify proper error handling\n   - Test with missing Node.js to verify proper error detection\n   - Test with missing environment variables to verify proper guidance\n\n3. Test database initialization:\n   - Test with existing database to verify it doesn't recreate or corrupt data\n   - Test with missing database to verify proper creation and seeding\n   - Test with outdated schema to verify migrations run correctly\n\n4. Test component startup:\n   - Verify all components (database, backend, frontend) start in the correct order\n   - Verify proper dependency installation when node_modules is missing\n   - Test build processes for both backend and frontend\n\n5. Test error scenarios:\n   - Verify helpful error messages when ports are already in use\n   - Test behavior when one component fails to start\n   - Verify proper cleanup when script is terminated\n\n6. Test configuration options:\n   - Verify environment selection works correctly\n   - Test component selection options to start only specific parts\n   - Verify verbose mode provides detailed logging\n\n7. Integration testing:\n   - Verify end-to-end functionality by accessing the frontend and confirming it can communicate with the backend\n   - Verify backend can properly connect to and query the database\n\n8. Documentation testing:\n   - Verify help option displays comprehensive usage information\n   - Ensure README.md is updated with instructions for using the script",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "medium",
       "subtasks": [
@@ -734,7 +734,7 @@
           "description": "Develop functions to verify all required prerequisites before starting project components",
           "dependencies": [],
           "details": "Create shell/batch functions that: 1) Check PostgreSQL installation and running status using pg_isready, 2) Verify Node.js and npm/yarn installations with version validation, 3) Validate all required environment variables, 4) Implement a unified error reporting mechanism that provides clear guidance on resolving missing prerequisites. Each check should return a status code and descriptive message. Include a main verification function that runs all checks sequentially and exits with appropriate error codes if prerequisites aren't met.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test each function with various scenarios: missing installations, outdated versions, missing environment variables. Verify error messages are clear and actionable."
         },
         {
@@ -745,7 +745,7 @@
             1
           ],
           "details": "Develop shell/batch functions that: 1) Check if the database exists using psql commands, 2) Create the database if it doesn't exist, 3) Run database migrations using the project's migration tool, 4) Seed initial data only for newly created databases. Include proper error handling and status reporting. The module should be able to run independently with a --db-only flag and should respect the selected environment (dev/test/prod).",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with both existing and non-existing databases. Verify migrations run correctly and data is seeded only when appropriate."
         },
         {
@@ -756,7 +756,7 @@
             1
           ],
           "details": "Implement shell/batch functions that: 1) Check if node_modules exists and is up-to-date for both backend and frontend, 2) Install dependencies if needed using npm/yarn, 3) Build components if required (always for production, conditionally for development), 4) Start servers with proper environment configurations. Each component should be startable independently with --backend-only or --frontend-only flags. Include proper error handling and dependency validation.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with various scenarios: missing node_modules, outdated dependencies, build failures. Verify components start correctly in different environments."
         },
         {
@@ -768,7 +768,7 @@
             3
           ],
           "details": "Create the main shell script (start.sh) and batch file (start.bat) that: 1) Parse command-line arguments for environment selection, component selection, verbose mode, and help, 2) Display usage information with the --help flag, 3) Call the appropriate initialization modules based on arguments, 4) Implement proper process management to ensure all started components are terminated cleanly on script exit, 5) Set up logging with different verbosity levels. The script should use the modules created in previous subtasks and coordinate their execution in the correct order.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with various command-line arguments, verify help text is displayed correctly, test process termination handling, and verify all components start in the correct order with proper dependency checking."
         }
       ]
