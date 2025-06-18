@@ -652,6 +652,165 @@
       "dependencies": [],
       "priority": "medium",
       "subtasks": []
+    },
+    {
+      "id": 22,
+      "title": "Create Comprehensive README.md for MatchmakingService Project",
+      "description": "Create a detailed README.md file for the MatchmakingService project that documents all setup instructions, dependencies, environment configuration, and commands to run both frontend and backend components.",
+      "details": "The README.md should include the following sections:\n\n1. **Project Overview**:\n   - Brief description of the MatchmakingService project\n   - Architecture diagram (if available)\n   - Key features\n\n2. **Prerequisites**:\n   - Required software (PostgreSQL, Node.js, npm/yarn versions)\n   - System requirements\n   - Required accounts or access tokens\n\n3. **Installation**:\n   - Step-by-step clone and setup instructions\n   - Dependencies installation commands\n   - Troubleshooting common installation issues\n\n4. **Environment Configuration**:\n   - List of all required environment variables\n   - Sample .env file template\n   - Instructions for secure handling of sensitive variables\n\n5. **Database Setup**:\n   - PostgreSQL installation and configuration\n   - Database creation commands\n   - Schema initialization and migration instructions\n   - Seed data setup (if applicable)\n\n6. **Running the Application**:\n   - Backend startup commands\n   - Frontend startup commands\n   - Development mode vs production mode instructions\n   - Available npm/yarn scripts\n\n7. **API Documentation**:\n   - Brief overview of available endpoints\n   - Link to detailed API documentation (if available)\n\n8. **Testing**:\n   - Instructions for running tests\n   - Test coverage information\n\n9. **Deployment**:\n   - Basic deployment guidelines\n   - CI/CD integration notes (if applicable)\n\n10. **Contributing**:\n    - Guidelines for contributors\n    - Code style and PR process\n\nUse Markdown formatting effectively with proper headings, code blocks for commands, tables for environment variables, and emphasis where appropriate. Ensure all commands are accurate and tested before including them in the README.",
+      "testStrategy": "To verify the README.md is complete and accurate:\n\n1. **Content Verification**:\n   - Check that all required sections are present and properly formatted\n   - Verify all commands are accurate by having a team member follow them on a clean system\n   - Ensure all environment variables are documented with descriptions and example values\n   - Confirm database setup instructions work on a fresh PostgreSQL installation\n\n2. **Technical Accuracy**:\n   - Have a developer who wasn't involved in writing the README follow the instructions to set up the project from scratch\n   - Time how long it takes and note any points of confusion\n   - Verify that following only the README instructions results in a fully functional development environment\n\n3. **Readability Assessment**:\n   - Review the document for clarity, organization, and proper Markdown formatting\n   - Check that code blocks use appropriate syntax highlighting\n   - Ensure headings follow a logical hierarchy\n\n4. **Completeness Check**:\n   - Compare against other successful project READMEs to ensure no common sections are missing\n   - Verify all dependencies mentioned in package.json are documented\n   - Ensure all environment variables used in the codebase are documented\n\n5. **Maintenance Plan**:\n   - Establish a process for keeping the README updated as the project evolves\n   - Add a \"Last Updated\" section that should be modified whenever changes are made\n\nThe README is considered complete when a new team member can successfully set up and run both the frontend and backend components without requiring additional assistance beyond what's documented.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Project Overview and Prerequisites Sections",
+          "description": "Create the first two sections of the README.md file: Project Overview and Prerequisites.",
+          "dependencies": [],
+          "details": "For the Project Overview section, write a concise description of the MatchmakingService project, include a placeholder for the architecture diagram, and list the key features of the application. For the Prerequisites section, document all required software with specific version requirements (PostgreSQL, Node.js, npm/yarn), system requirements, and any required accounts or access tokens. Use proper Markdown formatting with headers (## for sections, ### for subsections), bullet points for lists, and emphasis for important information.",
+          "status": "pending",
+          "testStrategy": "Verify all information is accurate by checking project documentation and dependencies. Ensure Markdown renders correctly by previewing in a Markdown editor."
+        },
+        {
+          "id": 2,
+          "title": "Develop Installation and Environment Configuration Sections",
+          "description": "Create the Installation and Environment Configuration sections of the README.md file.",
+          "dependencies": [
+            1
+          ],
+          "details": "For the Installation section, provide detailed step-by-step clone and setup instructions, including all commands needed to install dependencies. Include troubleshooting tips for common installation issues. For the Environment Configuration section, list all required environment variables with descriptions, create a sample .env template (with placeholder values, not real credentials), and provide instructions for secure handling of sensitive variables. Use code blocks for commands and file contents using triple backticks, and create a table for environment variables showing variable name, purpose, and example value.",
+          "status": "pending",
+          "testStrategy": "Test the installation steps on a clean environment to ensure they work as documented. Verify all environment variables are correctly listed by checking the application code."
+        },
+        {
+          "id": 3,
+          "title": "Document Database Setup and Running the Application",
+          "description": "Create the Database Setup and Running the Application sections of the README.md.",
+          "dependencies": [
+            2
+          ],
+          "details": "For the Database Setup section, provide PostgreSQL installation instructions or links to official guides, include all commands for database creation, schema initialization, and migration execution. Document seed data setup if applicable. For the Running the Application section, document all commands to start both backend and frontend components, clearly distinguish between development and production modes, and list all available npm/yarn scripts with their purposes. Use code blocks for all commands and organize information in a logical sequence that a new developer would follow.",
+          "status": "pending",
+          "testStrategy": "Execute all database setup commands on a test system to verify accuracy. Test all application startup commands to ensure they work as documented."
+        },
+        {
+          "id": 4,
+          "title": "Create API Documentation and Testing Sections",
+          "description": "Develop the API Documentation and Testing sections of the README.md file.",
+          "dependencies": [
+            3
+          ],
+          "details": "For the API Documentation section, provide a brief overview of available endpoints organized by resource or functionality. Include HTTP methods, URL patterns, and purpose for each endpoint. Add a link to more detailed API documentation if available. For the Testing section, document all commands to run tests (unit, integration, e2e), explain how to interpret test results, and provide information about test coverage. Use tables or lists to organize API endpoint information and code blocks for test commands.",
+          "status": "pending",
+          "testStrategy": "Verify API endpoint information by checking the actual implementation. Run the test commands to ensure they work as documented."
+        },
+        {
+          "id": 5,
+          "title": "Complete Deployment and Contributing Sections and Finalize README",
+          "description": "Create the Deployment and Contributing sections, then review and finalize the entire README.md file.",
+          "dependencies": [
+            4
+          ],
+          "details": "For the Deployment section, document basic deployment guidelines including environment preparation, build processes, and deployment commands. Include notes on CI/CD integration if applicable. For the Contributing section, establish guidelines for contributors including code style requirements, branch naming conventions, and the PR review process. After completing these sections, review the entire README.md for consistency, accuracy, and completeness. Ensure proper Markdown formatting throughout, check that all links work, and verify that the document flows logically. Add a table of contents at the beginning that links to each section.",
+          "status": "pending",
+          "testStrategy": "Have another team member review the README for clarity and completeness. Test all internal links in the table of contents to ensure they navigate to the correct sections."
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Task #23: Create Unified Project Startup Script",
+      "description": "Develop a single command startup script that initializes all project components (database, backend, frontend) while checking for prerequisites and handling initialization steps automatically.",
+      "details": "The unified startup script should:\n\n1. Be created as a shell script (e.g., `start.sh` for Unix/Linux/macOS) and a batch file (e.g., `start.bat` for Windows) to ensure cross-platform compatibility.\n\n2. Check for prerequisites:\n   - Verify PostgreSQL is installed and running (use `pg_isready` or similar command)\n   - Check for Node.js and npm/yarn with minimum version requirements\n   - Verify all required environment variables are set\n\n3. Database initialization:\n   - Check if the database exists, create it if not\n   - Run migrations if needed\n   - Seed initial data if the database is newly created\n\n4. Backend server:\n   - Install dependencies if node_modules is missing or outdated\n   - Build the backend if needed\n   - Start the backend server with proper environment configuration\n\n5. Frontend application:\n   - Install dependencies if node_modules is missing or outdated\n   - Build the frontend if in production mode\n   - Start the development server if in development mode\n\n6. Implement proper error handling with informative messages\n   - Display clear error messages for missing prerequisites\n   - Provide guidance on how to resolve common issues\n\n7. Include a help option (-h or --help) that displays usage information\n\n8. Add configuration options:\n   - Environment selection (dev, test, prod)\n   - Component selection (--db-only, --backend-only, --frontend-only)\n   - Verbose mode for detailed logging\n\n9. Implement proper process management to ensure clean shutdown of all components when the script is terminated.",
+      "testStrategy": "Testing should verify that the script works correctly across different environments and scenarios:\n\n1. Test on multiple operating systems:\n   - Test on Linux, macOS, and Windows to ensure cross-platform compatibility\n   - Verify that the appropriate script (shell or batch) works correctly on each platform\n\n2. Test prerequisite checking:\n   - Test with PostgreSQL stopped to verify proper error handling\n   - Test with missing Node.js to verify proper error detection\n   - Test with missing environment variables to verify proper guidance\n\n3. Test database initialization:\n   - Test with existing database to verify it doesn't recreate or corrupt data\n   - Test with missing database to verify proper creation and seeding\n   - Test with outdated schema to verify migrations run correctly\n\n4. Test component startup:\n   - Verify all components (database, backend, frontend) start in the correct order\n   - Verify proper dependency installation when node_modules is missing\n   - Test build processes for both backend and frontend\n\n5. Test error scenarios:\n   - Verify helpful error messages when ports are already in use\n   - Test behavior when one component fails to start\n   - Verify proper cleanup when script is terminated\n\n6. Test configuration options:\n   - Verify environment selection works correctly\n   - Test component selection options to start only specific parts\n   - Verify verbose mode provides detailed logging\n\n7. Integration testing:\n   - Verify end-to-end functionality by accessing the frontend and confirming it can communicate with the backend\n   - Verify backend can properly connect to and query the database\n\n8. Documentation testing:\n   - Verify help option displays comprehensive usage information\n   - Ensure README.md is updated with instructions for using the script",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create prerequisite checking functions",
+          "description": "Develop functions to verify all required prerequisites before starting project components",
+          "dependencies": [],
+          "details": "Create shell/batch functions that: 1) Check PostgreSQL installation and running status using pg_isready, 2) Verify Node.js and npm/yarn installations with version validation, 3) Validate all required environment variables, 4) Implement a unified error reporting mechanism that provides clear guidance on resolving missing prerequisites. Each check should return a status code and descriptive message. Include a main verification function that runs all checks sequentially and exits with appropriate error codes if prerequisites aren't met.",
+          "status": "pending",
+          "testStrategy": "Test each function with various scenarios: missing installations, outdated versions, missing environment variables. Verify error messages are clear and actionable."
+        },
+        {
+          "id": 2,
+          "title": "Implement database initialization module",
+          "description": "Create functions to handle database existence checking, creation, migrations, and data seeding",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop shell/batch functions that: 1) Check if the database exists using psql commands, 2) Create the database if it doesn't exist, 3) Run database migrations using the project's migration tool, 4) Seed initial data only for newly created databases. Include proper error handling and status reporting. The module should be able to run independently with a --db-only flag and should respect the selected environment (dev/test/prod).",
+          "status": "pending",
+          "testStrategy": "Test with both existing and non-existing databases. Verify migrations run correctly and data is seeded only when appropriate."
+        },
+        {
+          "id": 3,
+          "title": "Develop backend and frontend initialization modules",
+          "description": "Create functions to handle dependency installation, building, and starting of backend and frontend components",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement shell/batch functions that: 1) Check if node_modules exists and is up-to-date for both backend and frontend, 2) Install dependencies if needed using npm/yarn, 3) Build components if required (always for production, conditionally for development), 4) Start servers with proper environment configurations. Each component should be startable independently with --backend-only or --frontend-only flags. Include proper error handling and dependency validation.",
+          "status": "pending",
+          "testStrategy": "Test with various scenarios: missing node_modules, outdated dependencies, build failures. Verify components start correctly in different environments."
+        },
+        {
+          "id": 4,
+          "title": "Create main script with process management and CLI options",
+          "description": "Develop the main script that integrates all modules, handles CLI arguments, and manages process lifecycle",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Create the main shell script (start.sh) and batch file (start.bat) that: 1) Parse command-line arguments for environment selection, component selection, verbose mode, and help, 2) Display usage information with the --help flag, 3) Call the appropriate initialization modules based on arguments, 4) Implement proper process management to ensure all started components are terminated cleanly on script exit, 5) Set up logging with different verbosity levels. The script should use the modules created in previous subtasks and coordinate their execution in the correct order.",
+          "status": "pending",
+          "testStrategy": "Test with various command-line arguments, verify help text is displayed correctly, test process termination handling, and verify all components start in the correct order with proper dependency checking."
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Task #24: Create Environment Variables Configuration Guide",
+      "description": "Create a comprehensive guide that documents all environment variables used in the application, including their purpose, default values, and configuration instructions with a step-by-step process for setting up the .env file.",
+      "details": "The implementation should include:\n\n1. Create a markdown document named `ENV_SETUP_GUIDE.md` in the project's documentation folder.\n2. Document all environment variables used across the application, organized by component (frontend, backend, database, etc.).\n3. For each environment variable, include:\n   - Name and description of what it controls\n   - Default value (if any)\n   - Required vs optional status\n   - Acceptable value formats and ranges\n   - Security considerations (for sensitive variables)\n4. Create a step-by-step guide for setting up the .env file:\n   - Instructions for copying .env.example to .env\n   - Explanation of each variable that needs to be configured\n   - Examples of properly configured values\n   - Common pitfalls and troubleshooting tips\n5. Include information about environment-specific configurations (development, testing, production)\n6. Document any tools or commands that can validate the environment configuration\n7. Explain how the application loads environment variables and any fallback mechanisms\n8. Cross-reference with the existing README.md (Task #22) to ensure consistency\n\nThe guide should be written in clear, concise language suitable for developers of all experience levels. Use code blocks, tables, and formatting to improve readability.",
+      "testStrategy": "To verify the completion of this task:\n\n1. Review the ENV_SETUP_GUIDE.md document for completeness:\n   - Confirm all environment variables are documented with their descriptions, default values, and configuration instructions\n   - Verify the step-by-step guide is clear and follows the .env.example template\n   - Check that all components of the application (frontend, backend, database) are covered\n\n2. Practical validation:\n   - Have a team member who is unfamiliar with the project follow the guide to set up their environment\n   - Time how long it takes and note any points of confusion\n   - Verify they can successfully run the application after following the guide\n\n3. Technical validation:\n   - Confirm all environment variables mentioned in the codebase are documented in the guide\n   - Verify default values match what's in the code\n   - Test that the application behaves as expected with the documented configuration options\n\n4. Integration testing:\n   - Ensure the guide works with the unified project startup script (Task #23)\n   - Verify consistency with the README.md (Task #22)\n\n5. Peer review:\n   - Have at least two developers review the guide for accuracy and completeness\n   - Incorporate feedback and make necessary revisions",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Document Environment Variables by Component",
+          "description": "Create the initial ENV_SETUP_GUIDE.md document and document all environment variables organized by component (frontend, backend, database, etc.).",
+          "dependencies": [],
+          "details": "1. Create a new markdown file named `ENV_SETUP_GUIDE.md` in the project's documentation folder.\n2. Add an introduction explaining the purpose of the guide.\n3. Create sections for each component (frontend, backend, database, etc.).\n4. For each component, list all environment variables with their complete details:\n   - Name and description of what it controls\n   - Default value (if any)\n   - Required vs optional status\n   - Acceptable value formats and ranges\n   - Security considerations (for sensitive variables)\n5. Use tables or structured formatting to present the information clearly.\n6. Review the codebase thoroughly to ensure all environment variables are captured.",
+          "status": "pending",
+          "testStrategy": "Have another team member review the document for completeness and accuracy by cross-checking with the actual codebase."
+        },
+        {
+          "id": 2,
+          "title": "Create Step-by-Step .env Setup Instructions",
+          "description": "Develop a comprehensive step-by-step guide for setting up the .env file, including examples, troubleshooting tips, and environment-specific configurations.",
+          "dependencies": [],
+          "details": "1. Add a new section titled 'Setting Up Your Environment Variables'.\n2. Provide clear instructions for copying .env.example to .env.\n3. Create a walkthrough explaining each variable that needs configuration.\n4. Include practical examples of properly configured values for different scenarios.\n5. Document common pitfalls and their solutions in a troubleshooting section.\n6. Create separate subsections for environment-specific configurations (development, testing, production).\n7. Use code blocks to show example configurations.\n8. Include warnings or notes for security-sensitive variables.",
+          "status": "pending",
+          "testStrategy": "Test the instructions by having a new developer follow them to set up their environment, noting any points of confusion."
+        },
+        {
+          "id": 3,
+          "title": "Document Environment Variable Loading and Integration",
+          "description": "Document how the application loads environment variables, validation tools, and ensure integration with existing documentation.",
+          "dependencies": [],
+          "details": "1. Add a section explaining how the application loads environment variables.\n2. Document any fallback mechanisms or hierarchies used when variables are missing.\n3. Research and document any tools or commands that can validate the environment configuration.\n4. Create a section on validation and troubleshooting environment issues.\n5. Review the existing README.md (Task #22) and ensure consistency between documents.\n6. Add cross-references between the ENV_SETUP_GUIDE.md and README.md.\n7. Add a final review checklist for developers to verify their environment setup.\n8. Format the entire document for readability with appropriate headings, lists, and emphasis.",
+          "status": "pending",
+          "testStrategy": "Verify all documented validation tools work as described, and ensure cross-references between documents are accurate and helpful."
+        }
+      ]
     }
   ]
 }
