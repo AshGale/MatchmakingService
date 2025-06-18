@@ -90,7 +90,7 @@ if "%ENV%"=="prod" (
     echo Frontend built successfully.
     echo You can now serve the static files from client/build or using a static file server.
 ) else (
-    start "MatchmakingService Frontend" cmd /c cd client ^& npm start
+    start "MatchmakingService Frontend" cmd /c cd client ^& set PORT=3006 ^& npm start
     echo Frontend development server started
     echo Press Ctrl+C in the frontend window to stop
 )

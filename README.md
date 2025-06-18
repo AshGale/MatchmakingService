@@ -221,6 +221,35 @@ The server will run on the port specified in your `.env` file (defaults to 3000)
 | `npm run dev` | Start the server with nodemon for development |
 | `npm test` | Run the test suite |
 
+### Running the Frontend
+
+The frontend is a React TypeScript application located in the `client` directory. The frontend runs on port 3006 to avoid conflicts with the backend server running on port 3000.
+
+To start the frontend development server:
+
+```bash
+# Navigate to the client directory
+cd client
+
+# Install dependencies (first time only)
+npm install
+
+# Start the development server
+npm start
+```
+
+Alternatively, you can use the provided scripts to start both frontend and backend:
+
+```bash
+# On Windows
+.\start.cmd
+
+# On Unix/Linux/macOS
+./start.sh
+```
+
+The frontend will be accessible at http://localhost:3006
+
 ### Health Check
 
 To verify the server is running correctly, access the health check endpoint:
