@@ -811,6 +811,39 @@
           "testStrategy": "Verify all documented validation tools work as described, and ensure cross-references between documents are accurate and helpful."
         }
       ]
+    },
+    {
+      "id": 25,
+      "title": "Implement database persistence for lobby data",
+      "description": "Integrate the PostgreSQL database with the lobby system to ensure data is properly persisted",
+      "details": "The application currently does not persist lobby data between restarts. \n\n1. Connect to the PostgreSQL database using the existing schema.sql design\n2. Update the lobby-manager.js to use database queries instead of in-memory storage\n3. Implement proper transaction handling for lobby operations\n4. Add database connection pooling for performance\n5. Update error handling to include database specific errors\n6. Add database connection status monitoring\n7. Ensure all lobby CRUD operations use the database\n\nThe schema.sql already contains well-defined tables and stored procedures for lobbies, players, and games.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": []
+    },
+    {
+      "id": 26,
+      "title": "Add data caching layer for static content",
+      "description": "Implement data caching layer for frequently accessed static data",
+      "details": "Create a reliable caching layer to improve performance for frequently accessed static data:\n\n1. Implement Redis or an in-memory caching solution\n2. Add cache invalidation mechanisms for when data changes\n3. Cache common lobby queries to reduce database load\n4. Add configurable TTL (time-to-live) for cached items\n5. Implement cache warming on application startup\n6. Add monitoring for cache hit/miss ratios\n7. Create a fallback mechanism when cache is unavailable",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "subtasks": []
+    },
+    {
+      "id": 27,
+      "title": "Implement database migration system",
+      "description": "Create automated database migration system for schema changes",
+      "details": "Implement a database migration system to manage schema evolution:\n\n1. Set up a migration framework (like node-pg-migrate or Knex.js migrations)\n2. Convert the existing schema.sql into migration scripts\n3. Implement versioning for database schema changes\n4. Add migration verification and validation\n5. Create rollback capabilities for failed migrations\n6. Update the startup scripts to check and run pending migrations\n7. Add migration logging and monitoring\n8. Create a development workflow for testing migrations",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": []
     }
   ]
 }

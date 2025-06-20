@@ -15,7 +15,7 @@ export interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({
   activeFilter,
   onFilterChange,
-  counts
+  counts = { all: 0, waiting: 0, active: 0, finished: 0 } // Provide default empty counts
 }) => {
   const filterOptions = [
     { value: 'all', label: 'All' },
@@ -44,7 +44,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           id={`tab-${option.value}`}
         >
           <span className={styles.label}>{option.label}</span>
-          <span className={styles.count}>{counts[option.value as keyof typeof counts]}</span>
+          <span className={styles.count}>{counts && counts[option.value as keyof typeof counts] || 0}</span>
         </button>
       ))}
     </div>
