@@ -284,67 +284,68 @@ echo Starting backend server...
 if not exist node_modules (
     echo Installing backend dependencies...
     call npm install
-    if not %ERRORLEVEL%==0 (
+    if not !ERRORLEVEL!==0 (
         echo Error: Failed to install backend dependencies
         exit /b 1
     )
 )
 
-:: Check if port is available
-netstat -ano | findstr ":%PORT%" >nul 2>nul
-if %ERRORLEVEL% equ 0 (
-    echo Warning: Port %PORT% is already in use
+:: Check if port is available - use the PORT variable as-is
+netstat -ano | findstr ":!PORT!" >nul 2>nul
+if !ERRORLEVEL! equ 0 (
+    echo Warning: Port !PORT! is already in use
     
     :: Try to find the process and offer to kill it
-    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%" ^| findstr "LISTENING" 2^>nul') do (
-        set PID=%%a
+    set PID_FOUND=
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":!PORT!" ^| findstr "LISTENING" 2^>nul') do (
+        set PID_FOUND=%%a
         goto found_pid
     )
     
     :found_pid
-    if defined PID (
-        echo Found process with PID: !PID!
-        choice /c KA /n /m "Do you want to [K]ill the process or try [A]lternate port (%ALT_PORT%)? "
+    if defined PID_FOUND (
+        echo Found process with PID: !PID_FOUND!
+        choice /c KA /n /m "Do you want to [K]ill the process or try [A]lternate port (!ALT_PORT!)? "
         
         if !ERRORLEVEL! equ 1 (
-            echo Attempting to kill process on port %PORT% (PID: !PID!)...
-            taskkill /F /PID !PID! >nul 2>nul
+            echo Attempting to kill process on port !PORT! ^(PID: !PID_FOUND!^)...
+            taskkill /F /PID !PID_FOUND! >nul 2>nul
             
             if !ERRORLEVEL! equ 0 (
                 echo Successfully killed process
                 timeout /t 2 /nobreak >nul
             ) else (
-                echo Failed to kill process. Trying alternate port %ALT_PORT%...
-                set PORT=%ALT_PORT%
+                echo Failed to kill process. Trying alternate port !ALT_PORT!...
+                set PORT=!ALT_PORT!
             )
         ) else (
-            echo Trying alternate port %ALT_PORT%...
-            set PORT=%ALT_PORT%
+            echo Trying alternate port !ALT_PORT!...
+            set PORT=!ALT_PORT!
         )
     ) else (
-        echo Trying alternate port %ALT_PORT%...
-        set PORT=%ALT_PORT%
+        echo Trying alternate port !ALT_PORT!...
+        set PORT=!ALT_PORT!
     )
     
     :: Check if alternate port is also in use
-    if "%PORT%"=="%ALT_PORT%" (
-        netstat -ano | findstr ":%ALT_PORT%" >nul 2>nul
-        if %ERRORLEVEL% equ 0 (
-            echo Error: Both ports 3000 and %ALT_PORT% are in use
+    if "!PORT!"=="!ALT_PORT!" (
+        netstat -ano | findstr ":!ALT_PORT!" >nul 2>nul
+        if !ERRORLEVEL! equ 0 (
+            echo Error: Both ports 3000 and !ALT_PORT! are in use
             echo Please specify a different port using the --port option
             exit /b 1
         )
     )
 )
 
-:: Start backend based on environment
-if "%ENV%"=="dev" (
-    start "MatchmakingService Backend" cmd /c "set PORT=%PORT% && npm run dev"
+:: Start backend based on environment - remove quotes around PORT assignment
+if "!ENV!"=="dev" (
+    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm run dev"
 ) else (
-    start "MatchmakingService Backend" cmd /c "set PORT=%PORT% && npm start"
+    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm start"
 )
 
-echo Backend server started on port %PORT%
+echo Backend server started on port !PORT!
 exit /b 0
 
 :start_frontend
