@@ -188,7 +188,13 @@ if not %ERRORLEVEL%==0 (
         echo Running database initialization...
         if exist schema.sql (
             echo Applying schema...
-            psql -U %DB_USER% -h %DB_HOST% -d %DB_NAME% -f schema.sql
+            :: Get password from .env file
+            for /f "tokens=1,2 delims==" %%a in ('findstr /B "PGPASSWORD" .env') do set DB_PASSWORD=%%b
+            
+            :: Set PGPASSWORD environment variable for psql
+            set PGPASSWORD=%DB_PASSWORD%
+            
+            psql -h %DB_HOST% -U %DB_USER% -d %DB_NAME% -f schema.sql
             if not %ERRORLEVEL%==0 (
                 echo Warning: Schema application may have had errors
             )
@@ -196,7 +202,8 @@ if not %ERRORLEVEL%==0 (
             if "%ENV%"=="dev" (
                 if exist schema_validation_tests.sql (
                     echo Running schema validation tests...
-                    psql -U %DB_USER% -h %DB_HOST% -d %DB_NAME% -f schema_validation_tests.sql
+                    :: PGPASSWORD should still be set from above
+                    psql -h %DB_HOST% -U %DB_USER% -d %DB_NAME% -f schema_validation_tests.sql
                 )
             )
         )

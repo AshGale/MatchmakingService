@@ -67,6 +67,34 @@ class LobbyManager {
   }
 
   /**
+   * Checks the current database connection status
+   * 
+   * @returns {Object} Connection status object with status, timestamp, and error (if any)
+   */
+  async checkConnectionStatus() {
+    try {
+      this.dbStatus = await checkDatabaseStatus();
+      return this.dbStatus;
+    } catch (error) {
+      this.dbStatus = { 
+        status: 'error', 
+        timestamp: new Date().toISOString(), 
+        error: error.message 
+      };
+      return this.dbStatus;
+    }
+  }
+
+  /**
+   * Get the current database connection status
+   * 
+   * @returns {Object} Connection status object
+   */
+  getDatabaseStatus() {
+    return this.dbStatus;
+  }
+
+  /**
    * Creates a new lobby with the specified player as host
    * 
    * @param {string} playerId - ID of the player creating the lobby
@@ -119,7 +147,7 @@ class LobbyManager {
       throw error;
     }
   }
-  
+
   /**
    * Adds a player to an existing lobby
    * 
@@ -199,7 +227,7 @@ class LobbyManager {
       throw error;
     }
   }
-  
+
   /**
    * Removes a player from a lobby
    * 
@@ -273,7 +301,7 @@ class LobbyManager {
       });
     }
   }
-  
+
   /**
    * Gets detailed information about a specific lobby
    * 
@@ -314,7 +342,7 @@ class LobbyManager {
       throw error;
     }
   }
-  
+
   /**
    * Gets a list of lobbies with specified status
    * 
@@ -343,7 +371,7 @@ class LobbyManager {
       throw error;
     }
   }
-  
+
   /**
    * Updates the status of a lobby with validation
    * 
@@ -400,25 +428,38 @@ class LobbyManager {
    * Checks if a status transition is valid
    * 
    * @private
-   * @param {string} currentStatus - Current lobby status
-   * @param {string} newStatus - Proposed new status
+   * @param {string} fromStatus - Current lobby status
+   * @param {string} toStatus - Proposed new status
    * @returns {boolean} - Whether the transition is valid
    */
-  _isValidStatusTransition(currentStatus, newStatus) {
+  _isValidStatusTransition(fromStatus, toStatus) {
     // If statuses are the same, it's valid (no change)
-    if (currentStatus === newStatus) {
+    if (fromStatus === toStatus) {
       return true;
     }
     
     // Check if the current status can transition to the new status
-    const allowedTransitions = this.validTransitions[currentStatus];
-    return allowedTransitions && allowedTransitions.includes(newStatus);
+    const validTransitions = this.validTransitions[fromStatus];
+    return validTransitions && validTransitions.includes(toStatus);
+  }
+
+  /**
+   * Stops the connection monitoring interval
+   */
+  stopConnectionMonitoring() {
+    if (this.connectionMonitorInterval) {
+      clearInterval(this.connectionMonitorInterval);
+      this.connectionMonitorInterval = null;
+    }
+  }
+
+  /**
+   * Performs cleanup operations when the LobbyManager is no longer needed
+   * Call this method before destroying a LobbyManager instance
+   */
+  dispose() {
+    this.stopConnectionMonitoring();
   }
 }
-
-// Cleanup resources when the object is destroyed
-LobbyManager.prototype.dispose = function() {
-  this.stopConnectionMonitoring();
-};
 
 module.exports = LobbyManager;
