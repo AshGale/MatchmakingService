@@ -1,0 +1,21 @@
+# Task ID: 25
+# Title: Implement database persistence for lobby data
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Integrate the PostgreSQL database with the lobby system to ensure data is properly persisted
+# Details:
+The application currently does not persist lobby data between restarts. 
+
+1. Connect to the PostgreSQL database using the existing schema.sql design
+2. Update the lobby-manager.js to use database queries instead of in-memory storage
+3. Implement proper transaction handling for lobby operations
+4. Add database connection pooling for performance
+5. Update error handling to include database specific errors
+6. Add database connection status monitoring
+7. Ensure all lobby CRUD operations use the database
+
+The schema.sql already contains well-defined tables and stored procedures for lobbies, players, and games.
+
+# Test Strategy:
+

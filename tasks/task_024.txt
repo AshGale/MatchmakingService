@@ -1,0 +1,98 @@
+# Task ID: 24
+# Title: Task #24: Create Environment Variables Configuration Guide
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Create a comprehensive guide that documents all environment variables used in the application, including their purpose, default values, and configuration instructions with a step-by-step process for setting up the .env file.
+# Details:
+The implementation should include:
+
+1. Create a markdown document named `ENV_SETUP_GUIDE.md` in the project's documentation folder.
+2. Document all environment variables used across the application, organized by component (frontend, backend, database, etc.).
+3. For each environment variable, include:
+   - Name and description of what it controls
+   - Default value (if any)
+   - Required vs optional status
+   - Acceptable value formats and ranges
+   - Security considerations (for sensitive variables)
+4. Create a step-by-step guide for setting up the .env file:
+   - Instructions for copying .env.example to .env
+   - Explanation of each variable that needs to be configured
+   - Examples of properly configured values
+   - Common pitfalls and troubleshooting tips
+5. Include information about environment-specific configurations (development, testing, production)
+6. Document any tools or commands that can validate the environment configuration
+7. Explain how the application loads environment variables and any fallback mechanisms
+8. Cross-reference with the existing README.md (Task #22) to ensure consistency
+
+The guide should be written in clear, concise language suitable for developers of all experience levels. Use code blocks, tables, and formatting to improve readability.
+
+# Test Strategy:
+To verify the completion of this task:
+
+1. Review the ENV_SETUP_GUIDE.md document for completeness:
+   - Confirm all environment variables are documented with their descriptions, default values, and configuration instructions
+   - Verify the step-by-step guide is clear and follows the .env.example template
+   - Check that all components of the application (frontend, backend, database) are covered
+
+2. Practical validation:
+   - Have a team member who is unfamiliar with the project follow the guide to set up their environment
+   - Time how long it takes and note any points of confusion
+   - Verify they can successfully run the application after following the guide
+
+3. Technical validation:
+   - Confirm all environment variables mentioned in the codebase are documented in the guide
+   - Verify default values match what's in the code
+   - Test that the application behaves as expected with the documented configuration options
+
+4. Integration testing:
+   - Ensure the guide works with the unified project startup script (Task #23)
+   - Verify consistency with the README.md (Task #22)
+
+5. Peer review:
+   - Have at least two developers review the guide for accuracy and completeness
+   - Incorporate feedback and make necessary revisions
+
+# Subtasks:
+## 1. Document Environment Variables by Component [done]
+### Dependencies: None
+### Description: Create the initial ENV_SETUP_GUIDE.md document and document all environment variables organized by component (frontend, backend, database, etc.).
+### Details:
+1. Create a new markdown file named `ENV_SETUP_GUIDE.md` in the project's documentation folder.
+2. Add an introduction explaining the purpose of the guide.
+3. Create sections for each component (frontend, backend, database, etc.).
+4. For each component, list all environment variables with their complete details:
+   - Name and description of what it controls
+   - Default value (if any)
+   - Required vs optional status
+   - Acceptable value formats and ranges
+   - Security considerations (for sensitive variables)
+5. Use tables or structured formatting to present the information clearly.
+6. Review the codebase thoroughly to ensure all environment variables are captured.
+
+## 2. Create Step-by-Step .env Setup Instructions [done]
+### Dependencies: None
+### Description: Develop a comprehensive step-by-step guide for setting up the .env file, including examples, troubleshooting tips, and environment-specific configurations.
+### Details:
+1. Add a new section titled 'Setting Up Your Environment Variables'.
+2. Provide clear instructions for copying .env.example to .env.
+3. Create a walkthrough explaining each variable that needs configuration.
+4. Include practical examples of properly configured values for different scenarios.
+5. Document common pitfalls and their solutions in a troubleshooting section.
+6. Create separate subsections for environment-specific configurations (development, testing, production).
+7. Use code blocks to show example configurations.
+8. Include warnings or notes for security-sensitive variables.
+
+## 3. Document Environment Variable Loading and Integration [done]
+### Dependencies: None
+### Description: Document how the application loads environment variables, validation tools, and ensure integration with existing documentation.
+### Details:
+1. Add a section explaining how the application loads environment variables.
+2. Document any fallback mechanisms or hierarchies used when variables are missing.
+3. Research and document any tools or commands that can validate the environment configuration.
+4. Create a section on validation and troubleshooting environment issues.
+5. Review the existing README.md (Task #22) and ensure consistency between documents.
+6. Add cross-references between the ENV_SETUP_GUIDE.md and README.md.
+7. Add a final review checklist for developers to verify their environment setup.
+8. Format the entire document for readability with appropriate headings, lists, and emphasis.
+

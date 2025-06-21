@@ -1,0 +1,120 @@
+# Task ID: 22
+# Title: Create Comprehensive README.md for MatchmakingService Project
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Create a detailed README.md file for the MatchmakingService project that documents all setup instructions, dependencies, environment configuration, and commands to run both frontend and backend components.
+# Details:
+The README.md should include the following sections:
+
+1. **Project Overview**:
+   - Brief description of the MatchmakingService project
+   - Architecture diagram (if available)
+   - Key features
+
+2. **Prerequisites**:
+   - Required software (PostgreSQL, Node.js, npm/yarn versions)
+   - System requirements
+   - Required accounts or access tokens
+
+3. **Installation**:
+   - Step-by-step clone and setup instructions
+   - Dependencies installation commands
+   - Troubleshooting common installation issues
+
+4. **Environment Configuration**:
+   - List of all required environment variables
+   - Sample .env file template
+   - Instructions for secure handling of sensitive variables
+
+5. **Database Setup**:
+   - PostgreSQL installation and configuration
+   - Database creation commands
+   - Schema initialization and migration instructions
+   - Seed data setup (if applicable)
+
+6. **Running the Application**:
+   - Backend startup commands
+   - Frontend startup commands
+   - Development mode vs production mode instructions
+   - Available npm/yarn scripts
+
+7. **API Documentation**:
+   - Brief overview of available endpoints
+   - Link to detailed API documentation (if available)
+
+8. **Testing**:
+   - Instructions for running tests
+   - Test coverage information
+
+9. **Deployment**:
+   - Basic deployment guidelines
+   - CI/CD integration notes (if applicable)
+
+10. **Contributing**:
+    - Guidelines for contributors
+    - Code style and PR process
+
+Use Markdown formatting effectively with proper headings, code blocks for commands, tables for environment variables, and emphasis where appropriate. Ensure all commands are accurate and tested before including them in the README.
+
+# Test Strategy:
+To verify the README.md is complete and accurate:
+
+1. **Content Verification**:
+   - Check that all required sections are present and properly formatted
+   - Verify all commands are accurate by having a team member follow them on a clean system
+   - Ensure all environment variables are documented with descriptions and example values
+   - Confirm database setup instructions work on a fresh PostgreSQL installation
+
+2. **Technical Accuracy**:
+   - Have a developer who wasn't involved in writing the README follow the instructions to set up the project from scratch
+   - Time how long it takes and note any points of confusion
+   - Verify that following only the README instructions results in a fully functional development environment
+
+3. **Readability Assessment**:
+   - Review the document for clarity, organization, and proper Markdown formatting
+   - Check that code blocks use appropriate syntax highlighting
+   - Ensure headings follow a logical hierarchy
+
+4. **Completeness Check**:
+   - Compare against other successful project READMEs to ensure no common sections are missing
+   - Verify all dependencies mentioned in package.json are documented
+   - Ensure all environment variables used in the codebase are documented
+
+5. **Maintenance Plan**:
+   - Establish a process for keeping the README updated as the project evolves
+   - Add a "Last Updated" section that should be modified whenever changes are made
+
+The README is considered complete when a new team member can successfully set up and run both the frontend and backend components without requiring additional assistance beyond what's documented.
+
+# Subtasks:
+## 1. Create Project Overview and Prerequisites Sections [done]
+### Dependencies: None
+### Description: Create the first two sections of the README.md file: Project Overview and Prerequisites.
+### Details:
+For the Project Overview section, write a concise description of the MatchmakingService project, include a placeholder for the architecture diagram, and list the key features of the application. For the Prerequisites section, document all required software with specific version requirements (PostgreSQL, Node.js, npm/yarn), system requirements, and any required accounts or access tokens. Use proper Markdown formatting with headers (## for sections, ### for subsections), bullet points for lists, and emphasis for important information.
+
+## 2. Develop Installation and Environment Configuration Sections [done]
+### Dependencies: 22.1
+### Description: Create the Installation and Environment Configuration sections of the README.md file.
+### Details:
+For the Installation section, provide detailed step-by-step clone and setup instructions, including all commands needed to install dependencies. Include troubleshooting tips for common installation issues. For the Environment Configuration section, list all required environment variables with descriptions, create a sample .env template (with placeholder values, not real credentials), and provide instructions for secure handling of sensitive variables. Use code blocks for commands and file contents using triple backticks, and create a table for environment variables showing variable name, purpose, and example value.
+
+## 3. Document Database Setup and Running the Application [done]
+### Dependencies: 22.2
+### Description: Create the Database Setup and Running the Application sections of the README.md.
+### Details:
+For the Database Setup section, provide PostgreSQL installation instructions or links to official guides, include all commands for database creation, schema initialization, and migration execution. Document seed data setup if applicable. For the Running the Application section, document all commands to start both backend and frontend components, clearly distinguish between development and production modes, and list all available npm/yarn scripts with their purposes. Use code blocks for all commands and organize information in a logical sequence that a new developer would follow.
+
+## 4. Create API Documentation and Testing Sections [pending]
+### Dependencies: 22.3
+### Description: Develop the API Documentation and Testing sections of the README.md file.
+### Details:
+For the API Documentation section, provide a brief overview of available endpoints organized by resource or functionality. Include HTTP methods, URL patterns, and purpose for each endpoint. Add a link to more detailed API documentation if available. For the Testing section, document all commands to run tests (unit, integration, e2e), explain how to interpret test results, and provide information about test coverage. Use tables or lists to organize API endpoint information and code blocks for test commands.
+
+## 5. Complete Deployment and Contributing Sections and Finalize README [pending]
+### Dependencies: 22.4
+### Description: Create the Deployment and Contributing sections, then review and finalize the entire README.md file.
+### Details:
+For the Deployment section, document basic deployment guidelines including environment preparation, build processes, and deployment commands. Include notes on CI/CD integration if applicable. For the Contributing section, establish guidelines for contributors including code style requirements, branch naming conventions, and the PR review process. After completing these sections, review the entire README.md for consistency, accuracy, and completeness. Ensure proper Markdown formatting throughout, check that all links work, and verify that the document flows logically. Add a table of contents at the beginning that links to each section.
+

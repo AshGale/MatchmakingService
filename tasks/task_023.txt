@@ -1,0 +1,109 @@
+# Task ID: 23
+# Title: Task #23: Create Unified Project Startup Script
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Develop a single command startup script that initializes all project components (database, backend, frontend) while checking for prerequisites and handling initialization steps automatically.
+# Details:
+The unified startup script should:
+
+1. Be created as a shell script (e.g., `start.sh` for Unix/Linux/macOS) and a batch file (e.g., `start.bat` for Windows) to ensure cross-platform compatibility.
+
+2. Check for prerequisites:
+   - Verify PostgreSQL is installed and running (use `pg_isready` or similar command)
+   - Check for Node.js and npm/yarn with minimum version requirements
+   - Verify all required environment variables are set
+
+3. Database initialization:
+   - Check if the database exists, create it if not
+   - Run migrations if needed
+   - Seed initial data if the database is newly created
+
+4. Backend server:
+   - Install dependencies if node_modules is missing or outdated
+   - Build the backend if needed
+   - Start the backend server with proper environment configuration
+
+5. Frontend application:
+   - Install dependencies if node_modules is missing or outdated
+   - Build the frontend if in production mode
+   - Start the development server if in development mode
+
+6. Implement proper error handling with informative messages
+   - Display clear error messages for missing prerequisites
+   - Provide guidance on how to resolve common issues
+
+7. Include a help option (-h or --help) that displays usage information
+
+8. Add configuration options:
+   - Environment selection (dev, test, prod)
+   - Component selection (--db-only, --backend-only, --frontend-only)
+   - Verbose mode for detailed logging
+
+9. Implement proper process management to ensure clean shutdown of all components when the script is terminated.
+
+# Test Strategy:
+Testing should verify that the script works correctly across different environments and scenarios:
+
+1. Test on multiple operating systems:
+   - Test on Linux, macOS, and Windows to ensure cross-platform compatibility
+   - Verify that the appropriate script (shell or batch) works correctly on each platform
+
+2. Test prerequisite checking:
+   - Test with PostgreSQL stopped to verify proper error handling
+   - Test with missing Node.js to verify proper error detection
+   - Test with missing environment variables to verify proper guidance
+
+3. Test database initialization:
+   - Test with existing database to verify it doesn't recreate or corrupt data
+   - Test with missing database to verify proper creation and seeding
+   - Test with outdated schema to verify migrations run correctly
+
+4. Test component startup:
+   - Verify all components (database, backend, frontend) start in the correct order
+   - Verify proper dependency installation when node_modules is missing
+   - Test build processes for both backend and frontend
+
+5. Test error scenarios:
+   - Verify helpful error messages when ports are already in use
+   - Test behavior when one component fails to start
+   - Verify proper cleanup when script is terminated
+
+6. Test configuration options:
+   - Verify environment selection works correctly
+   - Test component selection options to start only specific parts
+   - Verify verbose mode provides detailed logging
+
+7. Integration testing:
+   - Verify end-to-end functionality by accessing the frontend and confirming it can communicate with the backend
+   - Verify backend can properly connect to and query the database
+
+8. Documentation testing:
+   - Verify help option displays comprehensive usage information
+   - Ensure README.md is updated with instructions for using the script
+
+# Subtasks:
+## 1. Create prerequisite checking functions [done]
+### Dependencies: None
+### Description: Develop functions to verify all required prerequisites before starting project components
+### Details:
+Create shell/batch functions that: 1) Check PostgreSQL installation and running status using pg_isready, 2) Verify Node.js and npm/yarn installations with version validation, 3) Validate all required environment variables, 4) Implement a unified error reporting mechanism that provides clear guidance on resolving missing prerequisites. Each check should return a status code and descriptive message. Include a main verification function that runs all checks sequentially and exits with appropriate error codes if prerequisites aren't met.
+
+## 2. Implement database initialization module [done]
+### Dependencies: 23.1
+### Description: Create functions to handle database existence checking, creation, migrations, and data seeding
+### Details:
+Develop shell/batch functions that: 1) Check if the database exists using psql commands, 2) Create the database if it doesn't exist, 3) Run database migrations using the project's migration tool, 4) Seed initial data only for newly created databases. Include proper error handling and status reporting. The module should be able to run independently with a --db-only flag and should respect the selected environment (dev/test/prod).
+
+## 3. Develop backend and frontend initialization modules [done]
+### Dependencies: 23.1
+### Description: Create functions to handle dependency installation, building, and starting of backend and frontend components
+### Details:
+Implement shell/batch functions that: 1) Check if node_modules exists and is up-to-date for both backend and frontend, 2) Install dependencies if needed using npm/yarn, 3) Build components if required (always for production, conditionally for development), 4) Start servers with proper environment configurations. Each component should be startable independently with --backend-only or --frontend-only flags. Include proper error handling and dependency validation.
+
+## 4. Create main script with process management and CLI options [done]
+### Dependencies: 23.2, 23.3
+### Description: Develop the main script that integrates all modules, handles CLI arguments, and manages process lifecycle
+### Details:
+Create the main shell script (start.sh) and batch file (start.bat) that: 1) Parse command-line arguments for environment selection, component selection, verbose mode, and help, 2) Display usage information with the --help flag, 3) Call the appropriate initialization modules based on arguments, 4) Implement proper process management to ensure all started components are terminated cleanly on script exit, 5) Set up logging with different verbosity levels. The script should use the modules created in previous subtasks and coordinate their execution in the correct order.
+

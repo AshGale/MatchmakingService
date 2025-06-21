@@ -6,6 +6,8 @@
  * 
  * This class implements validation logic and serves as an abstraction layer between
  * the API routes and the database operations.
+ * 
+ * All operations use PostgreSQL database for persistent data storage.
  */
 
 const {
@@ -13,10 +15,14 @@ const {
   addPlayerToLobby,
   updateLobbyStatus,
   getLobbyDetails,
-  getLobbiesByStatus
+  getLobbiesByStatus,
+  removePlayerFromLobby
 } = require('../utils/database/operations');
 
 const { ValidationError } = require('../middleware/error.middleware');
+const { DatabaseError, withRetry } = require('../utils/database/errors');
+const { checkDatabaseStatus } = require('../utils/database/pool');
+const dbConfig = require('../config/database');
 
 /**
  * LobbyManager class responsible for managing player lobbies
@@ -35,7 +41,8 @@ class LobbyManager {
       addPlayerToLobby,
       updateLobbyStatus,
       getLobbyDetails,
-      getLobbiesByStatus
+      getLobbiesByStatus,
+      removePlayerFromLobby
     };
     
     // Valid lobby status transitions
@@ -43,6 +50,20 @@ class LobbyManager {
       'waiting': ['active'],
       'active': ['finished']
     };
+    
+    // Database connection status (initialized in checkConnectionStatus)
+    this.dbStatus = null;
+    
+    // Check database connection immediately upon initialization
+    this.checkConnectionStatus();
+    
+    // Set up periodic connection monitoring if enabled
+    if (options.monitorConnection !== false) {
+      this.connectionMonitorInterval = setInterval(
+        () => this.checkConnectionStatus(),
+        options.monitorIntervalMs || 60000 // Default: check every minute
+      );
+    }
   }
 
   /**
@@ -66,16 +87,37 @@ class LobbyManager {
       });
     }
     
-    // Create the lobby
-    const lobbyId = await this.dbOps.createLobby(maxPlayers, options);
-    
-    // If a player ID is provided, add them to the lobby
-    if (playerId) {
-      await this.dbOps.addPlayerToLobby(lobbyId, playerId, options);
+    try {
+      // Create the lobby with retry capability for better resilience
+      const lobbyId = await withRetry(async () => {
+        return await this.dbOps.createLobby(maxPlayers, options);
+      }, {
+        maxRetries: 3,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
+      });
+      
+      // If a player ID is provided, add them to the lobby
+      if (playerId) {
+        await withRetry(async () => {
+          return await this.dbOps.addPlayerToLobby(lobbyId, playerId, options);
+        }, {
+          maxRetries: 2,
+          shouldRetry: (err) => err instanceof DatabaseError && err.retryable
+        });
+      }
+      
+      // Return the newly created lobby details
+      return this.getLobbyInfo(lobbyId, options);
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw new ValidationError(`Database error while creating lobby: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
+          details: { maxPlayers }
+        });
+      }
+      throw error;
     }
-    
-    // Return the newly created lobby details
-    return this.getLobbyInfo(lobbyId, options);
   }
   
   /**
@@ -103,38 +145,59 @@ class LobbyManager {
       });
     }
     
-    // Get lobby details first to check if it can be joined
-    const lobby = await this.getLobbyInfo(lobbyId, options);
-    
-    // Check if lobby is in waiting state
-    if (lobby.status !== 'waiting') {
-      throw new ValidationError(`Cannot join lobby in '${lobby.status}' state`, {
-        code: 'INVALID_STATE',
-        details: { lobbyId, status: lobby.status }
+    try {
+      // Get lobby details first to check if it can be joined
+      const lobby = await withRetry(async () => {
+        return await this.getLobbyInfo(lobbyId, options);
+      }, {
+        maxRetries: 2,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
       });
-    }
-    
-    // Check if lobby is at capacity
-    if (lobby.player_count >= lobby.max_players) {
-      throw new ValidationError('Lobby is at capacity', {
-        code: 'LOBBY_FULL',
-        details: { lobbyId, playerCount: lobby.player_count, maxPlayers: lobby.max_players }
+      
+      // Check if lobby is in waiting state
+      if (lobby.status !== 'waiting') {
+        throw new ValidationError(`Cannot join lobby in '${lobby.status}' state`, {
+          code: 'INVALID_STATE',
+          details: { lobbyId, status: lobby.status }
+        });
+      }
+      
+      // Check if lobby is at capacity
+      if (lobby.player_count >= lobby.max_players) {
+        throw new ValidationError('Lobby is at capacity', {
+          code: 'LOBBY_FULL',
+          details: { lobbyId, playerCount: lobby.player_count, maxPlayers: lobby.max_players }
+        });
+      }
+      
+      // Check if player is already in the lobby
+      if (lobby.players && lobby.players.some(player => player.session_id === playerId)) {
+        throw new ValidationError('Player is already in the lobby', {
+          code: 'PLAYER_EXISTS',
+          details: { lobbyId, playerId }
+        });
+      }
+      
+      // Add player to the lobby with retry capability
+      await withRetry(async () => {
+        return await this.dbOps.addPlayerToLobby(lobbyId, playerId, options);
+      }, {
+        maxRetries: 3,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
       });
+      
+      // Return updated lobby info
+      return this.getLobbyInfo(lobbyId, options);
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw new ValidationError(`Database error while joining lobby: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
+          details: { lobbyId, playerId }
+        });
+      }
+      throw error;
     }
-    
-    // Check if player is already in the lobby
-    if (lobby.players && lobby.players.some(player => player.session_id === playerId)) {
-      throw new ValidationError('Player is already in the lobby', {
-        code: 'PLAYER_EXISTS',
-        details: { lobbyId, playerId }
-      });
-    }
-    
-    // Add the player to the lobby
-    await this.dbOps.addPlayerToLobby(lobbyId, playerId, options);
-    
-    // Return updated lobby info
-    return this.getLobbyInfo(lobbyId, options);
   }
   
   /**
@@ -147,6 +210,7 @@ class LobbyManager {
    * @throws {ValidationError} - If validation fails
    */
   async leaveLobby(playerId, lobbyId, options = {}) {
+    // Validate inputs
     if (!playerId) {
       throw new ValidationError('Player ID is required', {
         code: 'INVALID_INPUT',
@@ -162,8 +226,13 @@ class LobbyManager {
     }
     
     try {
-      // Remove player from the lobby
-      const removed = await this.dbOps.removePlayerFromLobby(lobbyId, playerId, options);
+      // Use withRetry for better resiliency for transient errors
+      const removed = await withRetry(async () => {
+        return await this.dbOps.removePlayerFromLobby(lobbyId, playerId, options);
+      }, { 
+        maxRetries: 3,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
+      });
       
       if (!removed) {
         throw new ValidationError('Failed to remove player from lobby', {
@@ -176,9 +245,17 @@ class LobbyManager {
       return this.getLobbyInfo(lobbyId, options);
     } catch (error) {
       // Handle database errors and convert to validation errors
-      if (error.code === 'NOT_FOUND') {
-        throw new ValidationError(error.message, {
-          code: 'NOT_FOUND',
+      if (error instanceof DatabaseError) {
+        if (error.code === 'DB_NOT_FOUND' || error.code === 'NOT_FOUND') {
+          throw new ValidationError(error.message || 'Lobby or player not found', {
+            code: 'NOT_FOUND',
+            details: { lobbyId, playerId }
+          });
+        }
+        
+        throw new ValidationError(`Database error: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
           details: { lobbyId, playerId }
         });
       }
@@ -212,7 +289,30 @@ class LobbyManager {
       });
     }
     
-    return this.dbOps.getLobbyDetails(lobbyId, options);
+    try {
+      return await withRetry(async () => {
+        return await this.dbOps.getLobbyDetails(lobbyId, options);
+      }, {
+        maxRetries: 3,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
+      });
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        if (error.code === 'DB_NOT_FOUND' || error.code === 'NOT_FOUND') {
+          throw new ValidationError(`Lobby not found: ${lobbyId}`, {
+            code: 'NOT_FOUND',
+            details: { lobbyId }
+          });
+        }
+        
+        throw new ValidationError(`Database error retrieving lobby: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
+          details: { lobbyId }
+        });
+      }
+      throw error;
+    }
   }
   
   /**
@@ -225,7 +325,23 @@ class LobbyManager {
    * @returns {Promise<Array>} - List of lobbies
    */
   async getLobbiesByStatus(status, options = {}) {
-    return this.dbOps.getLobbiesByStatus(status, options);
+    try {
+      return await withRetry(async () => {
+        return await this.dbOps.getLobbiesByStatus(status, options);
+      }, {
+        maxRetries: 2,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
+      });
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw new ValidationError(`Database error retrieving lobbies: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
+          details: { status, options }
+        });
+      }
+      throw error;
+    }
   }
   
   /**
@@ -238,30 +354,46 @@ class LobbyManager {
    * @throws {ValidationError} - If status transition is invalid
    */
   async updateLobbyStatus(lobbyId, newStatus, options = {}) {
-    // Get current lobby info to check status
-    const lobby = await this.getLobbyInfo(lobbyId, options);
-    
-    // Validate status transition
-    const currentStatus = lobby.status;
-    if (!this._isValidStatusTransition(currentStatus, newStatus)) {
-      throw new ValidationError(`Invalid status transition from ${currentStatus} to ${newStatus}`, {
-        code: 'INVALID_TRANSITION',
-        details: { lobbyId, currentStatus, newStatus }
+    try {
+      // Get current lobby info to check status
+      const lobby = await this.getLobbyInfo(lobbyId, options);
+      
+      // Validate status transition
+      const currentStatus = lobby.status;
+      if (!this._isValidStatusTransition(currentStatus, newStatus)) {
+        throw new ValidationError(`Invalid status transition from ${currentStatus} to ${newStatus}`, {
+          code: 'INVALID_TRANSITION',
+          details: { lobbyId, currentStatus, newStatus }
+        });
+      }
+      
+      // Update the status with retry capability
+      const success = await withRetry(async () => {
+        return await this.dbOps.updateLobbyStatus(lobbyId, newStatus, options);
+      }, {
+        maxRetries: 3,
+        shouldRetry: (err) => err instanceof DatabaseError && err.retryable
       });
+      
+      if (!success) {
+        throw new ValidationError('Failed to update lobby status', {
+          code: 'UPDATE_FAILED',
+          details: { lobbyId, newStatus }
+        });
+      }
+      
+      // Return updated lobby info
+      return this.getLobbyInfo(lobbyId, options);
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw new ValidationError(`Database error updating lobby status: ${error.message}`, {
+          code: 'DB_ERROR',
+          cause: error,
+          details: { lobbyId, newStatus }
+        });
+      }
+      throw error;
     }
-    
-    // Update the status
-    const success = await this.dbOps.updateLobbyStatus(lobbyId, newStatus, options);
-    
-    if (!success) {
-      throw new ValidationError('Failed to update lobby status', {
-        code: 'UPDATE_FAILED',
-        details: { lobbyId, newStatus }
-      });
-    }
-    
-    // Return updated lobby info
-    return this.getLobbyInfo(lobbyId, options);
   }
   
   /**
@@ -283,5 +415,10 @@ class LobbyManager {
     return allowedTransitions && allowedTransitions.includes(newStatus);
   }
 }
+
+// Cleanup resources when the object is destroyed
+LobbyManager.prototype.dispose = function() {
+  this.stopConnectionMonitoring();
+};
 
 module.exports = LobbyManager;

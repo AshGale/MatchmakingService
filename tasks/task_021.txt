@@ -1,0 +1,55 @@
+# Task ID: 21
+# Title: Create TypeScript Declarations for CSS Modules
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Create a declaration file (src/types/css.d.ts) that properly defines TypeScript type definitions for CSS modules to prevent import errors when using CSS and CSS module files in the project.
+# Details:
+This task involves creating a TypeScript declaration file to properly handle CSS module imports:
+
+1. Create a new directory `src/types` if it doesn't already exist
+2. Create a new file `src/types/css.d.ts` with the following content:
+   ```typescript
+   declare module '*.css' {
+     const classes: { [key: string]: string };
+     export default classes;
+   }
+   
+   declare module '*.module.css' {
+     const classes: { [key: string]: string };
+     export default classes;
+   }
+   ```
+3. This declaration tells TypeScript that when importing a CSS file, it should expect an object with string keys and string values, which represents the CSS class names.
+4. Ensure the declaration file is included in the TypeScript compilation by verifying it's within the `include` paths in `tsconfig.json`.
+5. If needed, update the `tsconfig.json` file to include the new types directory:
+   ```json
+   {
+     "include": ["src/**/*", "src/types/*.d.ts"]
+   }
+   ```
+6. Document this approach in the project documentation so other developers understand how CSS modules are typed in the project.
+
+Consider also adding declarations for other style formats if used in the project (e.g., *.scss, *.sass, *.less).
+
+# Test Strategy:
+To verify this task has been completed successfully:
+
+1. **Static verification**:
+   - Confirm the `src/types/css.d.ts` file exists with the correct content
+   - Verify the file is properly included in the TypeScript compilation path
+
+2. **Functional testing**:
+   - Create a test component that imports a CSS module: `import styles from './TestComponent.module.css'`
+   - Verify that TypeScript doesn't show any import errors in the IDE
+   - Verify that the component can access class names via the imported object: `className={styles.container}`
+   - Run TypeScript compilation (`tsc --noEmit`) and confirm no errors are reported
+
+3. **Integration testing**:
+   - Import and use the test component in an existing page/component
+   - Verify that the application builds successfully without TypeScript errors
+   - Verify that the styles are correctly applied when the application runs
+
+4. **Documentation check**:
+   - Ensure the approach is documented in the project's README or developer documentation
+   - Add a comment at the top of the css.d.ts file explaining its purpose for future developers
