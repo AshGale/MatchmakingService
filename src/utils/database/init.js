@@ -5,8 +5,9 @@
  * and falling back to in-memory storage if database connection fails.
  */
 
-const { Pool } = require('pg');
-const fs = require('fs').promises;
+const { Pool, Client } = require('pg');
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 const dbConfig = require('../../config/database');
 const { logger } = require('../../middleware/logging.middleware');
@@ -25,6 +26,8 @@ const inMemoryStorage = {
  * Initialize the database and schema
  * @returns {Promise<boolean>} True if database is ready, false if using in-memory storage
  */
+// testDatabaseConnection is defined at the end of this file
+
 const initializeDatabase = async () => {
   // If in-memory mode is explicitly enabled, don't try to connect to the database
   if (dbConfig.isUsingInMemoryStorage()) {
@@ -112,12 +115,16 @@ const initializeDatabase = async () => {
   } catch (err) {
     logger.error('Failed to initialize database:', err);
     
-    if (dbConfig.enableInMemoryFallback) {
+    // Check if in-memory fallback is enabled in configuration
+    if (dbConfig.fallbackToMemory) {
       logger.warn('Falling back to in-memory storage');
-      dbConfig.setUseInMemoryStorage(true);
+      enableInMemoryStorage();
       return false;
     } else {
-      throw new Error('Database initialization failed and in-memory fallback is disabled');
+      logger.error('In-memory fallback is disabled. Database connection is required.');
+      logger.error('Please check your PostgreSQL installation and connection settings in .env file.');
+      logger.error(`Connection attempted to: ${dbConfig.host}:${dbConfig.port} as ${dbConfig.user}`);
+      throw new Error('Database initialization failed and in-memory fallback is disabled. See logs for details.');
     }
   }
 };  
@@ -192,12 +199,36 @@ const applyDatabaseSchema = async () => {
  * @returns {Promise<void>}
  */
 const testDatabaseConnection = async () => {
-  const client = new Client(dbConfig);
+  logger.info(`Attempting to connect to database '${dbConfig.database}' at ${dbConfig.host}:${dbConfig.port}...`);
+  
+  const client = new Client({
+    host: dbConfig.host,
+    port: dbConfig.port,
+    database: dbConfig.database,
+    user: dbConfig.user,
+    password: dbConfig.password,
+    ssl: dbConfig.ssl,
+    connectionTimeoutMillis: 10000
+  });
+  
   try {
     await client.connect();
-    await client.query('SELECT 1');
+    logger.info('Database connection established successfully');
+    await client.query('SELECT 1 AS connection_test');
+    logger.info('Database query executed successfully');
+    return true;
+  } catch (err) {
+    logger.error(`Database connection failed: ${err.message}`);
+    // Show more details about connection parameters (without password)
+    logger.debug(`Connection details: host=${dbConfig.host}, port=${dbConfig.port}, database=${dbConfig.database}, user=${dbConfig.user}`);
+    throw new DatabaseError(`Failed to connect to database: ${err.message}`);
   } finally {
-    await client.end();
+    try {
+      await client.end();
+    } catch (endErr) {
+      // Don't throw on end errors
+      logger.warn(`Warning: Error ending database connection: ${endErr.message}`);
+    }
   }
 };
 

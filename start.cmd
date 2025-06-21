@@ -1,5 +1,6 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
+set PID=0
 
 echo ===== MatchmakingService Unified Startup =====
 
@@ -219,23 +220,25 @@ if not exist node_modules (
 )
 
 :: Check if port is available
-netstat -ano | findstr ":%PORT%" >nul
-if %ERRORLEVEL%==0 (
+netstat -ano | findstr :%PORT% >nul 2>nul
+if %ERRORLEVEL% equ 0 (
     echo Warning: Port %PORT% is already in use
     
     :: Ask user whether to kill the process or try alternate port
     choice /c KA /n /m "Do you want to [K]ill the process or try [A]lternate port? "
-    if %ERRORLEVEL%==1 (
-        :: Get PID of the process using the port
-        for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%" ^| findstr "LISTENING"') do (
+    
+    if !ERRORLEVEL! equ 1 (
+        :: Kill the process
+        for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%PORT% ^| findstr "LISTENING"') do (
             set PID=%%a
+        )
+        
+        if !PID! neq 0 (
             echo Found process with PID: !PID!
-            
-            :: Kill the process
             echo Attempting to kill process on port %PORT% (PID: !PID!)...
-            taskkill /F /PID !PID!
+            taskkill /F /PID !PID! >nul 2>nul
             
-            if !ERRORLEVEL!==0 (
+            if !ERRORLEVEL! equ 0 (
                 echo Successfully killed process
                 timeout /t 1 /nobreak >nul
             ) else (
@@ -243,16 +246,19 @@ if %ERRORLEVEL%==0 (
                 echo Trying alternate port %ALT_PORT%...
                 set PORT=%ALT_PORT%
             )
+        ) else (
+            echo Could not find process ID. Trying alternate port %ALT_PORT%...
+            set PORT=%ALT_PORT%
         )
     ) else (
         echo Trying alternate port %ALT_PORT%...
         set PORT=%ALT_PORT%
     )
     
-    :: Check if alternate port is also in use (in case we switched)
+    :: Check if alternate port is also in use
     if "%PORT%"=="%ALT_PORT%" (
-        netstat -ano | findstr ":%PORT%" >nul
-        if %ERRORLEVEL%==0 (
+        netstat -ano | findstr :%PORT% >nul 2>nul
+        if %ERRORLEVEL% equ 0 (
             echo Error: Both ports %PORT% and %ALT_PORT% are in use
             echo Please specify a different port using the --port option
             exit /b 1

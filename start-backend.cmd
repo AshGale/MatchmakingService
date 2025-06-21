@@ -1,13 +1,14 @@
 @echo off
-setlocal enabledelayedexpansion
-
 echo ===== MatchmakingService Backend Startup =====
+echo Starting debug mode
+setlocal EnableDelayedExpansion
 
 :: Default settings
 set ENV=dev
 set PORT=3000
 set ALT_PORT=3001
 set VERBOSE=false
+set PID=0
 
 :: Parse command line arguments
 :parse_args
@@ -49,7 +50,7 @@ echo Checking backend prerequisites...
 
 :: Check for Node.js
 where node >nul 2>nul
-if not %ERRORLEVEL%==0 (
+if %ERRORLEVEL% neq 0 (
     echo Error: Node.js is not installed or not in PATH
     echo Please install Node.js from https://nodejs.org/
     exit /b 1
@@ -57,7 +58,7 @@ if not %ERRORLEVEL%==0 (
 
 :: Check for npm
 where npm >nul 2>nul
-if not %ERRORLEVEL%==0 (
+if %ERRORLEVEL% neq 0 (
     echo Error: npm is not installed or not in PATH
     exit /b 1
 )
@@ -80,53 +81,46 @@ if not exist .env (
 if not exist node_modules (
     echo Installing backend dependencies...
     call npm install
-    if not %ERRORLEVEL%==0 (
+    if %ERRORLEVEL% neq 0 (
         echo Error: Failed to install backend dependencies
         exit /b 1
     )
 )
 
-:: Check if port is available
+echo Checking if port is available...
+
+:: Simple port check
 netstat -ano | findstr ":%PORT%" >nul
-if %ERRORLEVEL%==0 (
+if %ERRORLEVEL% equ 0 (
     echo Warning: Port %PORT% is already in use
     
-    :: Ask user whether to kill the process or try alternate port
-    choice /c KA /n /m "Do you want to [K]ill the process or try [A]lternate port? "
-    if %ERRORLEVEL%==1 (
-        :: Get PID of the process using the port
-        for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%" ^| findstr "LISTENING"') do (
+    echo Press K to kill the process or A to try alternate port
+    choice /c KA /n /m "Choice (K/A): "
+    
+    if %ERRORLEVEL% equ 1 (
+        echo Attempting to kill process...
+        for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%"') do (
             set PID=%%a
             echo Found process with PID: !PID!
-            
-            :: Kill the process
-            echo Attempting to kill process on port %PORT% (PID: !PID!)...
             taskkill /F /PID !PID!
-            
-            if !ERRORLEVEL!==0 (
-                echo Successfully killed process
-                timeout /t 1 /nobreak >nul
-            ) else (
-                echo Failed to kill process. You may need administrative privileges.
-                echo Trying alternate port %ALT_PORT%...
-                set PORT=%ALT_PORT%
-            )
+            goto :port_check_done
         )
     ) else (
-        echo Trying alternate port %ALT_PORT%...
+        echo Will try alternate port...
         set PORT=%ALT_PORT%
-    )
-    
-    :: Check if alternate port is also in use (in case we switched)
-    if "%PORT%"=="%ALT_PORT%" (
+        
+        echo Checking if alternate port is available...
         netstat -ano | findstr ":%PORT%" >nul
-        if %ERRORLEVEL%==0 (
+        if %ERRORLEVEL% equ 0 (
             echo Error: Both ports %PORT% and %ALT_PORT% are in use
             echo Please specify a different port using the --port option
             exit /b 1
         )
     )
 )
+
+:port_check_done
+echo Port check completed successfully
 
 :: Update PORT environment variable
 setx PORT %PORT% >nul
