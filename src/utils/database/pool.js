@@ -7,18 +7,19 @@
  */
 
 const { Pool } = require('pg');
+const dbConfig = require('../../config/database');
 
 /**
  * Default pool configuration
  */
 const DEFAULT_CONFIG = {
   // Connection pool size limits
-  min: 5,                       // Minimum pool size
-  max: 20,                      // Maximum pool size
+  min: dbConfig.pool.min,                      // Minimum pool size
+  max: dbConfig.pool.max,                      // Maximum pool size
   
   // Connection timeout settings
-  connectionTimeoutMillis: 5000, // 5 seconds
-  idleTimeoutMillis: 60000,      // 60 seconds
+  connectionTimeoutMillis: dbConfig.pool.connectionTimeoutMillis, // Default: 5 seconds
+  idleTimeoutMillis: dbConfig.pool.idleTimeoutMillis,      // Default: 60 seconds
   
   // Connection validation
   allowExitOnIdle: false,
@@ -27,9 +28,7 @@ const DEFAULT_CONFIG = {
   connectionString: process.env.DATABASE_URL,
   
   // SSL configuration for production environments
-  ssl: process.env.NODE_ENV === 'production' ? 
-    { rejectUnauthorized: false } : 
-    undefined
+  ssl: dbConfig.ssl
 };
 
 /**
@@ -39,15 +38,15 @@ const DEFAULT_CONFIG = {
 const pool = new Pool({
   ...DEFAULT_CONFIG,
   
-  // Override with environment variables if provided
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  // Connection parameters from database config
+  host: dbConfig.host,
+  port: dbConfig.port,
+  database: dbConfig.database,
+  user: dbConfig.user,
+  password: dbConfig.password,
   
   // Log connection events in development
-  log: process.env.NODE_ENV !== 'production' ? 
+  log: dbConfig.monitoringEnabled ? 
     (...messages) => console.log('[DB Pool]', ...messages) : 
     () => {}
 });
@@ -129,9 +128,45 @@ async function closePool() {
   }
 }
 
+/**
+ * Check the status of the database connection
+ * @returns {Promise<Object>} Status information about the database connection
+ */
+async function checkDatabaseStatus() {
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query('SELECT 1 as connection_test');
+    return {
+      status: 'connected',
+      timestamp: new Date().toISOString(),
+      poolSize: {
+        total: pool.totalCount,
+        idle: pool.idleCount,
+        waiting: pool.waitingCount
+      },
+      database: dbConfig.database,
+      host: dbConfig.host,
+      port: dbConfig.port
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+      database: dbConfig.database,
+      host: dbConfig.host,
+      port: dbConfig.port
+    };
+  } finally {
+    if (client) client.release();
+  }
+}
+
 module.exports = {
   pool,
   getConnection,
   closePool,
-  DEFAULT_CONFIG
+  DEFAULT_CONFIG,
+  checkDatabaseStatus
 };

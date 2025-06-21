@@ -36,7 +36,10 @@ const schemas = {
   // POST /api/lobbies
   createLobby: {
     body: Joi.object({
-      max_players: Joi.number().integer().min(2).max(4).required()
+      playerId: Joi.string().optional(),
+      settings: Joi.object({
+        maxPlayers: Joi.number().integer().min(2).max(4).required()
+      }).required()
     })
   },
   

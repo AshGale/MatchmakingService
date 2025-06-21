@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 echo ===== MatchmakingService Backend Startup =====
 
@@ -90,15 +90,41 @@ if not exist node_modules (
 netstat -ano | findstr ":%PORT%" >nul
 if %ERRORLEVEL%==0 (
     echo Warning: Port %PORT% is already in use
-    echo Trying alternate port %ALT_PORT%...
-    set PORT=%ALT_PORT%
     
-    :: Check if alternate port is also in use
-    netstat -ano | findstr ":%PORT%" >nul
-    if %ERRORLEVEL%==0 (
-        echo Error: Both ports %PORT% and %ALT_PORT% are in use
-        echo Please specify a different port using the --port option
-        exit /b 1
+    :: Ask user whether to kill the process or try alternate port
+    choice /c KA /n /m "Do you want to [K]ill the process or try [A]lternate port? "
+    if %ERRORLEVEL%==1 (
+        :: Get PID of the process using the port
+        for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%PORT%" ^| findstr "LISTENING"') do (
+            set PID=%%a
+            echo Found process with PID: !PID!
+            
+            :: Kill the process
+            echo Attempting to kill process on port %PORT% (PID: !PID!)...
+            taskkill /F /PID !PID!
+            
+            if !ERRORLEVEL!==0 (
+                echo Successfully killed process
+                timeout /t 1 /nobreak >nul
+            ) else (
+                echo Failed to kill process. You may need administrative privileges.
+                echo Trying alternate port %ALT_PORT%...
+                set PORT=%ALT_PORT%
+            )
+        )
+    ) else (
+        echo Trying alternate port %ALT_PORT%...
+        set PORT=%ALT_PORT%
+    )
+    
+    :: Check if alternate port is also in use (in case we switched)
+    if "%PORT%"=="%ALT_PORT%" (
+        netstat -ano | findstr ":%PORT%" >nul
+        if %ERRORLEVEL%==0 (
+            echo Error: Both ports %PORT% and %ALT_PORT% are in use
+            echo Please specify a different port using the --port option
+            exit /b 1
+        )
     )
 )
 

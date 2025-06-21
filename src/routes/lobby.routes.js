@@ -1,9 +1,10 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
 const { validators } = require('../middleware/validation.middleware');
 const { ValidationError, NotFoundError, ConflictError } = require('../middleware/error.middleware');
+const LobbyManager = require('../business/lobby-manager');
 
 const router = express.Router();
+const lobbyManager = new LobbyManager();
 
 /**
  * @api {post} /api/lobbies Create a new lobby
@@ -20,20 +21,14 @@ const router = express.Router();
  *
  * @apiError {Object} error Error message and details
  */
-router.post('/', validators.createLobby, (req, res, next) => {
+router.post('/', validators.createLobby, async (req, res, next) => {
   try {
-    const { max_players } = req.body;
-
-    // Generate a random UUID for lobby_id
-    const lobby_id = uuidv4();
-
-    // Return mock response
-    res.status(201).json({
-      lobby_id,
-      status: 'waiting',
-      player_count: 0,
-      max_players
-    });
+    const { playerId, settings } = req.body;
+    
+    // Create lobby using LobbyManager
+    const lobby = await lobbyManager.createLobby(playerId, settings);
+    
+    res.status(201).json(lobby);
   } catch (error) {
     next(error); // Forward to error handling middleware
   }
@@ -52,36 +47,18 @@ router.post('/', validators.createLobby, (req, res, next) => {
  *
  * @apiError {Object} error Error message and details
  */
-router.get('/', validators.getLobbies, (req, res, next) => {
+router.get('/', validators.getLobbies, async (req, res, next) => {
   try {
-    // Mock implementation returning sample lobby objects
-    const mockLobbies = [
-      {
-        lobby_id: uuidv4(),
-        status: 'waiting',
-        player_count: 1,
-        max_players: 4,
-        created_at: new Date().toISOString()
-      },
-      {
-        lobby_id: uuidv4(),
-        status: 'waiting',
-        player_count: 2,
-        max_players: 2,
-        created_at: new Date(Date.now() - 300000).toISOString() // 5 minutes ago
-      }
-    ];
-
-    // Filter by status if provided
     const { status } = req.query;
-    const filteredLobbies = status 
-      ? mockLobbies.filter(lobby => lobby.status === status)
-      : mockLobbies;
-
+    
+    // Get lobbies from the database through LobbyManager
+    const lobbies = await lobbyManager.getLobbiesByStatus(status);
+    
     res.json({
-      lobbies: filteredLobbies,
-      total_count: filteredLobbies.length
+      lobbies,
+      total_count: lobbies.length
     });
+    
   } catch (error) {
     next(error);
   }
@@ -100,40 +77,18 @@ router.get('/', validators.getLobbies, (req, res, next) => {
  *
  * @apiError {Object} error Error message and details
  */
-router.get('/:id', validators.getLobbyById, (req, res, next) => {
+router.get('/:id', validators.getLobbyById, async (req, res, next) => {
   try {
     const { id } = req.params;
     
-    // Mock implementation
-    const lobby = {
-      lobby_id: id,
-      status: 'waiting',
-      player_count: 2,
-      max_players: 4,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    // Get lobby details from the database
+    const lobby = await lobbyManager.getLobbyInfo(id);
     
-    // Mock player list
-    const players = [
-      {
-        player_id: uuidv4(),
-        session_id: 'session1',
-        join_order: 1,
-        joined_at: new Date(Date.now() - 120000).toISOString() // 2 minutes ago
-      },
-      {
-        player_id: uuidv4(),
-        session_id: 'session2',
-        join_order: 2,
-        joined_at: new Date().toISOString()
-      }
-    ];
+    if (!lobby) {
+      throw new NotFoundError(`Lobby with ID ${id} not found`);
+    }
     
-    res.json({
-      lobby,
-      players
-    });
+    res.json(lobby);
   } catch (error) {
     next(error);
   }
@@ -157,59 +112,16 @@ router.get('/:id', validators.getLobbyById, (req, res, next) => {
  * @apiError (409) {Object} error Lobby full or player already exists error
  * @apiError (400) {Object} error Validation error (invalid session_id or lobby not in 'waiting' state)
  */
-router.post('/:id/join', validators.joinLobby, (req, res, next) => {
+router.post('/:id/join', validators.joinLobby, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { session_id } = req.body;
     
-    // Mock implementation
-    // 1. Check if lobby exists (404 if not found)
-    const mockLobby = {
-      lobby_id: id,
-      status: 'waiting',
-      player_count: 2,
-      max_players: 4,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    // Add player to lobby using LobbyManager
+    const updatedLobby = await lobbyManager.joinLobby(session_id, id);
     
-    // Simulate 30% chance lobby doesn't exist
-    if (Math.random() < 0.3) {
-      return next(new NotFoundError(`Lobby with id ${id} not found`));
-    }
+    res.json(updatedLobby);
     
-    // 2. Check if lobby is in 'waiting' status
-    if (mockLobby.status !== 'waiting') {
-      return next(new ValidationError(`Cannot join lobby in '${mockLobby.status}' status`));
-    }
-    
-    // 3. Check if lobby is at capacity
-    if (mockLobby.player_count >= mockLobby.max_players) {
-      return next(new ConflictError('Lobby is at capacity'));
-    }
-    
-    // 4. Check if session_id already exists in this lobby
-    // Mock player list for demonstration
-    const existingPlayers = [
-      { player_id: uuidv4(), session_id: 'existing-session', join_order: 1 },
-      { player_id: uuidv4(), session_id: 'another-session', join_order: 2 }
-    ];
-    
-    // Check if session already exists
-    const existingPlayer = existingPlayers.find(player => player.session_id === session_id);
-    if (existingPlayer) {
-      return next(new ConflictError('Player with this session already exists in lobby'));
-    }
-    
-    // 5. Generate player ID and update lobby
-    const player_id = uuidv4();
-    mockLobby.player_count += 1;
-    
-    res.json({
-      success: true,
-      player_id,
-      lobby: mockLobby
-    });
   } catch (error) {
     next(error);
   }
@@ -264,39 +176,16 @@ router.post('/quick-join', validators.quickJoin, (req, res, next) => {
  *
  * @apiError {Object} error Error message and details
  */
-router.put('/:id/status', validators.updateLobbyStatus, (req, res, next) => {
+router.put('/:id/status', validators.updateLobbyStatus, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, player_id } = req.body;
+    const { status } = req.body;
     
-    // Mock implementation
-    // Check valid status transitions
-    const validTransitions = {
-      'waiting': ['active'],
-      'active': ['finished']
-    };
+    // Update lobby status using LobbyManager
+    const updatedLobby = await lobbyManager.updateLobbyStatus(id, status);
     
-    const mockLobby = {
-      lobby_id: id,
-      status: 'waiting', // Current status
-      player_count: 2,
-      max_players: 4,
-      updated_at: new Date().toISOString()
-    };
+    res.json(updatedLobby);
     
-    // Check if transition is valid
-    if (!validTransitions[mockLobby.status] || !validTransitions[mockLobby.status].includes(status)) {
-      return next(new ValidationError(`Invalid status transition from ${mockLobby.status} to ${status}`));
-    }
-    
-    // Update lobby status
-    mockLobby.status = status;
-    mockLobby.updated_at = new Date().toISOString();
-    
-    res.json({
-      success: true,
-      lobby: mockLobby
-    });
   } catch (error) {
     next(error);
   }
