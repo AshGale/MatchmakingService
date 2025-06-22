@@ -3,6 +3,7 @@ import { LobbyObject } from '../types';
 /**
  * Base API configuration
  */
+// Use relative paths for all API endpoints to ensure proxy works correctly
 const API_BASE_URL = '/api'; // Relative URL to be handled by proxy in development
 const LOBBIES_ENDPOINT = `${API_BASE_URL}/lobbies`;
 
@@ -33,9 +34,85 @@ const statusMapping: StatusMappings = {
  * Convert a backend lobby object to frontend format
  */
 function convertLobbyFromBackend(lobby: any): LobbyObject {
+  // Log the raw lobby data to debug
+  console.log('Raw lobby data from backend:', lobby);
+  
+  if (!lobby) {
+    console.error('Received null or undefined lobby data from backend');
+    // Return a default placeholder lobby object to avoid UI crashes
+    const nowDate = new Date();
+    return {
+      id: 'invalid',
+      lobby_id: 'invalid',
+      status: 'waiting',
+      currentPlayers: 0,
+      player_count: 0,
+      maxPlayers: 0,
+      max_players: 0,
+      createdAt: nowDate,  // Use Date object, not string
+      created_at: nowDate.toISOString(),
+      updatedAt: nowDate   // Add updatedAt required by the interface
+    };
+  }
+  
+  // Extract and safely convert player count values
+  const currentPlayersValue = lobby.current_players || lobby.player_count || lobby.currentPlayers || 0;
+  const maxPlayersValue = lobby.max_players || lobby.maxPlayers || 0;
+  
+  // Ensure numeric values
+  const currentPlayers = Number(currentPlayersValue);
+  const maxPlayers = Number(maxPlayersValue);
+  
+  // Handle date values
+  let createdDate: Date;
+  let dateStr = lobby.created_at || lobby.createdAt;
+  
+  // Convert to Date object
+  if (!dateStr) {
+    createdDate = new Date(); // Current date if none provided
+  } else if (dateStr instanceof Date) {
+    createdDate = dateStr; // Already a Date object
+  } else {
+    try {
+      // Try to parse the date string
+      createdDate = new Date(dateStr);
+      
+      // Check if valid date
+      if (isNaN(createdDate.getTime())) {
+        console.warn('Invalid date string received:', dateStr);
+        createdDate = new Date(); // Fallback to current date
+      }
+    } catch (e) {
+      console.error('Error parsing date:', e);
+      createdDate = new Date(); // Fallback to current date
+    }
+  }
+  
+  // Map backend property names to frontend property names
+  // Handle both snake_case and camelCase format
   return {
+    // Keep the original properties for other fields not explicitly transformed
     ...lobby,
-    status: lobby.status && statusMapping[lobby.status] ? statusMapping[lobby.status] : lobby.status
+    
+    // Ensure ID is properly mapped
+    id: lobby.id || lobby.lobby_id || '',
+    lobby_id: lobby.id || lobby.lobby_id || '',
+    
+    // Map status
+    status: lobby.status && statusMapping[lobby.status] ? statusMapping[lobby.status] : lobby.status,
+    
+    // Map player counts and ensure they are numbers
+    currentPlayers: currentPlayers,
+    player_count: currentPlayers,
+    
+    // Map max players
+    maxPlayers: maxPlayers,
+    max_players: maxPlayers,
+    
+    // Handle dates - createdAt must be Date object to match the interface
+    createdAt: createdDate,
+    created_at: createdDate.toISOString(),
+    updatedAt: new Date() // Default updatedAt to current date if not provided
   };
 }
 
@@ -150,29 +227,37 @@ export async function createLobby(maxPlayers: number): Promise<LobbyObject> {
 }
 
 /**
- * Generate a unique session ID for the current user
- * This would typically come from authentication in a real app
- * We'll store it in localStorage for persistence across page refreshes
+ * Get or generate a persistent user session ID that meets backend validation requirements
  */
 function getUserSessionId(): string {
-  // Check if we already have a session ID in localStorage
   let sessionId = localStorage.getItem('matchmaking_session_id');
   
-  // If not, create a new one and store it
-  if (!sessionId) {
-    // Generate a session ID that meets validation requirements (alphanumeric, underscores, hyphens only)
-    // Use a simpler format that matches the backend validation pattern
-    const timestamp = Date.now();
-    const randomPart = Math.random().toString(36).substring(2, 10).replace(/\./g, '');
-    sessionId = `user_${timestamp}_${randomPart}`;
-    localStorage.setItem('matchmaking_session_id', sessionId);
-  }
+  // Validation regex pattern: alphanumeric, underscores, hyphens only, length 8-128
+  const validSessionIdPattern = /^[a-zA-Z0-9_-]{8,128}$/;
   
-  // Ensure the session ID meets the backend validation requirements
-  if (!/^[a-zA-Z0-9_-]{8,128}$/.test(sessionId)) {
-    console.warn('Invalid session ID format detected, regenerating...');
-    localStorage.removeItem('matchmaking_session_id');
-    return getUserSessionId(); // Recursive call to generate a valid ID
+  // If no session ID exists or the existing one is invalid, generate a new one
+  if (!sessionId || !validSessionIdPattern.test(sessionId)) {
+    // Create a session ID guaranteed to be valid by using only safe characters
+    // Format: user_[timestamp]_[random string]
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 10) + 
+                      Math.random().toString(36).substring(2, 10);
+    
+    sessionId = `user_${timestamp}_${randomPart}`;
+    
+    // Ensure the ID isn't too long (max 128 chars)
+    if (sessionId.length > 128) {
+      sessionId = sessionId.substring(0, 128);
+    }
+    
+    // Double-check validity (should always pass due to our construction method)
+    if (!validSessionIdPattern.test(sessionId)) {
+      // Fallback simple ID if somehow still invalid
+      sessionId = `user_${Math.random().toString(36).substring(2, 10)}`;
+    }
+    
+    console.log('Generated new session ID:', sessionId);
+    localStorage.setItem('matchmaking_session_id', sessionId);
   }
   
   return sessionId;
@@ -184,20 +269,17 @@ function getUserSessionId(): string {
  * @returns Updated lobby object with the player added
  */
 export async function joinLobby(lobbyId: string): Promise<LobbyObject> {
-  // Get persistent session ID for this user
   const sessionId = getUserSessionId();
   
-  console.log(`Joining lobby ${lobbyId} with session ID: ${sessionId}`);
-  
   try {
+    console.log(`Joining lobby ${lobbyId} with session ${sessionId}`);
     const response = await apiRequest<any>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/join`, {
       method: 'POST',
       body: JSON.stringify({ session_id: sessionId }),
     });
-    
     return convertLobbyFromBackend(response);
   } catch (error) {
-    console.error(`Error joining lobby ${lobbyId}:`, error);
+    console.error('Error joining lobby:', error);
     throw error;
   }
 }

@@ -1,10 +1,15 @@
 export interface LobbyObject {
   id: string;
+  lobby_id?: string;  // Backend format compatibility
   maxPlayers: number;
+  max_players?: number; // Backend format compatibility
   currentPlayers: number;
-  status: string; // 'open', 'full', 'in-game', 'closed'
+  player_count?: number; // Backend format compatibility
+  status: string; // 'open', 'full', 'in-game', 'closed' or 'waiting', 'active', 'finished'
   createdAt: Date;
+  created_at?: string; // Backend format compatibility (ISO string)
   updatedAt: Date;
+  updated_at?: string; // Backend format compatibility (ISO string)
   players?: Array<{
     id: string;
     username: string;
