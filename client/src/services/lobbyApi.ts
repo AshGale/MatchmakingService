@@ -160,9 +160,19 @@ function getUserSessionId(): string {
   
   // If not, create a new one and store it
   if (!sessionId) {
-    // Using a UUID-like format with timestamp for uniqueness
-    sessionId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    // Generate a session ID that meets validation requirements (alphanumeric, underscores, hyphens only)
+    // Use a simpler format that matches the backend validation pattern
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 10).replace(/\./g, '');
+    sessionId = `user_${timestamp}_${randomPart}`;
     localStorage.setItem('matchmaking_session_id', sessionId);
+  }
+  
+  // Ensure the session ID meets the backend validation requirements
+  if (!/^[a-zA-Z0-9_-]{8,128}$/.test(sessionId)) {
+    console.warn('Invalid session ID format detected, regenerating...');
+    localStorage.removeItem('matchmaking_session_id');
+    return getUserSessionId(); // Recursive call to generate a valid ID
   }
   
   return sessionId;

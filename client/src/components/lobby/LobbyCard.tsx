@@ -33,7 +33,14 @@ export const LobbyCard: React.FC<LobbyCardProps> = ({
   loading = false,
   disabled = false
 }) => {
-  const { id, status, currentPlayers, maxPlayers, createdAt } = lobby;
+  // Handle both camelCase and snake_case property names
+  const { 
+    id, 
+    status, 
+    currentPlayers = lobby.player_count || 0, 
+    maxPlayers = lobby.max_players || 0, 
+    createdAt = lobby.created_at || new Date().toISOString() 
+  } = lobby;
   
   // Format the date for relative time display
   const formattedDate = React.useMemo(() => {
