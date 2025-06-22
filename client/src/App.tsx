@@ -46,10 +46,15 @@ function App() {
       // Handle potentially missing date by using current time as fallback
       const createdDate = lobby.createdAt ? new Date(lobby.createdAt) : new Date();
       return {
+        // Include both naming conventions for compatibility
+        id: lobby.id,
         lobby_id: lobby.id,
         status: mapStatus(lobby.status),
+        currentPlayers: lobby.currentPlayers,
         player_count: lobby.currentPlayers,
+        maxPlayers: lobby.maxPlayers,
         max_players: lobby.maxPlayers,
+        createdAt: createdDate.toISOString(),
         created_at: createdDate.toISOString()
       } as LobbyComponentObject;
     });

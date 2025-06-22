@@ -1,5 +1,14 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
+
+:: First, stop any existing services
+echo Checking for and stopping any existing services...
+call stop.cmd
+
+:: Create temp file to store PIDs
+set "pidfile=%temp%\matchmaking_pids.txt"
+:: Clear previous PID file if it exists
+if exist "%pidfile%" del "%pidfile%"
 
 echo ===== MatchmakingService Unified Startup =====
 
@@ -340,9 +349,14 @@ if !ERRORLEVEL! equ 0 (
 
 :: Start backend based on environment - remove quotes around PORT assignment
 if "!ENV!"=="dev" (
-    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm run dev"
+    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm run dev && pause"
 ) else (
-    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm start"
+    start "MatchmakingService Backend" cmd /c "set PORT=!PORT! && npm start && pause"
+)
+
+:: Store backend PID
+for /f "tokens=2" %%a in ('tasklist /fi "windowtitle eq MatchmakingService Backend" /fo list ^| find "PID:"') do (
+    echo backend_pid=%%a > "%pidfile%"
 )
 
 echo Backend server started on port !PORT!
@@ -380,8 +394,19 @@ if exist client\package.json (
         )
         echo Frontend built successfully. Serve using a static file server or the backend
     ) else (
-        start "MatchmakingService Frontend" cmd /c "cd client && npm start"
+        start "MatchmakingService Frontend" cmd /c "cd client && npm start && pause"
+        
+        :: Store frontend PID
+        timeout /t 2 > nul
+        for /f "tokens=2" %%a in ('tasklist /fi "windowtitle eq MatchmakingService Frontend" /fo list ^| find "PID:"') do (
+            echo frontend_pid=%%a >> "%pidfile%"
+        )
+        
         echo Frontend development server started
+        
+        :: Register cleanup handler
+        echo.
+        echo To stop all services, press Ctrl+C in this window or run stop.cmd
     )
 ) else (
     echo Warning: No package.json found in client directory

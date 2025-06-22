@@ -4,11 +4,15 @@ import { formatDistanceToNow } from 'date-fns';
 
 // Lobby object type definition as mentioned in task
 export interface LobbyObject {
-  lobby_id: string;
+  id: string;
+  lobby_id?: string; // For compatibility with transformed objects
   status: 'waiting' | 'active' | 'finished';
-  player_count: number;
-  max_players: number;
-  created_at: string;
+  currentPlayers: number;
+  player_count?: number; // For compatibility with transformed objects
+  maxPlayers: number;
+  max_players?: number; // For compatibility with transformed objects
+  createdAt: string;
+  created_at?: string; // For compatibility with transformed objects
 }
 
 // Props interface as defined in the task
@@ -29,26 +33,26 @@ export const LobbyCard: React.FC<LobbyCardProps> = ({
   loading = false,
   disabled = false
 }) => {
-  const { lobby_id, status, player_count, max_players, created_at } = lobby;
+  const { id, status, currentPlayers, maxPlayers, createdAt } = lobby;
   
   // Format the date for relative time display
   const formattedDate = React.useMemo(() => {
     try {
-      return formatDistanceToNow(new Date(created_at), { addSuffix: true });
+      return formatDistanceToNow(new Date(createdAt), { addSuffix: true });
     } catch (e) {
       return 'unknown time';
     }
-  }, [created_at]);
+  }, [createdAt]);
   
   // Check if the lobby is full
-  const isFull = player_count >= max_players;
+  const isFull = currentPlayers >= maxPlayers;
   
   // Determine if join button should be disabled
   const isJoinDisabled = disabled || loading || isFull || status !== 'waiting';
   
   const handleJoin = () => {
     if (!isJoinDisabled) {
-      onJoin(lobby_id);
+      onJoin(id);
     }
   };
   
@@ -61,7 +65,7 @@ export const LobbyCard: React.FC<LobbyCardProps> = ({
       
       <div className={styles.content}>
         <div className={styles.playerCount}>
-          <span className={styles.count}>{player_count}/{max_players}</span>
+          <span className={styles.count}>{currentPlayers}/{maxPlayers}</span>
           <span className={styles.playersLabel}>players</span>
         </div>
       </div>
