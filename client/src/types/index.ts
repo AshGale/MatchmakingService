@@ -19,6 +19,7 @@ export interface UseLobbyStateResult {
   fetchLobbyDetails: (id: string) => Promise<void>;
   createLobby: (maxPlayers: number) => Promise<string>;
   joinLobby: (lobbyId: string) => Promise<boolean>;
+  leaveLobby: (lobbyId: string) => Promise<boolean>;
   loading: boolean;
   error: string | null;
 }

@@ -840,7 +840,7 @@
       "description": "Replace mock lobby data with actual API integration to ensure lobbies persist between server restarts",
       "details": "The frontend is currently using hardcoded mock lobby data instead of communicating with the backend API. This is why lobbies don't persist between server restarts. The implementation needs to replace all mock data with actual API calls to the backend endpoints.",
       "testStrategy": "",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "subtasks": [
@@ -849,7 +849,7 @@
           "title": "Remove Static Mock Data from Frontend",
           "description": "Remove hardcoded MOCK_LOBBIES array and all references to static data",
           "details": "The useLobbyState.ts hook currently uses a hardcoded MOCK_LOBBIES array for all operations. Remove this static data and prepare the hook to use actual API calls. This includes removing the mock delay timers and handling real API response structures.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "parentTaskId": 27
         },
@@ -858,7 +858,7 @@
           "title": "Implement API Service for Lobby Operations",
           "description": "Create an API service module to handle all lobby-related network requests",
           "details": "Create a dedicated API service (e.g., lobbyApi.ts) that encapsulates all lobby-related network requests. This module should handle:\n1. Fetching lobbies with proper filtering\n2. Getting lobby details by ID\n3. Creating new lobbies\n4. Joining existing lobbies\n5. Proper error handling for API requests\n6. Type definitions for request/response data\n\nThe service should use fetch or axios to communicate with the backend endpoints.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "parentTaskId": 27
         },
@@ -867,7 +867,7 @@
           "title": "Update useLobbyState Hook to Use API Service",
           "description": "Refactor the useLobbyState hook to use the API service instead of mock data",
           "details": "Refactor the useLobbyState custom hook to use the new API service for all lobby operations. This includes:\n1. Replacing static mock data with API calls\n2. Handling loading states properly\n3. Implementing proper error handling\n4. Managing API request cancellation for component unmounts\n5. Using appropriate TypeScript types for API response data\n6. Adding proper state management for lobby operations",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "27.2"
           ],
@@ -878,7 +878,7 @@
           "title": "Test API Integration with Backend",
           "description": "Verify that the API integration works correctly with the backend",
           "details": "Test the API integration to ensure:\n1. Lobbies are fetched correctly from the backend\n2. Created lobbies are saved to the database and appear after refresh\n3. Joined lobbies update the player count correctly\n4. Error handling works as expected with various edge cases\n5. The app correctly handles network failures and retries\n6. Real-time updates are reflected in the UI\n\nThis should involve both manual testing and potentially implementing automated tests for API endpoints.",
-          "status": "pending",
+          "status": "done",
           "dependencies": [
             "27.3"
           ],

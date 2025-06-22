@@ -1,42 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { LobbyObject, UseLobbyStateResult } from '../types';
-
-// Mock data for initial development
-const MOCK_LOBBIES: LobbyObject[] = [
-  {
-    id: 'lobby-1',
-    maxPlayers: 4,
-    currentPlayers: 2,
-    status: 'open',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    players: [
-      { id: 'player-1', username: 'Player1', joinedAt: new Date() },
-      { id: 'player-2', username: 'Player2', joinedAt: new Date() },
-    ],
-  },
-  {
-    id: 'lobby-2',
-    maxPlayers: 6,
-    currentPlayers: 6,
-    status: 'full',
-    createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 mins ago
-    updatedAt: new Date(),
-    players: Array(6).fill(0).map((_, i) => ({
-      id: `player-${i+10}`,
-      username: `Player${i+10}`,
-      joinedAt: new Date(),
-    })),
-  },
-  {
-    id: 'lobby-3',
-    maxPlayers: 4,
-    currentPlayers: 4,
-    status: 'in-game',
-    createdAt: new Date(Date.now() - 1000 * 60 * 10), // 10 mins ago
-    updatedAt: new Date(),
-  },
-];
+import {
+  getLobbies,
+  getLobbyById,
+  createLobby as apiCreateLobby,
+  joinLobby as apiJoinLobby,
+  leaveLobby as apiLeaveLobby
+} from '../services/lobbyApi';
 
 /**
  * Custom hook for managing lobby data and operations
@@ -57,17 +27,12 @@ export const useLobbyState = (): UseLobbyStateResult => {
       setLoading(true);
       setError(null);
       
-      // Simulating API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 300)); // Fake API delay
-      
-      // Filter mock data based on status if provided
-      const filteredLobbies = status 
-        ? MOCK_LOBBIES.filter(lobby => lobby.status === status)
-        : [...MOCK_LOBBIES];
-      
-      setLobbies(filteredLobbies);
+      // Call the API service to get lobbies
+      const result = await getLobbies(status);
+      setLobbies(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch lobbies');
+      // Keep existing lobbies if request fails
     } finally {
       setLoading(false);
     }
@@ -82,18 +47,12 @@ export const useLobbyState = (): UseLobbyStateResult => {
       setLoading(true);
       setError(null);
       
-      // Simulating API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 300)); // Fake API delay
-      
-      const lobby = MOCK_LOBBIES.find(l => l.id === id);
-      
-      if (lobby) {
-        setSelectedLobby(lobby);
-      } else {
-        setError('Lobby not found');
-      }
+      // Call the API service to get lobby details
+      const lobby = await getLobbyById(id);
+      setSelectedLobby(lobby);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch lobby details');
+      setSelectedLobby(null);
     } finally {
       setLoading(false);
     }
@@ -109,21 +68,10 @@ export const useLobbyState = (): UseLobbyStateResult => {
       setLoading(true);
       setError(null);
       
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 500)); // Fake API delay
+      // Call the API service to create a lobby
+      const newLobby = await apiCreateLobby(maxPlayers);
       
-      const newLobby: LobbyObject = {
-        id: `lobby-${Date.now()}`,
-        maxPlayers,
-        currentPlayers: 1, // Creator joins automatically
-        status: 'open',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        players: [
-          { id: 'current-user', username: 'CurrentUser', joinedAt: new Date() },
-        ],
-      };
-      
+      // Update local state with the new lobby
       setLobbies(prev => [...prev, newLobby]);
       setSelectedLobby(newLobby);
       
@@ -146,62 +94,69 @@ export const useLobbyState = (): UseLobbyStateResult => {
       setLoading(true);
       setError(null);
       
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 400)); // Fake API delay
+      // Call the API service to join the lobby
+      const updatedLobby = await apiJoinLobby(lobbyId);
       
-      // Find and update the target lobby
-      const lobbyIndex = lobbies.findIndex(l => l.id === lobbyId);
-      
-      if (lobbyIndex === -1) {
-        setError('Lobby not found');
-        return false;
-      }
-      
-      // Create a copy of the lobby safely to avoid spread type errors
-      const foundLobby = lobbies[lobbyIndex];
-      const lobby: LobbyObject = {
-        id: foundLobby.id,
-        maxPlayers: foundLobby.maxPlayers,
-        currentPlayers: foundLobby.currentPlayers,
-        status: foundLobby.status,
-        createdAt: foundLobby.createdAt,
-        updatedAt: foundLobby.updatedAt,
-        players: foundLobby.players ? [...foundLobby.players] : []
-      };
-      
-      if (lobby.currentPlayers >= lobby.maxPlayers) {
-        setError('Lobby is full');
-        return false;
-      }
-      
-      // Update lobby with new player
-      const updatedLobby = {
-        ...lobby,
-        currentPlayers: lobby.currentPlayers + 1,
-        status: lobby.currentPlayers + 1 >= lobby.maxPlayers ? 'full' : 'open',
-        updatedAt: new Date(),
-        players: [
-          ...(lobby.players || []),
-          { id: 'current-user', username: 'CurrentUser', joinedAt: new Date() },
-        ],
-      };
-      
-      // Update lobbies state with proper typing
-      const updatedLobbies = lobbies.map((lobby, index) => 
-        index === lobbyIndex ? updatedLobby : lobby
-      );
-      
-      setLobbies(updatedLobbies);
+      // Update the local state with the updated lobby data
+      setLobbies(prev => prev.map(lobby => 
+        lobby.id === lobbyId ? updatedLobby : lobby
+      ));
       setSelectedLobby(updatedLobby);
       
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join lobby');
+      // Handle specific error cases
+      if (err instanceof Error) {
+        if (err.message.includes('full')) {
+          setError('Lobby is full');
+        } else if (err.message.includes('not found')) {
+          setError('Lobby not found');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to join lobby');
+      }
       return false;
     } finally {
       setLoading(false);
     }
-  }, [lobbies]);
+  }, []);
+
+  /**
+   * Leave a lobby
+   * @param lobbyId - ID of lobby to leave
+   * @returns Success status
+   */
+  const leaveLobby = useCallback(async (lobbyId: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Call the API service to leave the lobby
+      const updatedLobby = await apiLeaveLobby(lobbyId);
+      
+      // Update the local state with the updated lobby data
+      setLobbies(prev => prev.map(lobby => 
+        lobby.id === lobbyId ? updatedLobby : lobby
+      ));
+      setSelectedLobby(null);
+      
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to leave lobby');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch lobbies on component mount
+  useEffect(() => {
+    fetchLobbies();
+    // We're intentionally only running this once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     lobbies,
@@ -210,6 +165,7 @@ export const useLobbyState = (): UseLobbyStateResult => {
     fetchLobbyDetails,
     createLobby,
     joinLobby,
+    leaveLobby,
     loading,
     error,
   };
