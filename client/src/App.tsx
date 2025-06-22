@@ -42,13 +42,17 @@ function App() {
 
   // Map between our backend LobbyObject format and the component's expected format
   const mappedLobbies = useMemo(() => {
-    return lobbies.map(lobby => ({
-      lobby_id: lobby.id,
-      status: mapStatus(lobby.status),
-      player_count: lobby.currentPlayers,
-      max_players: lobby.maxPlayers,
-      created_at: lobby.createdAt.toISOString()
-    } as LobbyComponentObject));
+    return lobbies.map(lobby => {
+      // Handle potentially missing date by using current time as fallback
+      const createdDate = lobby.createdAt ? new Date(lobby.createdAt) : new Date();
+      return {
+        lobby_id: lobby.id,
+        status: mapStatus(lobby.status),
+        player_count: lobby.currentPlayers,
+        max_players: lobby.maxPlayers,
+        created_at: createdDate.toISOString()
+      } as LobbyComponentObject;
+    });
   }, [lobbies]);
   
   // Helper function to map status values

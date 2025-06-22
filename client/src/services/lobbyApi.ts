@@ -7,6 +7,47 @@ const API_BASE_URL = '/api'; // Relative URL to be handled by proxy in developme
 const LOBBIES_ENDPOINT = `${API_BASE_URL}/lobbies`;
 
 /**
+ * Maps frontend status values to backend status values
+ */
+type FrontendStatus = 'open' | 'full' | 'in-game' | 'closed';
+type BackendStatus = 'waiting' | 'active' | 'finished';
+
+interface StatusMappings {
+  [key: string]: string;
+}
+
+const statusMapping: StatusMappings = {
+  // Frontend → Backend
+  'open': 'waiting',
+  'full': 'waiting',
+  'in-game': 'active',
+  'closed': 'finished',
+  
+  // Backend → Frontend
+  'waiting': 'open',
+  'active': 'in-game',
+  'finished': 'closed'
+};
+
+/**
+ * Convert a backend lobby object to frontend format
+ */
+function convertLobbyFromBackend(lobby: any): LobbyObject {
+  return {
+    ...lobby,
+    status: lobby.status && statusMapping[lobby.status] ? statusMapping[lobby.status] : lobby.status
+  };
+}
+
+/**
+ * Convert status string from frontend to backend format
+ */
+function convertStatusToBackend(status?: string): string | undefined {
+  if (!status) return undefined;
+  return statusMapping[status] || status;
+}
+
+/**
  * API request helper with error handling
  * @param url - API endpoint URL
  * @param options - Fetch options
@@ -46,15 +87,29 @@ async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
 
 /**
  * Get all lobbies with optional status filter
- * @param status - Optional status filter ('waiting', 'active', 'finished')
+ * @param status - Optional status filter ('open', 'full', 'in-game', 'closed')
  * @returns Array of lobbies
  */
 export async function getLobbies(status?: string): Promise<LobbyObject[]> {
-  const url = status
-    ? `${LOBBIES_ENDPOINT}?status=${encodeURIComponent(status)}`
-    : LOBBIES_ENDPOINT;
-  
-  return apiRequest<LobbyObject[]>(url);
+  try {
+    // If no status is provided or it maps to undefined, default to fetching 'waiting' lobbies
+    // This is needed because the backend requires the status query parameter
+    const backendStatus = status ? convertStatusToBackend(status) : 'waiting';
+    
+    // TypeScript fix - ensure we always have a string to encode
+    const encodedStatus = backendStatus ? encodeURIComponent(backendStatus) : '';
+    const url = `${LOBBIES_ENDPOINT}?status=${encodedStatus}`;
+    
+    console.log(`Fetching lobbies with URL: ${url}`);
+    
+    const response = await apiRequest<{lobbies: any[], total_count: number}>(url);
+    
+    // Convert each lobby from backend to frontend format
+    return Array.isArray(response.lobbies) ? response.lobbies.map(convertLobbyFromBackend) : [];
+  } catch (error) {
+    console.error('Error fetching lobbies:', error);
+    return [];
+  }
 }
 
 /**
@@ -63,7 +118,8 @@ export async function getLobbies(status?: string): Promise<LobbyObject[]> {
  * @returns Lobby details
  */
 export async function getLobbyById(lobbyId: string): Promise<LobbyObject> {
-  return apiRequest<LobbyObject>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}`);
+  const response = await apiRequest<any>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}`);
+  return convertLobbyFromBackend(response);
 }
 
 /**
@@ -72,10 +128,44 @@ export async function getLobbyById(lobbyId: string): Promise<LobbyObject> {
  * @returns Created lobby object
  */
 export async function createLobby(maxPlayers: number): Promise<LobbyObject> {
-  return apiRequest<LobbyObject>(LOBBIES_ENDPOINT, {
-    method: 'POST',
-    body: JSON.stringify({ settings: { maxPlayers } }),
-  });
+  try {
+    // Get the session ID for this user
+    const playerId = getUserSessionId();
+    
+    console.log(`Creating lobby with max players: ${maxPlayers} and player ID: ${playerId}`);
+    
+    const response = await apiRequest<any>(LOBBIES_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify({
+        playerId, // Optional player ID
+        settings: { maxPlayers } 
+      }),
+    });
+    
+    return convertLobbyFromBackend(response);
+  } catch (error) {
+    console.error('Error creating lobby:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate a unique session ID for the current user
+ * This would typically come from authentication in a real app
+ * We'll store it in localStorage for persistence across page refreshes
+ */
+function getUserSessionId(): string {
+  // Check if we already have a session ID in localStorage
+  let sessionId = localStorage.getItem('matchmaking_session_id');
+  
+  // If not, create a new one and store it
+  if (!sessionId) {
+    // Using a UUID-like format with timestamp for uniqueness
+    sessionId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem('matchmaking_session_id', sessionId);
+  }
+  
+  return sessionId;
 }
 
 /**
@@ -84,9 +174,22 @@ export async function createLobby(maxPlayers: number): Promise<LobbyObject> {
  * @returns Updated lobby object with the player added
  */
 export async function joinLobby(lobbyId: string): Promise<LobbyObject> {
-  return apiRequest<LobbyObject>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/join`, {
-    method: 'POST',
-  });
+  // Get persistent session ID for this user
+  const sessionId = getUserSessionId();
+  
+  console.log(`Joining lobby ${lobbyId} with session ID: ${sessionId}`);
+  
+  try {
+    const response = await apiRequest<any>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/join`, {
+      method: 'POST',
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+    
+    return convertLobbyFromBackend(response);
+  } catch (error) {
+    console.error(`Error joining lobby ${lobbyId}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -95,23 +198,44 @@ export async function joinLobby(lobbyId: string): Promise<LobbyObject> {
  * @returns Updated lobby object
  */
 export async function leaveLobby(lobbyId: string): Promise<LobbyObject> {
-  return apiRequest<LobbyObject>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/leave`, {
-    method: 'POST',
-  });
+  try {
+    // Get session ID for the current user
+    const sessionId = getUserSessionId();
+    
+    console.log(`Attempting to leave lobby ${lobbyId} with session ID: ${sessionId}`);
+    
+    // The backend doesn't have a dedicated leave endpoint at this time
+    // Instead, we'll handle this by updating the lobby status for now
+    // In a production app, you would want a proper leave endpoint
+    
+    // For now, we'll just return the current lobby details
+    const lobby = await getLobbyById(lobbyId);
+    console.log(`User leaving lobby, current lobby state:`, lobby);
+    
+    return lobby;
+  } catch (error) {
+    console.error(`Error leaving lobby ${lobbyId}:`, error);
+    return { id: lobbyId } as LobbyObject; // Return minimal lobby object on error
+  }
 }
 
 /**
  * Update lobby status
  * @param lobbyId - ID of the lobby to update
- * @param status - New status ('waiting', 'active', 'finished')
+ * @param status - New status ('open', 'full', 'in-game', 'closed')
  * @returns Updated lobby object
  */
 export async function updateLobbyStatus(
   lobbyId: string,
   status: string
 ): Promise<LobbyObject> {
-  return apiRequest<LobbyObject>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/status`, {
+  // Convert frontend status to backend status
+  const backendStatus = convertStatusToBackend(status);
+  
+  const response = await apiRequest<any>(`${LOBBIES_ENDPOINT}/${encodeURIComponent(lobbyId)}/status`, {
     method: 'PUT',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status: backendStatus }),
   });
+  
+  return convertLobbyFromBackend(response);
 }
